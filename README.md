@@ -1,8 +1,52 @@
 # Portfolio Website
 
-電気通信大学情報理工学域2類情報通信工学プログラムに2024年入学した学生のポートフォリオサイトです。
+電気通信大学情報理工学域Ⅱ類情報通信工学プログラムに2024年入学した学生のポートフォリオサイト＆アプリケーションハブです。
 
-## 技術スタック
+## 📚 詳しいドキュメント
+
+プロジェクトの詳細なまとめはこちら：**[docs/PROJECT_SUMMARY.md](docs/PROJECT_SUMMARY.md)**
+
+- セットアップ手順
+- データベース構造
+- 実装済み機能の詳細
+- 第2フェーズ以降の実装計画
+- 既知の問題と解決策
+- 他のPCでの開発環境構築方法
+
+## ⚡ クイックスタート
+
+```bash
+# リポジトリのクローン
+git clone https://github.com/Elmo2358/portfolio.git
+cd portfolio
+
+# 依存関係のインストール
+npm install
+
+# 環境変数の設定
+cp .env.example .env.local
+# .env.localを編集してNEXTAUTH_SECRETなどを設定
+
+# データベースの初期化
+npx prisma generate
+npx prisma migrate dev
+npm run seed
+
+# 開発サーバーの起動
+npm run dev
+```
+
+http://localhost:3000 にアクセスしてください。
+
+## 🔐 認証情報
+
+- **ログインURL**: http://localhost:3000/login
+- **ユーザー名**: `admin`
+- **パスワード**: `admin123`
+
+⚠️ **本番環境では必ずパスワードを変更してください！**
+
+## 🛠️ 技術スタック
 
 - **フレームワーク**: Next.js 14 (App Router)
 - **言語**: TypeScript
