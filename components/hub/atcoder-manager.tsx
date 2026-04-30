@@ -1,0 +1,585 @@
+"use client"
+
+import { useState, useEffect } from "react"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
+import { Textarea } from "@/components/ui/textarea"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
+import { Label } from "@/components/ui/label"
+import {
+  Search,
+  Plus,
+  ExternalLink,
+  Flame,
+  Trash2,
+  Save,
+} from "lucide-react"
+
+interface Problem {
+  id: string
+  contestId: string
+  title: string
+  difficulty?: number
+  url: string
+  userStatus: string
+  userMemo?: string | null
+  lastAttempted?: string | null
+}
+
+interface Stats {
+  overview: {
+    totalProblems: number
+    totalAC: number
+    attemptRate: number
+    acRate: number
+    streak: number
+  }
+  statusBreakdown: {
+    unattempted: number
+    in_progress: number
+    contest_ac: number
+    upsolved_ac: number
+    review: number
+  }
+  contestStats: Array<{ contestId: string; acCount: number }>
+  difficultyStats: Array<{
+    range: string
+    solved: number
+    total: number
+  }>
+  dailyAC: Record<string, number>
+}
+
+const statusLabels: Record<string, string> = {
+  unattempted: "未着手",
+  in_progress: "途中",
+  contest_ac: "コンテスト内AC",
+  upsolved_ac: "コンテスト後AC",
+  review: "復習中",
+}
+
+const statusColors: Record<string, string> = {
+  unattempted: "bg-gray-500",
+  in_progress: "bg-yellow-500",
+  contest_ac: "bg-green-600",
+  upsolved_ac: "bg-blue-600",
+  review: "bg-purple-600",
+}
+
+export function AtCoderManager() {
+  const [problems, setProblems] = useState<Problem[]>([])
+  const [stats, setStats] = useState<Stats | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [search, setSearch] = useState("")
+  const [statusFilter, setStatusFilter] = useState("")
+  const [page, setPage] = useState(1)
+
+  // 新規問題追加
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
+  const [newProblem, setNewProblem] = useState({
+    problemId: "",
+    title: "",
+    contestId: "",
+    url: "",
+  })
+
+  // 問題編集
+  const [editingProblem, setEditingProblem] = useState<Problem | null>(null)
+  const [editMemo, setEditMemo] = useState("")
+  const [editStatus, setEditStatus] = useState("")
+
+  // 初回ロード
+  useEffect(() => {
+    fetchStats()
+    fetchProblemsInternal()
+  }, [])
+
+  // 検索・フィルタ変更時のデバウンス処理
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setPage(1)
+      fetchProblemsInternal()
+    }, 500) // 500ms遅延
+
+    return () => clearTimeout(timer)
+  }, [search, statusFilter])
+
+  // ページ変更時
+  useEffect(() => {
+    fetchProblemsInternal()
+  }, [page])
+
+  const fetchProblemsInternal = async () => {
+    try {
+      const params = new URLSearchParams({
+        page: page.toString(),
+        limit: "50",
+      })
+      if (search) params.append("search", search)
+      if (statusFilter) params.append("status", statusFilter)
+
+      const res = await fetch(`/api/hub/atcoder/problems?${params}`)
+      if (!res.ok) {
+        if (res.status === 401) {
+          setError("ログインが必要です")
+        } else {
+          console.error("API Error:", res.status, res.statusText)
+          setError("問題の取得に失敗しました")
+        }
+        return
+      }
+      const data = await res.json()
+      setProblems(data.problems || [])
+      setError(null)
+    } catch (error) {
+      console.error("Error fetching problems:", error)
+      setError("問題の取得に失敗しました")
+    }
+  }
+
+  const fetchProblems = async () => {
+    await fetchProblemsInternal()
+  }
+
+  const fetchStats = async () => {
+    try {
+      const res = await fetch("/api/hub/atcoder/stats")
+      if (!res.ok) {
+        if (res.status === 401) {
+          setError("ログインが必要です")
+        } else {
+          setError("統計の取得に失敗しました")
+        }
+        return
+      }
+      const data = await res.json()
+      setStats(data)
+      setError(null)
+    } catch (error) {
+      console.error("Error fetching stats:", error)
+      setError("統計の取得に失敗しました")
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleAddProblem = async () => {
+    try {
+      const res = await fetch("/api/hub/atcoder/problems", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(newProblem),
+      })
+
+      if (res.ok) {
+        setNewProblem({ problemId: "", title: "", contestId: "", url: "" })
+        setIsAddDialogOpen(false)
+        await fetchProblems()
+        await fetchStats()
+      } else {
+        const data = await res.json()
+        alert(data.error || "問題の追加に失敗しました")
+      }
+    } catch (error) {
+      console.error("Error adding problem:", error)
+      alert("問題の追加に失敗しました")
+    }
+  }
+
+  const handleUpdateProblem = async () => {
+    if (!editingProblem) return
+
+    try {
+      const res = await fetch(`/api/hub/atcoder/problems/${editingProblem.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          status: editStatus,
+          memo: editMemo,
+        }),
+      })
+
+      if (res.ok) {
+        setEditingProblem(null)
+        await fetchProblems()
+        await fetchStats()
+      } else {
+        alert("問題の更新に失敗しました")
+      }
+    } catch (error) {
+      console.error("Error updating problem:", error)
+      alert("問題の更新に失敗しました")
+    }
+  }
+
+  const handleDeleteProblem = async (problemId: string) => {
+    if (!confirm("この問題を削除しますか？")) return
+
+    try {
+      const res = await fetch(`/api/hub/atcoder/problems/${problemId}`, {
+        method: "DELETE",
+      })
+
+      if (res.ok) {
+        await fetchProblems()
+        await fetchStats()
+      } else {
+        alert("問題の削除に失敗しました")
+      }
+    } catch (error) {
+      console.error("Error deleting problem:", error)
+      alert("問題の削除に失敗しました")
+    }
+  }
+
+  const openEditDialog = (problem: Problem) => {
+    setEditingProblem(problem)
+    setEditMemo(problem.userMemo || "")
+    setEditStatus(problem.userStatus)
+  }
+
+  if (loading) {
+    return <div className="text-center py-12">読み込み中...</div>
+  }
+
+  if (error) {
+    return (
+      <Card className="border-2 border-red-500 bg-red-50 dark:bg-red-950 dark:border-red-600">
+        <CardContent className="py-12 text-center">
+          <p className="text-red-600 dark:text-red-400 mb-4">{error}</p>
+          <p className="text-sm text-muted-foreground">
+            アプリケーションハブを使用するにはログインしてください
+          </p>
+        </CardContent>
+      </Card>
+    )
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* 統計ダッシュボード */}
+      {stats && (
+        <div className="grid gap-4 md:grid-cols-4">
+          <Card className="border-2 border-emerald-500 bg-emerald-50 dark:bg-emerald-950 dark:border-emerald-600">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-emerald-700 dark:text-emerald-300">
+                総問題数
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold text-emerald-600">
+                {stats.overview.totalProblems}
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                登録済みの問題
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card className="border-2 border-green-500 bg-green-50 dark:bg-green-950 dark:border-green-600">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-green-700 dark:text-green-300">
+                AC数
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold text-green-600">
+                {stats.overview.totalAC}
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                AC率: {stats.overview.acRate}%
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card className="border-2 border-blue-500 bg-blue-50 dark:bg-blue-950 dark:border-blue-600">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-blue-700 dark:text-blue-300">
+                挑戦率
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold text-blue-600">
+                {stats.overview.attemptRate}%
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                手をつけた問題の割合
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card className="border-2 border-orange-500 bg-orange-50 dark:bg-orange-950 dark:border-orange-600">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-orange-700 dark:text-orange-300 flex items-center gap-2">
+                <Flame className="h-4 w-4" />
+                ストリーク
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold text-orange-600">
+                {stats.overview.streak}日
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                連続AC記録
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* 検索・フィルタ・追加 */}
+      <Card>
+        <CardHeader>
+          <CardTitle>問題管理</CardTitle>
+          <CardDescription>
+            AtCoderの問題を管理・追跡
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-col gap-4">
+            <div className="flex gap-2">
+              <div className="relative flex-1 min-w-[300px]">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="問題名またはIDで検索..."
+                  value={search}
+                  onChange={(e) => {
+                    setSearch(e.target.value)
+                  }}
+                  className="pl-10 h-12 text-base w-full"
+                />
+              </div>
+              <select
+                value={statusFilter}
+                onChange={(e) => {
+                  setStatusFilter(e.target.value)
+                  setPage(1)
+                }}
+                className="flex h-12 w-[140px] items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+              >
+                <option value="">すべて</option>
+                <option value="unattempted">未着手</option>
+                <option value="in_progress">途中</option>
+                <option value="contest_ac">コンテスト内AC</option>
+                <option value="upsolved_ac">コンテスト後AC</option>
+                <option value="review">復習中</option>
+              </select>
+              <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button
+                    className="bg-emerald-600 hover:bg-emerald-700 h-12 whitespace-nowrap"
+                    onClick={() => setIsAddDialogOpen(true)}
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    問題を追加
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>問題を追加</DialogTitle>
+                    <DialogDescription>
+                      AtCoderの問題を手動で追加
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="space-y-4 py-4">
+                    <div>
+                      <Label htmlFor="problemId">問題ID</Label>
+                      <Input
+                        id="problemId"
+                        placeholder="abc250_a"
+                        value={newProblem.problemId}
+                        onChange={(e) =>
+                          setNewProblem({ ...newProblem, problemId: e.target.value })
+                        }
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="title">タイトル</Label>
+                      <Input
+                        id="title"
+                        placeholder="問題タイトル"
+                        value={newProblem.title}
+                        onChange={(e) =>
+                          setNewProblem({ ...newProblem, title: e.target.value })
+                        }
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="contestId">コンテストID</Label>
+                      <Input
+                        id="contestId"
+                        placeholder="abc250"
+                        value={newProblem.contestId}
+                        onChange={(e) =>
+                          setNewProblem({ ...newProblem, contestId: e.target.value })
+                        }
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="url">URL</Label>
+                      <Input
+                        id="url"
+                        placeholder="https://atcoder.jp/contests/abc250/tasks/abc250_a"
+                        value={newProblem.url}
+                        onChange={(e) =>
+                          setNewProblem({ ...newProblem, url: e.target.value })
+                        }
+                      />
+                    </div>
+                  </div>
+                  <DialogFooter>
+                    <Button
+                      variant="outline"
+                      onClick={() => setIsAddDialogOpen(false)}
+                    >
+                      キャンセル
+                    </Button>
+                    <Button onClick={handleAddProblem}>
+                      追加
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* 問題一覧 */}
+      <div className="grid gap-4">
+        {problems.length === 0 ? (
+          <Card>
+            <CardContent className="py-12 text-center text-muted-foreground">
+              {search || statusFilter
+                ? "条件に一致する問題がありません"
+                : "問題がまだ登録されていません"}
+            </CardContent>
+          </Card>
+        ) : (
+          problems.map((problem) => (
+            <Card
+              key={problem.id}
+              className="hover:shadow-md transition-shadow"
+            >
+              <CardContent className="p-4">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Badge
+                        className={`text-white ${statusColors[problem.userStatus]}`}
+                      >
+                        {statusLabels[problem.userStatus]}
+                      </Badge>
+                      <span className="text-sm text-muted-foreground">
+                        {problem.id}
+                      </span>
+                      {problem.difficulty && (
+                        <Badge variant="outline" className="text-xs">
+                          推定 difficulty: {problem.difficulty}
+                        </Badge>
+                      )}
+                    </div>
+                    <h3 className="font-semibold mb-1 truncate">{problem.title}</h3>
+                    <p className="text-sm text-muted-foreground mb-2">
+                      {problem.contestId}
+                    </p>
+                    {problem.userMemo && (
+                      <p className="text-sm text-muted-foreground bg-muted p-2 rounded">
+                        {problem.userMemo}
+                      </p>
+                    )}
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => openEditDialog(problem)}
+                    >
+                      <Save className="h-4 w-4" />
+                    </Button>
+                    <a
+                      href={problem.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      <Button variant="outline" size="sm">
+                        <ExternalLink className="h-4 w-4" />
+                      </Button>
+                    </a>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleDeleteProblem(problem.id)}
+                    >
+                      <Trash2 className="h-4 w-4 text-red-600" />
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))
+        )}
+      </div>
+
+      {/* 問題編集ダイアログ */}
+      {editingProblem && (
+        <Dialog open={!!editingProblem} onOpenChange={() => setEditingProblem(null)}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>問題を編集</DialogTitle>
+              <DialogDescription>
+                {editingProblem.title}
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <div>
+                <Label htmlFor="editStatus">ステータス</Label>
+                <select
+                  id="editStatus"
+                  value={editStatus}
+                  onChange={(e) => setEditStatus(e.target.value)}
+                  className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+                >
+                  <option value="unattempted">未着手</option>
+                  <option value="in_progress">途中</option>
+                  <option value="contest_ac">コンテスト内AC</option>
+                  <option value="upsolved_ac">コンテスト後AC</option>
+                  <option value="review">復習中</option>
+                </select>
+              </div>
+              <div>
+                <Label htmlFor="editMemo">メモ</Label>
+                <Textarea
+                  id="editMemo"
+                  placeholder="解法のメモ、気づいた点、復習すべき点など..."
+                  value={editMemo}
+                  onChange={(e) => setEditMemo(e.target.value)}
+                  rows={4}
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setEditingProblem(null)}>
+                キャンセル
+              </Button>
+              <Button onClick={handleUpdateProblem}>
+                保存
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
+    </div>
+  )
+}

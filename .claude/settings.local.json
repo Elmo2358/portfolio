@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install *)",
+      "Bash(npx prisma *)",
+      "Bash(curl -s http://localhost:3000)",
+      "Bash(npm run *)",
+      "Bash(npx next *)",
+      "Bash(timeout 5 bash -c \"tail -f C:\\\\Users\\\\kerox\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\c--Users-kerox-hp\\\\792f9dcb-50aa-4de9-ae9f-71ff1e4f5812\\\\tasks\\\\bho9gcgas.output 2>/dev/null || cat C:\\\\Users\\\\kerox\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\c--Users-kerox-hp\\\\792f9dcb-50aa-4de9-ae9f-71ff1e4f5812\\\\tasks\\\\bho9gcgas.output\")",
+      "Bash(curl http://localhost:3003/api/portfolio/projects)",
+      "Bash(taskkill /F /IM node.exe)"
+    ]
+  }
+}

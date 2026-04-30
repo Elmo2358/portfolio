@@ -1,0 +1,296 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ユーザー情報（認証・アプリ管理用）
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  name          String?
+  image         String?
+  role          String    @default("user") // admin, user
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // リレーション
+  qualifications Qualification[]
+  internships     Internship[]
+  teamExperiences TeamExperience[]
+  projects        Project[]
+  skills          Skill[]
+  // アプリケーションハブ用
+  tasks           Task[]
+  incomes         Income[]
+  expenses        Expense[]
+  jobApplications JobApplication[]
+  games           Game[]
+  books           Book[]
+  bucketListItems BucketListItem[]
+  // AtCoder関連
+  atCoderUserProblems AtCoderUserProblem[]
+  atCoderSubmissions AtCoderSubmission[]
+}
+
+// 資格・試験情報（ポートフォリオ表示）
+model Qualification {
+  id          String   @id @default(cuid())
+  name        String   // 資格名（例: TOEIC, 基本情報技術者試験）
+  score       String?  // スコアや結果
+  date        DateTime // 取得日/受験日
+  description String?  // 説明や詳細
+  category    String   // カテゴリ（語学, 技術, その他）
+  displayOrder Int     // 表示順序
+  isPublic    Boolean  @default(true) // 公開するか
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// 実習・インターンシップ情報（ポートフォリオ表示）
+model Internship {
+  id          String   @id @default(cuid())
+  title       String   // タイトル
+  company     String?  // 企業/組織名
+  period      String   // 期間
+  description String?  // 説明
+  learned     String?  // 学んだこと
+  displayOrder Int     // 表示順序
+  isPublic    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// サークル活動・チーム開発経験（ポートフォリオ表示）
+model TeamExperience {
+  id          String   @id @default(cuid())
+  title       String   // 役職・活動名
+  organization String  // 団体名
+  period      String   // 活動期間
+  description String?  // 説明
+  learned     String?  // 学んだこと・成果
+  role        String?  // 役割（PM, リーダーなど）
+  displayOrder Int     // 表示順序
+  isPublic    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// プロジェクト・作品（ポートフォリオ表示）
+model Project {
+  id          String   @id @default(cuid())
+  title       String   // プロジェクト名
+  description String?  // 説明
+  technologies String   // 使用技術（JSON配列）
+  url         String?  // URL
+  githubUrl   String?  // GitHub URL
+  imageUrl    String?  // 画像URL
+  displayOrder Int     // 表示順序
+  isPublic    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// スキル・専攻分野（ポートフォリオ表示）
+model Skill {
+  id          String   @id @default(cuid())
+  name        String   // スキル名
+  category    String   // カテゴリ（言語, フレームワーク, その他）
+  level       Int      // 熟練度（1-5）
+  description String?  // 説明
+  displayOrder Int     // 表示順序
+  isPublic    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// ===== アプリケーションハブ用（プライベート） =====
+
+// タスク管理アプリ用
+model Task {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  status      String   // todo, in_progress, completed
+  priority    String   // low, medium, high
+  dueDate     DateTime?
+  completedAt DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// 収入管理アプリ用
+model Income {
+  id          String   @id @default(cuid())
+  source      String   // 収入源
+  amount      Float    // 金額
+  date        DateTime // 日付
+  description String?
+  category    String   // カテゴリ（バイト, 奨学金, その他）
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// 家計簿アプリ用
+model Expense {
+  id          String   @id @default(cuid())
+  item        String   // 項目
+  amount      Float    // 金額
+  date        DateTime // 日付
+  category    String   // カテゴリ（食費, 交通費, その他）
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// 就活管理アプリ用
+model JobApplication {
+  id          String   @id @default(cuid())
+  type        String   @default("本選考") // 本選考, インターン
+  company     String   // 企業名
+  position    String?  // 職種
+  status      String   // ES提出, テスト面接, 最終面接, 内定, 落選
+  appliedDate DateTime // 申請日
+  notes       String?  // メモ
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// ゲーム管理アプリ用
+model Game {
+  id          String   @id @default(cuid())
+  title       String
+  genre       String?
+  platform    String?
+  completed   Boolean  @default(false)
+  completedAt DateTime?
+  rating      Int?     // 評価（1-5）
+  notes       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// 本管理アプリ用
+model Book {
+  id          String   @id @default(cuid())
+  title       String
+  author      String?
+  genre       String?
+  completed   Boolean  @default(false)
+  completedAt DateTime?
+  rating      Int?     // 評価（1-5）
+  notes       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// 旅行・やりたいこと管理アプリ用
+model BucketListItem {
+  id          String   @id @default(cuid())
+  title       String
+  category    String   // travel, experience, goal, other
+  description String?
+  status      String   // planning, in_progress, completed
+  targetDate  DateTime?
+  completedAt DateTime?
+  priority    Int      // 優先度（1-5）
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// ===== AtCoder関連 =====
+
+// AtCoder問題メタデータ
+model AtCoderProblem {
+  id          String   @id // 問題ID (例: abc250_a)
+  contestId   String   // コンテストID (例: abc250)
+  title       String   // 問題タイトル
+  difficulty  Int?     // 推定難易度（レーティング値）
+  tags        String?  // アルゴリズムタグ（JSON配列）
+  url         String   // AtCoder問題ページURL
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // リレーション
+  userProblems  AtCoderUserProblem[]
+  submissions   AtCoderSubmission[]
+}
+
+// ユーザーのAtCoder問題進捗管理
+model AtCoderUserProblem {
+  id             String   @id @default(cuid())
+  userId         String
+  problemId      String
+  status         String   @default("unattempted") // unattempted, in_progress, contest_ac, upsolved_ac, review
+  memo           String?  // メモ・備考
+  lastAttempted  DateTime? // 最後に挑戦した日時
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  problem    AtCoderProblem @relation(fields: [problemId], references: [id], onDelete: Cascade)
+  userRel    User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, problemId])
+  @@index([userId, status])
+}
+
+// AtCoder提出履歴（APIから取得）
+model AtCoderSubmission {
+  id             String   @id // AtCoderの提出ID
+  userId         String
+  problemId      String
+  language       String   // 使用言語
+  result         String   // AC, WA, TLE, REなど
+  executionTime  Int?     // 実行時間（ミリ秒）
+  epochSecond    BigInt   // 提出のUNIXタイムスタンプ
+  createdAt      DateTime @default(now())
+
+  problem    AtCoderProblem @relation(fields: [problemId], references: [id], onDelete: Cascade)
+  userRel    User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, epochSecond])
+  @@index([problemId])
+}
+
