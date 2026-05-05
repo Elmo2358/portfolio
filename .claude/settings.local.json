@@ -16,7 +16,9 @@
       "Bash(npx shadcn@latest add checkbox)",
       "Bash(npm list *)",
       "Bash(npx shadcn@latest add dropdown-menu)",
-      "Bash(git add *)"
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(git push *)"
     ]
   }
 }
