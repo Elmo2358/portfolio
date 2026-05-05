@@ -524,9 +524,76 @@ npx prisma db push
 
 ---
 
+## ⏰ 定期同期機能
+
+### 概要
+AtCoderの提出履歴を毎時自動的に取得し、データベースを更新します。
+
+### 技術仕様
+- **Vercel Cron Jobs**: 毎時0分に実行（`0 * * * *`）
+- **APIエンドポイント**: `/api/cron/atcoder-sync`
+- **認証**: `CRON_SECRET` 環境変数によるBearerトークン認証
+- **処理内容**:
+  1. AtCoder IDを持つ全ユーザーを取得
+  2. 各ユーザーの最新の提出履歴（100件）を取得
+  3. 新しい提出のみを処理（重複排除）
+  4. 問題メタデータを作成/更新
+  5. ユーザーの進捗を更新
+
+### 環境変数
+```bash
+# .env.local または .env.production
+CRON_SECRET="random-secret-string-here"
+```
+
+### 本番環境へのデプロイ
+1. Vercelプロジェクトの環境変数に `CRON_SECRET` を設定
+2. `vercel.json` のcron設定が自動的に適用される
+3. デプロイ完了後、毎時自動実行が開始
+
+### 手動同期（開発環境）
+開発環境ではcronが動作しないため、手動で同期できます：
+
+```bash
+# 設定ページから
+1. http://localhost:3000/hub/settings にアクセス
+2. 「今すぐ同期」ボタンをクリック
+
+# またはAPIを直接呼び出し
+curl -X POST http://localhost:3000/api/debug/cron
+```
+
+### APIレスポンス例
+```json
+{
+  "success": true,
+  "message": "AtCoder sync completed",
+  "stats": {
+    "usersProcessed": 5,
+    "submissionsProcessed": 23,
+    "problemsUpdated": 12,
+    "errors": 0
+  }
+}
+```
+
+### ログの確認
+
+```bash
+# Vercelダッシュボード
+1. プロジェクトの「Deployments」タブ
+2. 最新のデプロイをクリック
+3. 「Logs」でcronジョブの実行ログを確認
+
+# またはVercel CLI
+vercel logs --follow
+```
+
+---
+
 ## 🎯 次のステップ
 
-### 第2フェーズの実装を開始するには：
+### 第2フェーズの残り実装：
 1. AtCoder Problems API (Kenkoooo API) の調査
 2. バックグラウンド同期ジョブの設計
 3. ヒートマップコンポーネントの実装

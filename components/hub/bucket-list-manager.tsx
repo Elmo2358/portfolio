@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge"
 import { Plus, Sparkles, MapPin, Calendar, Trash2, Edit2, CheckCircle2, Clock, Target, Flame } from "lucide-react"
 import { format } from "date-fns"
 import { ja } from "date-fns/locale"
+import { ReminderButton } from "@/components/hub/reminder-button"
 
 interface BucketListItem {
   id: string
@@ -337,6 +338,13 @@ export function BucketListManager() {
                     </div>
 
                     <div className="flex gap-1">
+                      <ReminderButton
+                        entityType="bucket_list_item"
+                        entityId={item.id}
+                        title={item.title}
+                        description={item.description || undefined}
+                        defaultRemindAt={item.targetDate ? new Date(item.targetDate) : undefined}
+                      />
                       <Button
                         size="sm"
                         variant="outline"

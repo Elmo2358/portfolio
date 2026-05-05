@@ -90,37 +90,95 @@ export async function GET(req: NextRequest) {
       take: 20,
     })
 
-    // 日別AC数（ヒートマップ用）
+    // 日別AC数（提出履歴から集計）
     const dailyAC = new Map<string, number>()
-    userProblems.forEach((up) => {
-      if (
-        (up.status === "contest_ac" || up.status === "upsolved_ac") &&
-        up.lastAttempted
-      ) {
-        const date = up.lastAttempted.toISOString().split("T")[0]
-        dailyAC.set(date, (dailyAC.get(date) || 0) + 1)
-      }
+    const submissions = await prisma.atCoderSubmission.findMany({
+      where: {
+        userId: session.user.id,
+        result: "AC",
+      },
+      select: {
+        epochSecond: true,
+      },
+      orderBy: {
+        epochSecond: "asc",
+      },
     })
 
-    // ストリーク計算（連続日数）
-    const sortedDates = Array.from(dailyAC.keys())
-      .sort()
-      .reverse()
+    submissions.forEach((sub) => {
+      const date = new Date(sub.epochSecond * 1000).toISOString().split("T")[0]
+      dailyAC.set(date, (dailyAC.get(date) || 0) + 1)
+    })
 
-    let streak = 0
+    // 週番号を取得する関数（日曜開始）
+    const getWeekNumber = (dateStr: string) => {
+      const date = new Date(dateStr)
+      const year = date.getFullYear()
+      const oneJan = new Date(year, 0, 1)
+      const numberOfDays = Math.floor((date.getTime() - oneJan.getTime()) / (24 * 60 * 60 * 1000))
+      return Math.ceil((date.getDay() + 1 + numberOfDays) / 7)
+    }
+
+    // ストリーク計算（週1回の寛容措置付き）
+    const sortedDates = Array.from(dailyAC.keys()).sort().reverse()
+    let currentStreak = 0
+    let longestStreak = 0
+    let tempStreak = 0
+    let forgivenessUsed = 0 // 使用した寛容措置の回数
+    const weeklyForgiveness = new Map<string, boolean>() // 週ごとの寛容使用状況
+
     const today = new Date().toISOString().split("T")[0]
     const yesterday = new Date(Date.now() - 86400000).toISOString().split("T")[0]
 
+    // 現在のストリーク計算
     for (let i = 0; i < sortedDates.length; i++) {
       const date = sortedDates[i]
       const expectedDate = i === 0 ? today : new Date(
         new Date(sortedDates[i - 1]).getTime() - 86400000
       ).toISOString().split("T")[0]
 
+      const weekKey = `${expectedDate.split('-')[0]}-W${getWeekNumber(expectedDate)}`
+
       if (date === expectedDate || (i === 0 && date === yesterday)) {
-        streak++
+        currentStreak++
+        // 最長ストリークも更新
+        if (currentStreak > longestStreak) {
+          longestStreak = currentStreak
+        }
       } else {
-        break
+        // ACがない日の場合、寛容措置をチェック
+        if (!weeklyForgiveness.has(weekKey) && currentStreak > 0) {
+          weeklyForgiveness.set(weekKey, true)
+          forgivenessUsed++
+          // ストリークは維持
+        } else {
+          // 寛容措置を使い切っている場合はストリーク終了
+          break
+        }
+      }
+    }
+
+    // 最長ストリーク計算（全期間）
+    const allDates = Array.from(dailyAC.keys()).sort()
+    tempStreak = 0
+
+    for (let i = 0; i < allDates.length; i++) {
+      if (i === 0) {
+        tempStreak = 1
+      } else {
+        const prevDate = new Date(allDates[i - 1])
+        const currDate = new Date(allDates[i])
+        const diffDays = Math.floor((currDate.getTime() - prevDate.getTime()) / (24 * 60 * 60 * 1000))
+
+        if (diffDays <= 8) { // 週1回の寛容を含めて8日以内なら継続
+          tempStreak++
+        } else {
+          tempStreak = 1
+        }
+      }
+
+      if (tempStreak > longestStreak) {
+        longestStreak = tempStreak
       }
     }
 
@@ -134,7 +192,9 @@ export async function GET(req: NextRequest) {
         acRate: userProblems.length > 0
           ? Math.round((totalAC / userProblems.length) * 100)
           : 0,
-        streak,
+        streak: currentStreak,
+        longestStreak,
+        forgivenessUsed,
       },
       statusBreakdown: statusStats,
       contestStats: contestStatsArray,

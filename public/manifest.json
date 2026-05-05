@@ -1,0 +1,20 @@
+{
+  "name": "Portfolio & Hub",
+  "short_name": "Portfolio",
+  "description": "電気通信大学情報理工学域2類の学生ポートフォリオとアプリケーションハブ",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#10b981",
+  "orientation": "portrait",
+  "categories": ["education", "productivity"],
+  "screenshots": [],
+  "shortcuts": [
+    {
+      "name": "Hub",
+      "short_name": "Hub",
+      "description": "アプリケーションハブを開く",
+      "url": "/hub"
+    }
+  ]
+}

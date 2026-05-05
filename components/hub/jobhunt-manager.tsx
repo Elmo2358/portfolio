@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge"
 import { Plus, Building2, Briefcase, Trophy, XCircle, Calendar, Trash2, Edit2, TrendingUp } from "lucide-react"
 import { format } from "date-fns"
 import { ja } from "date-fns/locale"
+import { ReminderButton } from "@/components/hub/reminder-button"
 
 interface JobApplication {
   id: string
@@ -334,6 +335,12 @@ export function JobHuntManager() {
                   </div>
 
                   <div className="flex gap-2">
+                    <ReminderButton
+                      entityType="job_application"
+                      entityId={application.id}
+                      title={`${application.company} - ${application.type}`}
+                      description={application.notes || undefined}
+                    />
                     <Button
                       size="sm"
                       variant="outline"

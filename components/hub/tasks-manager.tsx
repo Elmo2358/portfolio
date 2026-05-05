@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge"
 import { Plus, CheckCircle2, Clock, AlertCircle, Trash2, Edit2, Calendar } from "lucide-react"
 import { format } from "date-fns"
 import { ja } from "date-fns/locale"
+import { ReminderButton } from "@/components/hub/reminder-button"
 
 interface Task {
   id: string
@@ -325,6 +326,13 @@ export function TasksManager() {
 
                   {/* アクションボタン */}
                   <div className="flex gap-2">
+                    <ReminderButton
+                      entityType="task"
+                      entityId={task.id}
+                      title={task.title}
+                      description={task.description || undefined}
+                      defaultRemindAt={task.dueDate ? new Date(task.dueDate) : undefined}
+                    />
                     <Button
                       size="sm"
                       variant="outline"

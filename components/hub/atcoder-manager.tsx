@@ -6,6 +6,9 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Textarea } from "@/components/ui/textarea"
+import { ActivityHeatmap } from "@/components/hub/atcoder/heatmap"
+import { StreakCard } from "@/components/hub/atcoder/streak-card"
+import { ContestSchedule } from "@/components/hub/atcoder/contest-schedule"
 import {
   Dialog,
   DialogContent,
@@ -270,73 +273,71 @@ export function AtCoderManager() {
     <div className="space-y-6">
       {/* 統計ダッシュボード */}
       {stats && (
-        <div className="grid gap-4 md:grid-cols-4">
-          <Card className="border-2 border-emerald-500 bg-emerald-50 dark:bg-emerald-950 dark:border-emerald-600">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-emerald-700 dark:text-emerald-300">
-                総問題数
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold text-emerald-600">
-                {stats.overview.totalProblems}
-              </div>
-              <p className="text-xs text-muted-foreground mt-1">
-                登録済みの問題
-              </p>
-            </CardContent>
-          </Card>
+        <>
+          <div className="grid gap-4 md:grid-cols-3">
+            <Card className="border-2 border-emerald-500 bg-emerald-50 dark:bg-emerald-950 dark:border-emerald-600">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium text-emerald-700 dark:text-emerald-300">
+                  総問題数
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-bold text-emerald-600">
+                  {stats.overview.totalProblems}
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  登録済みの問題
+                </p>
+              </CardContent>
+            </Card>
 
-          <Card className="border-2 border-green-500 bg-green-50 dark:bg-green-950 dark:border-green-600">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-green-700 dark:text-green-300">
-                AC数
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold text-green-600">
-                {stats.overview.totalAC}
-              </div>
-              <p className="text-xs text-muted-foreground mt-1">
-                AC率: {stats.overview.acRate}%
-              </p>
-            </CardContent>
-          </Card>
+            <Card className="border-2 border-green-500 bg-green-50 dark:bg-green-950 dark:border-green-600">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium text-green-700 dark:text-green-300">
+                  AC数
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-bold text-green-600">
+                  {stats.overview.totalAC}
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  AC率: {stats.overview.acRate}%
+                </p>
+              </CardContent>
+            </Card>
 
-          <Card className="border-2 border-blue-500 bg-blue-50 dark:bg-blue-950 dark:border-blue-600">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-blue-700 dark:text-blue-300">
-                挑戦率
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold text-blue-600">
-                {stats.overview.attemptRate}%
-              </div>
-              <p className="text-xs text-muted-foreground mt-1">
-                手をつけた問題の割合
-              </p>
-            </CardContent>
-          </Card>
+            <Card className="border-2 border-blue-500 bg-blue-50 dark:bg-blue-950 dark:border-blue-600">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium text-blue-700 dark:text-blue-300">
+                  挑戦率
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-bold text-blue-600">
+                  {stats.overview.attemptRate}%
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  手をつけた問題の割合
+                </p>
+              </CardContent>
+            </Card>
+          </div>
 
-          <Card className="border-2 border-orange-500 bg-orange-50 dark:bg-orange-950 dark:border-orange-600">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-orange-700 dark:text-orange-300 flex items-center gap-2">
-                <Flame className="h-4 w-4" />
-                ストリーク
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold text-orange-600">
-                {stats.overview.streak}日
-              </div>
-              <p className="text-xs text-muted-foreground mt-1">
-                連続AC記録
-              </p>
-            </CardContent>
-          </Card>
-        </div>
+          {/* ストリーク詳細カード */}
+          <StreakCard
+            currentStreak={stats.overview.streak}
+            longestStreak={stats.overview.longestStreak || 0}
+            forgivenessUsed={stats.overview.forgivenessUsed || 0}
+          />
+        </>
       )}
+
+      {/* 学習履歴ヒートマップ */}
+      <ActivityHeatmap days={365} />
+
+      {/* コンテストスケジュール */}
+      <ContestSchedule limit={10} sites={["atcoder.jp", "codeforces.com", "yukicoder.me"]} />
 
       {/* 検索・フィルタ・追加 */}
       <Card>

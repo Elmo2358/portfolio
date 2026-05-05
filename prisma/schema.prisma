@@ -17,6 +17,7 @@ model User {
   name          String?
   image         String?
   role          String    @default("user") // admin, user
+  atCoderId     String?   @unique // AtCoderユーザーID
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
@@ -37,6 +38,12 @@ model User {
   // AtCoder関連
   atCoderUserProblems AtCoderUserProblem[]
   atCoderSubmissions AtCoderSubmission[]
+  // コンテストリマインダー（移行用）
+  contestReminders ContestReminder[]
+  // 汎用リマインダー
+  reminders Reminder[]
+  // 通知ログ
+  notificationLogs NotificationLog[]
 }
 
 // 資格・試験情報（ポートフォリオ表示）
@@ -284,7 +291,7 @@ model AtCoderSubmission {
   language       String   // 使用言語
   result         String   // AC, WA, TLE, REなど
   executionTime  Int?     // 実行時間（ミリ秒）
-  epochSecond    BigInt   // 提出のUNIXタイムスタンプ
+  epochSecond    Int      // 提出のUNIXタイムスタンプ
   createdAt      DateTime @default(now())
 
   problem    AtCoderProblem @relation(fields: [problemId], references: [id], onDelete: Cascade)
@@ -294,3 +301,79 @@ model AtCoderSubmission {
   @@index([problemId])
 }
 
+// コンテストリマインダー
+model ContestReminder {
+  id            String   @id @default(cuid())
+  userId        String
+  contestId     String   // CLISTのコンテストID
+  event         String   // コンテスト名
+  resource      String   // サイト名（例: atcoder.jp）
+  start         String   // 開始時刻（ISO 8601）
+  end           String   // 終了時刻（ISO 8601）
+  href          String   // コンテストURL
+  remind24h     Boolean  @default(true)  // 24時間前に通知
+  remind1h      Boolean  @default(true)  // 1時間前に通知
+  notified24h   Boolean  @default(false) // 24時間前通知済み
+  notified1h    Boolean  @default(false) // 1時間前通知済み
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  userRel    User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, contestId])
+  @@index([userId, start])
+  @@index([userId, resource])
+}
+
+// ===== 汎用リマインダー・通知システム =====
+
+// 汎用リマインダー（タスク、就活、バケツリスト、コンテストなど）
+model Reminder {
+  id                String   @id @default(cuid())
+  userId            String
+  targetEntityType  String   // ターゲットの種類: task, job_application, bucket_list_item, contest など
+  targetEntityId    String   // ターゲットのID
+  title             String   // リマインダータイトル
+  description       String?  // 説明
+  remindAt          DateTime // 通知日時（メイン）
+  notifyMethod      String   @default("app") // 通知方法: app, email, both
+  isNotified        Boolean  @default(false) // 通知済みフラグ
+  notifiedAt        DateTime? // 通知日時
+  calendarEventId   String?  // GoogleカレンダーのイベントID
+
+  // 事前通知オプション
+  reminder24h       Boolean  @default(false) // 24時間前に通知
+  reminder1h        Boolean  @default(false) // 1時間前に通知
+  reminderCustom    String?  // カスタム通知時刻（JSON配列: ["1日前", "1時間前"]）
+
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  userRel           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, targetEntityType, targetEntityId])
+  @@index([userId, remindAt])
+  @@index([isNotified])
+}
+
+// 通知ログ（重複送信防止）
+model NotificationLog {
+  id              String   @id @default(cuid())
+  userId          String
+  reminderId      String?  // 関連するリマインダーID（任意）
+  type            String   // 通知タイプ: reminder, contest, deadline など
+  title           String   // 通知タイトル
+  message         String   // 通知メッセージ
+  method          String   // 通知方法: app, email, both
+  sentAt          DateTime @default(now()) // 送信日時
+  status          String   @default("sent") // sent, failed
+  read            Boolean  @default(false) // 既読フラグ
+  readAt          DateTime? // 既読日時
+
+  userRel         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, type])
+  @@index([userId, sentAt])
+  @@index([reminderId])
+  @@index([userId, read])
+}

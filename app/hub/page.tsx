@@ -1,7 +1,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
-import { CheckCircle2, DollarSign, Briefcase, Gamepad2, Sparkles, Code2 } from "lucide-react"
+import { CheckCircle2, DollarSign, Briefcase, Gamepad2, Sparkles, Code2, Settings } from "lucide-react"
 
 const apps = [
   {
@@ -83,9 +83,9 @@ export default function HubPage() {
           {apps.map((app) => (
             <Card
               key={app.id}
-              className="hover:shadow-xl transition-all hover:-translate-y-1 border-2 border-emerald-500 bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950 dark:border-emerald-600 dark:hover:bg-emerald-900 animate-slideUp"
+              className="hover:shadow-xl transition-all hover:-translate-y-1 border-2 border-emerald-500 bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950 dark:border-emerald-600 dark:hover:bg-emerald-900 animate-slideUp flex flex-col"
             >
-              <CardHeader>
+              <CardHeader className="flex-shrink-0">
                 <div className="flex items-center gap-4">
                   <div className={`flex h-12 w-12 items-center justify-center rounded-lg ${app.color} text-white`}>
                     <app.icon className="h-6 w-6" />
@@ -98,11 +98,11 @@ export default function HubPage() {
                   </div>
                 </div>
               </CardHeader>
-              <CardContent>
+              <CardContent className="flex-grow flex items-end">
                 {app.status === "available" ? (
                   app.id === 2 ? (
                     // 家計簿アプリのみ2つのボタン
-                    <div className="flex gap-2">
+                    <div className="flex gap-2 w-full">
                       <Button
                         variant="outline"
                         className="flex-1 border-emerald-600 text-emerald-600 hover:bg-emerald-600 hover:text-white dark:border-emerald-500 dark:text-emerald-400 dark:hover:bg-emerald-500"
@@ -143,18 +143,30 @@ export default function HubPage() {
           ))}
         </div>
 
-        <div className="mt-12 text-center animate-fadeIn">
-          <Card className="inline-block border-2 border-emerald-500 bg-emerald-50 dark:bg-emerald-950 dark:border-emerald-600">
+        <div className="mt-12 max-w-md mx-auto animate-fadeIn">
+          {/* 設定へのリンク */}
+          <Card className="border-2 border-emerald-500 bg-emerald-50 dark:bg-emerald-950 dark:border-emerald-600">
             <CardHeader>
-              <CardTitle className="text-lg text-emerald-700 dark:text-emerald-300">
-                今後の予定
-              </CardTitle>
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-emerald-600 dark:bg-emerald-500">
+                  <Settings className="h-5 w-5 text-white" />
+                </div>
+                <CardTitle className="text-emerald-700 dark:text-emerald-300">設定</CardTitle>
+              </div>
             </CardHeader>
             <CardContent>
-              <p className="text-sm text-emerald-800 dark:text-emerald-200">
-                すべてのアプリケーションがご利用いただけます！<br />
-                タスク管理、家計簿、就活管理、メディア管理、やりたいことリスト、AtCoder問題管理をぜひご活用ください。
+              <p className="text-sm text-emerald-800 dark:text-emerald-200 mb-4">
+                AtCoder連携やその他の設定を管理できます
               </p>
+              <Button
+                variant="outline"
+                className="border-emerald-600 text-emerald-600 hover:bg-emerald-600 hover:text-white dark:border-emerald-500 dark:text-emerald-400 dark:hover:bg-emerald-500 dark:hover:text-white"
+                asChild
+              >
+                <Link href="/hub/settings">
+                  設定を開く
+                </Link>
+              </Button>
             </CardContent>
           </Card>
         </div>

@@ -4,6 +4,7 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { useSession } from "next-auth/react"
 import { ThemeToggle } from "@/components/theme-toggle"
+import { NotificationIcon } from "@/components/layout/notification-icon"
 
 export function Header() {
   const { data: session, status } = useSession()
@@ -51,6 +52,7 @@ export function Header() {
           </nav>
         </div>
         <div className="flex items-center gap-4">
+          {session && <NotificationIcon />}
           <ThemeToggle />
           <Button
             size="sm"
