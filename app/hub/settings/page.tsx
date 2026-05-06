@@ -88,6 +88,33 @@ export default function SettingsPage() {
     }
   }
 
+  const handleExport = async (app: string, format: string) => {
+    try {
+      const res = await fetch(`/api/hub/export?app=${app}&format=${format}`)
+
+      if (!res.ok) {
+        toast.error("エクスポートに失敗しました")
+        return
+      }
+
+      // ファイルとしてダウンロード
+      const blob = await res.blob()
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement("a")
+      a.href = url
+      a.download = `${app}_export_${new Date().toISOString().split('T')[0]}.${format}`
+      document.body.appendChild(a)
+      a.click()
+      window.URL.revokeObjectURL(url)
+      document.body.removeChild(a)
+
+      toast.success(`${app}のデータをエクスポートしました`)
+    } catch (error) {
+      console.error("Error exporting data:", error)
+      toast.error("エクスポートに失敗しました")
+    }
+  }
+
   const handleSave = async () => {
     if (!atCoderId.trim()) {
       setMessage("AtCoder IDを入力してください")
@@ -266,6 +293,68 @@ export default function SettingsPage() {
             <p className="text-xs text-muted-foreground">
               💡 ヒント: iPhoneでホーム画面に追加すると、アプリのように通知を受け取れます
             </p>
+          </CardContent>
+        </Card>
+
+        {/* データエクスポート */}
+        <Card className="border-2 border-emerald-500 bg-emerald-50 dark:bg-emerald-950 dark:border-emerald-600">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-emerald-700 dark:text-emerald-300 text-lg">データエクスポート</CardTitle>
+            <CardDescription className="text-sm">
+              すべてのデータをJSON/CSV形式でダウンロードできます
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="grid grid-cols-2 gap-2">
+              <Button
+                onClick={() => handleExport("all", "json")}
+                variant="outline"
+                className="border-emerald-600 text-emerald-600 hover:bg-emerald-600 hover:text-white dark:border-emerald-500 dark:text-emerald-400 text-sm"
+              >
+                📦 全データ（JSON）
+              </Button>
+              <Button
+                onClick={() => handleExport("all", "csv")}
+                variant="outline"
+                className="border-emerald-600 text-emerald-600 hover:bg-emerald-600 hover:text-white dark:border-emerald-500 dark:text-emerald-400 text-sm"
+              >
+                📄 全データ（CSV）
+              </Button>
+            </div>
+            <div className="grid grid-cols-4 gap-2">
+              <Button
+                onClick={() => handleExport("tasks", "json")}
+                variant="outline"
+                size="sm"
+                className="border-emerald-600 text-emerald-600 hover:bg-emerald-600 hover:text-white dark:border-emerald-500 dark:text-emerald-400 text-xs"
+              >
+                タスク
+              </Button>
+              <Button
+                onClick={() => handleExport("jobhunt", "json")}
+                variant="outline"
+                size="sm"
+                className="border-emerald-600 text-emerald-600 hover:bg-emerald-600 hover:text-white dark:border-emerald-500 dark:text-emerald-400 text-xs"
+              >
+                就活
+              </Button>
+              <Button
+                onClick={() => handleExport("bucket", "json")}
+                variant="outline"
+                size="sm"
+                className="border-emerald-600 text-emerald-600 hover:bg-emerald-600 hover:text-white dark:border-emerald-500 dark:text-emerald-400 text-xs"
+              >
+                バケツリスト
+              </Button>
+              <Button
+                onClick={() => handleExport("atcoder", "json")}
+                variant="outline"
+                size="sm"
+                className="border-emerald-600 text-emerald-600 hover:bg-emerald-600 hover:text-white dark:border-emerald-500 dark:text-emerald-400 text-xs"
+              >
+                AtCoder
+              </Button>
+            </div>
           </CardContent>
         </Card>
 
