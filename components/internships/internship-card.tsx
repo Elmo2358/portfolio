@@ -8,10 +8,10 @@ import { motion } from "framer-motion"
 interface Internship {
   id: string
   title: string
-  company?: string
+  company?: string | null
   period: string
-  description?: string
-  learned?: string
+  description?: string | null
+  learned?: string | null
 }
 
 interface InternshipCardProps {

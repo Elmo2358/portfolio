@@ -138,6 +138,13 @@ export async function getUserApiKey(userId: string): Promise<string | null> {
     select: { claudeApiKey: true, claudeApiEnabled: true },
   })
 
+  console.log("getUserApiKey result:", {
+    userId,
+    hasApiKey: !!user?.claudeApiKey,
+    apiEnabled: user?.claudeApiEnabled,
+    keyPrefix: user?.claudeApiKey ? user.claudeApiKey.slice(0, 8) : "none",
+  })
+
   if (!user?.claudeApiEnabled || !user?.claudeApiKey) {
     return null
   }

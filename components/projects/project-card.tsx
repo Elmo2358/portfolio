@@ -42,10 +42,10 @@ interface ProjectCardProps {
   project: {
     id: string
     title: string
-    description: string
+    description: string | null
     technologies: string | string[]
-    githubUrl?: string
-    url?: string
+    githubUrl?: string | null
+    url?: string | null
   }
   index: number
 }
@@ -76,7 +76,7 @@ export function ProjectCard({ project, index }: ProjectCardProps) {
             </div>
             <div className="flex-1">
               <CardTitle className="text-xl">{project.title}</CardTitle>
-              <CardDescription>{project.description}</CardDescription>
+              <CardDescription>{project.description || ""}</CardDescription>
             </div>
           </div>
         </CardHeader>

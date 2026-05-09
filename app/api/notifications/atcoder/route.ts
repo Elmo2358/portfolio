@@ -9,7 +9,13 @@ export async function GET(request: NextRequest) {
     headers.append('Access-Control-Allow-Headers', 'Content-Type')
 
     // AtCoderコンテストの通知を生成
-    const notifications = []
+    const notifications: Array<{
+      type: string
+      title: string
+      message: string
+      time: string
+      url: string
+    }> = []
 
     // TODO: 実際のコンテストデータを取得
     // 今はモックデータを返す

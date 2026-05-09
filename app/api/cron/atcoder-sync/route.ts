@@ -70,7 +70,7 @@ export async function POST(req: NextRequest) {
         console.log(`Processing ${newSubmissions.length} new submissions for ${user.atCoderId}`)
 
         // ユニークな問題IDを取得
-        const problemIds = [...new Set(newSubmissions.map((s) => s.problem_id))]
+        const problemIds = Array.from(new Set(newSubmissions.map((s) => s.problem_id)))
 
         // まず、全問題のメタデータを作成
         for (const problemId of problemIds) {

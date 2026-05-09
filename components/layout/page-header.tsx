@@ -24,7 +24,7 @@ export function PageHeader({ icon, title, description }: PageHeaderProps) {
         transition={{ duration: 0.5, delay: 0.2 }}
       >
         <div className="p-4 rounded-full bg-emerald-600 dark:bg-emerald-500">
-          {typeof icon === 'object' && 'type' in icon ? (
+          {icon && typeof icon === 'object' && 'type' in icon ? (
             <icon.type {...icon.props} className="h-12 w-12 text-white" />
           ) : (
             icon

@@ -180,12 +180,12 @@ export async function deleteTask(
  */
 export function taskToGoogleTask(task: {
   title: string
-  description?: string
+  description?: string | null
   dueDate?: Date | null
 }): GoogleTask {
   return {
     title: task.title,
-    notes: task.description,
+    notes: task.description || undefined,
     due: task.dueDate ? task.dueDate.toISOString().split("T")[0] : undefined,
     status: "needsAction",
   }

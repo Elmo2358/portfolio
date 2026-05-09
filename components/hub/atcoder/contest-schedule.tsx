@@ -65,7 +65,7 @@ export function ContestSchedule({ limit = 10, sites }: ContestScheduleProps) {
         const data = await res.json()
 
         if (data.success) {
-          const reminderSet = new Set(data.reminders.map((r: { contestId: string }) => r.contestId))
+          const reminderSet = new Set<string>(data.reminders.map((r: { contestId: string }) => r.contestId))
           setReminders(reminderSet)
         }
       } catch (error) {

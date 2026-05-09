@@ -29,15 +29,15 @@ export default function PerformanceDashboard() {
     const measurePerformance = () => {
       // Check if Performance API is available
       const hasPerformanceAPI = typeof performance !== 'undefined' &&
-                                performance.getEntriesByType &&
-                                typeof performance.getEntriesByType === 'function'
+                                'getEntriesByType' in performance &&
+                                typeof (performance as any).getEntriesByType === 'function'
 
       let domContentLoadedTime = 0
       let loadCompleteTime = 0
 
       if (hasPerformanceAPI) {
         try {
-          const navigationEntries = performance.getEntriesByType("navigation")
+          const navigationEntries = (performance as any).getEntriesByType("navigation")
           if (navigationEntries && navigationEntries.length > 0) {
             const navigation = navigationEntries[0] as PerformanceNavigationTiming
             domContentLoadedTime = navigation.domContentLoadedEventEnd - navigation.startTime

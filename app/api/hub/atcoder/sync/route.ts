@@ -46,7 +46,7 @@ export async function POST(req: NextRequest) {
     const submissions = await getAtCoderSubmissions(atCoderId, 100)
 
     // 問題IDのユニークセットを作成
-    const problemIds = [...new Set(submissions.map((s) => s.problem_id))]
+    const problemIds = Array.from(new Set(submissions.map((s) => s.problem_id)))
 
     let problemsCreated = 0
     let userProblemsUpdated = 0

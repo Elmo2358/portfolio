@@ -9,9 +9,9 @@ interface QualificationCardProps {
   qualification: {
     id: string
     name: string
-    score: string
+    score: string | null
     date: Date
-    description: string
+    description: string | null
     category: string
   }
   index: number
@@ -40,7 +40,7 @@ export function QualificationCard({ qualification, index }: QualificationCardPro
               </div>
               <div>
                 <CardTitle>{qualification.name}</CardTitle>
-                <CardDescription>{qualification.description}</CardDescription>
+                <CardDescription>{qualification.description || ""}</CardDescription>
               </div>
             </div>
             <Badge className={colorClasses.badge}>{qualification.category}</Badge>
@@ -50,7 +50,7 @@ export function QualificationCard({ qualification, index }: QualificationCardPro
           <div className="space-y-2">
             <div className="flex justify-between items-center">
               <span className="text-sm text-emerald-700 dark:text-emerald-300">結果</span>
-              <span className="font-semibold text-lg text-emerald-600">{qualification.score}</span>
+              <span className="font-semibold text-lg text-emerald-600">{qualification.score || "-"}</span>
             </div>
             <div className="flex justify-between items-center">
               <span className="text-sm text-emerald-700 dark:text-emerald-300">受験日/取得日</span>

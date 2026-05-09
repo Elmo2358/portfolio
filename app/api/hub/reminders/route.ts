@@ -3,7 +3,7 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { createReminder, getUserReminders } from "@/lib/reminders"
-import { addEventToCalendar, createGenericEvent } from "@/lib/google-calendar"
+import { addEventToCalendar, createGenericEvent, updateCalendarEvent } from "@/lib/google-calendar"
 
 // GET: ユーザーのリマインダー一覧を取得
 export async function GET(req: NextRequest) {
