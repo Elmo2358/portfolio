@@ -29,6 +29,9 @@ model User {
   googleTokenExpiresAt  DateTime? // トークン有効期限
   // Notion連携用
   notionAccessToken      String?   // Notion APIアクセストークン
+  // Claude AI連携用
+  claudeApiKey           String?   // Claude APIキー（ユーザー自身のキー）
+  claudeApiEnabled       Boolean   @default(false) // Claude API有効/無効
   createdAt             DateTime  @default(now())
   updatedAt             DateTime  @updatedAt
 
@@ -55,6 +58,8 @@ model User {
   reminders Reminder[]
   // 通知ログ
   notificationLogs NotificationLog[]
+  // AI Q&A
+  qaConversations QaConversation[]
 }
 
 // 資格・試験情報（ポートフォリオ表示）
@@ -392,4 +397,48 @@ model NotificationLog {
   @@index([userId, sentAt])
   @@index([reminderId])
   @@index([userId, read])
+}
+
+// ===== AI Q&A機能 =====
+
+// AIとの会話履歴
+model QaConversation {
+  id              String   @id @default(cuid())
+  userId          String
+  problemId       String?  // 関連する問題ID（任意）
+  title           String   // 会話のタイトル（最初のメッセージから自動生成）
+  messages        String   // メッセージ履歴（JSON配列）
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  userRel         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, problemId])
+  @@index([userId, updatedAt])
+}
+
+// AtCoder解説キャッシュ
+model EditorialCache {
+  id              String   @id @default(cuid())
+  problemId       String   @unique
+  editorialText   String   // 解説テキスト
+  summary         String?  // AI生成の要約
+  keyPoints       String?  // 重要ポイント（JSON配列）
+  difficulty      String?  // 難易度の説明
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([problemId])
+}
+
+// ヒントキャッシュ
+model HintCache {
+  id              String   @id @default(cuid())
+  problemId       String
+  hintLevel       Int      // ヒントレベル（1-3）
+  hintText        String   // ヒントテキスト
+  createdAt       DateTime @default(now())
+
+  @@unique([problemId, hintLevel])
+  @@index([problemId])
 }

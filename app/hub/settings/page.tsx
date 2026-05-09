@@ -2,6 +2,7 @@ import { redirect } from "next/navigation"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { NotionSettingsForm } from "@/components/hub/notion-settings-form"
+import { ClaudeSettingsForm } from "@/components/hub/claude-settings-form"
 import { SettingsClient } from "./settings-client"
 
 export default async function SettingsPage() {
@@ -18,6 +19,11 @@ export default async function SettingsPage() {
     wikiDatabaseId: "",
   }
 
+  let claudeSettings = {
+    apiKey: null as string | null,
+    enabled: false,
+  }
+
   // セッションのメールアドレスからユーザーを取得して設定を読み込む
   if (session?.user?.email) {
     try {
@@ -28,6 +34,8 @@ export default async function SettingsPage() {
           notionWikiEnabled: true,
           notionWikiDatabaseId: true,
           notionAccessToken: true,
+          claudeApiKey: true,
+          claudeApiEnabled: true,
         },
       })
 
@@ -37,9 +45,13 @@ export default async function SettingsPage() {
           wikiEnabled: user.notionWikiEnabled || false,
           wikiDatabaseId: user.notionWikiDatabaseId || "",
         }
+        claudeSettings = {
+          apiKey: user.claudeApiKey,
+          enabled: user.claudeApiEnabled || false,
+        }
       }
     } catch (error) {
-      console.error("Error fetching Notion settings:", error)
+      console.error("Error fetching settings:", error)
     }
   }
 
@@ -57,6 +69,12 @@ export default async function SettingsPage() {
             <p className="text-muted-foreground">Settings</p>
           </div>
         </div>
+
+        {/* Claude API連携 - Server Component + Server Actions */}
+        <ClaudeSettingsForm
+          initialApiKey={claudeSettings.apiKey}
+          initialEnabled={claudeSettings.enabled}
+        />
 
         {/* Notion Wiki連携 - Server Component + Server Actions */}
         <NotionSettingsForm initialSettings={notionSettings} />

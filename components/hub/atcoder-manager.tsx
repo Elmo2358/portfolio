@@ -6,9 +6,12 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Textarea } from "@/components/ui/textarea"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { ActivityHeatmap } from "@/components/hub/atcoder/heatmap"
 import { StreakCard } from "@/components/hub/atcoder/streak-card"
 import { ContestSchedule } from "@/components/hub/atcoder/contest-schedule"
+import { ChatInterface } from "@/components/hub/atcoder/ai/qa/chat-interface"
+import { HintRevealer } from "@/components/hub/atcoder/ai/qa/hint-revealer"
 import {
   Dialog,
   DialogContent,
@@ -27,6 +30,7 @@ import {
   Trash2,
   Save,
   BookOpen,
+  Sparkles,
 } from "lucide-react"
 
 interface Problem {
@@ -545,43 +549,83 @@ export function AtCoderManager() {
         )}
       </div>
 
+      {/* AIアシスタント */}
+      <Card className="border-2 border-purple-200 dark:border-purple-900 bg-purple-50 dark:bg-purple-950">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Sparkles className="h-5 w-5 text-purple-600" />
+            AI 学習アシスタント
+          </CardTitle>
+          <CardDescription>
+            AtCoderや競技プログラミングについて質問してください
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <ChatInterface className="h-[500px]" />
+        </CardContent>
+      </Card>
+
       {/* 問題編集ダイアログ */}
       {editingProblem && (
         <Dialog open={!!editingProblem} onOpenChange={() => setEditingProblem(null)}>
-          <DialogContent>
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>問題を編集</DialogTitle>
               <DialogDescription>
                 {editingProblem.title}
               </DialogDescription>
             </DialogHeader>
-            <div className="space-y-4 py-4">
-              <div>
-                <Label htmlFor="editStatus">ステータス</Label>
-                <select
-                  id="editStatus"
-                  value={editStatus}
-                  onChange={(e) => setEditStatus(e.target.value)}
-                  className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
-                >
-                  <option value="unattempted">未着手</option>
-                  <option value="in_progress">途中</option>
-                  <option value="contest_ac">コンテスト内AC</option>
-                  <option value="upsolved_ac">コンテスト後AC</option>
-                  <option value="review">復習中</option>
-                </select>
-              </div>
-              <div>
-                <Label htmlFor="editMemo">メモ</Label>
-                <Textarea
-                  id="editMemo"
-                  placeholder="解法のメモ、気づいた点、復習すべき点など..."
-                  value={editMemo}
-                  onChange={(e) => setEditMemo(e.target.value)}
-                  rows={4}
+            <Tabs defaultValue="edit" className="w-full">
+              <TabsList className="grid w-full grid-cols-3">
+                <TabsTrigger value="edit">編集</TabsTrigger>
+                <TabsTrigger value="hints">
+                  <Sparkles className="h-4 w-4 mr-1" />
+                  AIヒント
+                </TabsTrigger>
+                <TabsTrigger value="qa">Q&A</TabsTrigger>
+              </TabsList>
+              <TabsContent value="edit" className="space-y-4 py-4">
+                <div>
+                  <Label htmlFor="editStatus">ステータス</Label>
+                  <select
+                    id="editStatus"
+                    value={editStatus}
+                    onChange={(e) => setEditStatus(e.target.value)}
+                    className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+                  >
+                    <option value="unattempted">未着手</option>
+                    <option value="in_progress">途中</option>
+                    <option value="contest_ac">コンテスト内AC</option>
+                    <option value="upsolved_ac">コンテスト後AC</option>
+                    <option value="review">復習中</option>
+                  </select>
+                </div>
+                <div>
+                  <Label htmlFor="editMemo">メモ</Label>
+                  <Textarea
+                    id="editMemo"
+                    placeholder="解法のメモ、気づいた点、復習すべき点など..."
+                    value={editMemo}
+                    onChange={(e) => setEditMemo(e.target.value)}
+                    rows={4}
+                  />
+                </div>
+              </TabsContent>
+              <TabsContent value="hints" className="py-4">
+                <HintRevealer
+                  problemId={editingProblem.id}
+                  problemTitle={editingProblem.title}
                 />
-              </div>
-            </div>
+              </TabsContent>
+              <TabsContent value="qa" className="py-4">
+                <ChatInterface
+                  problemId={editingProblem.id}
+                  problemTitle={editingProblem.title}
+                  problemUrl={editingProblem.url}
+                  className="h-[500px]"
+                />
+              </TabsContent>
+            </Tabs>
             <DialogFooter>
               <Button variant="outline" onClick={() => setEditingProblem(null)}>
                 キャンセル

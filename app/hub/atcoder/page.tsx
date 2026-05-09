@@ -35,19 +35,17 @@ export default async function AtCoderPage() {
         <Card className="mb-6 border-2 border-emerald-500 bg-emerald-50 dark:bg-emerald-950 dark:border-emerald-600">
           <CardHeader>
             <CardTitle className="text-emerald-700 dark:text-emerald-300">
-              MVP機能（第1フェーズ）
+              AI機能（第5フェーズ）
             </CardTitle>
           </CardHeader>
           <CardContent className="text-sm text-emerald-800 dark:text-emerald-200">
             <ul className="list-disc list-inside space-y-1">
-              <li>問題の手動追加・編集・削除</li>
-              <li>問題名・IDでの検索</li>
-              <li>ステータス別フィルタリング</li>
-              <li>メモ機能（解法や気づきの記録）</li>
-              <li>統計ダッシュボード（AC数、挑戦率、ストリーク）</li>
+              <li>AIヒント生成（問題のヒントを3段階で提供）</li>
+              <li>AI Q&Aチャット（競技プログラミングについて質問応答）</li>
+              <li>問題編集ダイアログから直接AI機能を利用可能</li>
             </ul>
             <p className="mt-3 text-xs text-muted-foreground">
-              ※ 第2フェーズ以降で、AtCoder Problems APIによる自動同期、ヒートマップ、LLM学習アドバイスなどを追加予定
+              ※ 使用にはClaude APIキーが必要です。設定画面から入力してください。
             </p>
           </CardContent>
         </Card>
