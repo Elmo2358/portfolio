@@ -1,4 +1,13 @@
-import { FinanceManager } from "@/components/hub/finance-manager"
+import dynamic from "next/dynamic"
+import { CardListSkeleton } from "@/components/loading/card-skeleton"
+
+const FinanceManager = dynamic(
+  () => import("@/components/hub/finance-manager").then(mod => ({ default: mod.FinanceManager })),
+  {
+    loading: () => <CardListSkeleton count={6} />,
+    ssr: false
+  }
+)
 
 export default function FinancePage({
   searchParams

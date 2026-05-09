@@ -52,6 +52,9 @@ export async function POST(req: NextRequest) {
       endTime,
       location,
       url,
+      reminder24h,
+      reminder1h,
+      reminderCustom,
     } = body
 
     if (!targetEntityType || !targetEntityId || !title || !remindAt) {
@@ -70,6 +73,9 @@ export async function POST(req: NextRequest) {
       description,
       remindAt: new Date(remindAt),
       notifyMethod,
+      reminder24h,
+      reminder1h,
+      reminderCustom,
     })
 
     // カレンダーにも追加する場合
@@ -154,6 +160,9 @@ export async function PUT(req: NextRequest) {
         ...(updates.description !== undefined && { description: updates.description }),
         ...(updates.remindAt && { remindAt: new Date(updates.remindAt) }),
         ...(updates.notifyMethod && { notifyMethod: updates.notifyMethod }),
+        ...(updates.reminder24h !== undefined && { reminder24h: updates.reminder24h }),
+        ...(updates.reminder1h !== undefined && { reminder1h: updates.reminder1h }),
+        ...(updates.reminderCustom !== undefined && { reminderCustom: updates.reminderCustom }),
         // 更新時は通知フラグをリセット
         ...(updates.remindAt && { isNotified: false, notifiedAt: null }),
       },

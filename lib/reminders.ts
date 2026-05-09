@@ -8,6 +8,9 @@ export interface ReminderInput {
   description?: string
   remindAt: Date
   notifyMethod?: "app" | "email" | "both"
+  reminder24h?: boolean
+  reminder1h?: boolean
+  reminderCustom?: string
 }
 
 export interface CalendarEventInput {
@@ -32,6 +35,9 @@ export async function createReminder(input: ReminderInput) {
       description: input.description,
       remindAt: input.remindAt,
       notifyMethod: input.notifyMethod || "app",
+      reminder24h: input.reminder24h ?? false,
+      reminder1h: input.reminder1h ?? false,
+      reminderCustom: input.reminderCustom,
     },
   })
 }
@@ -81,6 +87,25 @@ export async function getUserReminders(
     where,
     orderBy: { remindAt: "asc" },
   })
+}
+
+/**
+ * カスタム通知時間をパースしてミリ秒に変換
+ */
+function parseCustomTimeOffset(timeStr: string): number | null {
+  const match = timeStr.match(/^(\d+)([mhdw])$/)
+  if (!match) return null
+
+  const value = parseInt(match[1], 10)
+  const unit = match[2]
+
+  switch (unit) {
+    case "m": return value * 60 * 1000
+    case "h": return value * 60 * 60 * 1000
+    case "d": return value * 24 * 60 * 60 * 1000
+    case "w": return value * 7 * 24 * 60 * 60 * 1000
+    default: return null
+  }
 }
 
 /**
@@ -142,8 +167,64 @@ export async function getPendingReminders() {
     },
   })
 
+  // カスタム通知時間があるリマインダーを取得
+  const remindersWithCustom = await prisma.reminder.findMany({
+    where: {
+      reminderCustom: { not: null },
+      remindAt: { gt: now },
+    },
+    include: {
+      userRel: {
+        select: {
+          id: true,
+          email: true,
+          name: true,
+        },
+      },
+    },
+  })
+
+  // カスタム通知時間を処理
+  const customReminders: typeof remindersWithCustom = []
+  for (const reminder of remindersWithCustom) {
+    if (!reminder.reminderCustom) continue
+
+    let customTimes: string[]
+    try {
+      customTimes = JSON.parse(reminder.reminderCustom)
+    } catch {
+      continue
+    }
+
+    const remindAtTime = new Date(reminder.remindAt).getTime()
+
+    for (const timeStr of customTimes) {
+      const offset = parseCustomTimeOffset(timeStr)
+      if (offset === null) continue
+
+      const notifyTime = remindAtTime - offset
+      const notifyTimeDate = new Date(notifyTime)
+
+      // 通知時間が過去（現在以前）で、まだ通知ログにない場合
+      if (notifyTimeDate <= now) {
+        const logType = `reminder_custom_${timeStr}`
+        const existingLog = await prisma.notificationLog.findFirst({
+          where: {
+            reminderId: reminder.id,
+            type: logType,
+          },
+        })
+
+        if (!existingLog) {
+          customReminders.push({ ...reminder, _customTimeOffset: timeStr } as any)
+          break // 1回の実行で1つのカスタム通知のみ送信
+        }
+      }
+    }
+  }
+
   // 重複を除いて結合
-  const allReminders = [...mainReminders, ...reminder24hList, ...reminder1hList]
+  const allReminders = [...mainReminders, ...reminder24hList, ...reminder1hList, ...customReminders]
   const uniqueReminders = Array.from(
     new Map(allReminders.map((r) => [r.id, r])).values()
   )

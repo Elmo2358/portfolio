@@ -1,6 +1,16 @@
-import { AtCoderManager } from "@/components/hub/atcoder-manager"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Code2 } from "lucide-react"
+import dynamic from "next/dynamic"
+import { CardListSkeleton } from "@/components/loading/card-skeleton"
+
+// AtCoderManagerを動的インポート
+const AtCoderManager = dynamic(
+  () => import("@/components/hub/atcoder-manager").then(mod => ({ default: mod.AtCoderManager })),
+  {
+    loading: () => <CardListSkeleton count={4} />,
+    ssr: false
+  }
+)
 
 export default async function AtCoderPage() {
   return (

@@ -12,14 +12,19 @@ datasource db {
 
 // ユーザー情報（認証・アプリ管理用）
 model User {
-  id            String    @id @default(cuid())
-  email         String    @unique
-  name          String?
-  image         String?
-  role          String    @default("user") // admin, user
-  atCoderId     String?   @unique // AtCoderユーザーID
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  id                    String    @id @default(cuid())
+  email                 String    @unique
+  name                  String?
+  image                 String?
+  role                  String    @default("user") // admin, user
+  atCoderId             String?   @unique // AtCoderユーザーID
+  googleTasksEnabled    Boolean   @default(false) // Google Tasks同期有効/無効
+  googleTasksTasklistId String?   // Google TasksのタスクリストID
+  notionEnabled         Boolean   @default(false) // Notion同期有効/無効
+  notionDatabaseId      String?   // NotionデータベースID
+  notionPropertyMapping String?   // Notionプロパティマッピング（JSON）
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
 
   // リレーション
   qualifications Qualification[]
@@ -143,6 +148,8 @@ model Task {
   priority    String   // low, medium, high
   dueDate     DateTime?
   completedAt DateTime?
+  googleTaskId String?  // Google TasksのタスクID
+  notionPageId String?  // NotionページID
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 

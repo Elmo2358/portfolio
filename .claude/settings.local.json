@@ -18,7 +18,27 @@
       "Bash(npx shadcn@latest add dropdown-menu)",
       "Bash(git add *)",
       "Bash(git commit -m ' *)",
-      "Bash(git push *)"
+      "Bash(git push *)",
+      "Bash(sqlite3 prisma/dev.db \"SELECT id, company, position, userId FROM JobApplication LIMIT 10;\")",
+      "Bash(node scripts/check-db.js)",
+      "Bash(netstat -ano)",
+      "Bash(taskkill /F /FI \"IMAGENAME eq node.exe\" /FI \"WINDOWTITLE eq *next dev*\")",
+      "Bash(awk '{print $5}')",
+      "Bash(xargs -I {} taskkill /F /PID {})",
+      "Bash(npx shadcn@latest add sheet --yes)",
+      "Bash(findstr :3000)",
+      "Bash(tasklist /FI \"PID eq 17268\")",
+      "Bash(powershell -Command \"Get-Process -Id 17268 | Select-Object Name, Id\")",
+      "Bash(taskkill /PID 17268 /F)",
+      "Bash(powershell -Command \"Stop-Process -Id 17268 -Force\")",
+      "Bash(grep -E \"^app/\\(about|qualifications|internships|projects\\)$\")",
+      "mcp__web-search-prime__web_search_prime",
+      "Bash(start extension/generate-icons.html)",
+      "Bash(powershell -ExecutionPolicy Bypass -File generate-icons.ps1)",
+      "Bash(node ../generate-icons.js)",
+      "Bash(node generate-icons.js)",
+      "Bash(start \"\" \"C:\\\\Users\\\\kerox\\\\hp\\\\extension\\\\generate-icons.html\")",
+      "Bash(timeout 5 cmd /c \"\")"
     ]
   }
 }

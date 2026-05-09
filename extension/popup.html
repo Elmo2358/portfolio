@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Portfolio Hub</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      width: 350px;
+      min-height: 400px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      color: white;
+    }
+
+    .header {
+      padding: 20px;
+      text-align: center;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .header h1 {
+      font-size: 20px;
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+
+    .header p {
+      font-size: 12px;
+      opacity: 0.9;
+    }
+
+    .content {
+      padding: 20px;
+    }
+
+    .button {
+      display: block;
+      width: 100%;
+      padding: 12px;
+      margin-bottom: 10px;
+      border: none;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.2);
+      color: white;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-decoration: none;
+      text-align: center;
+    }
+
+    .button:hover {
+      background: rgba(255, 255, 255, 0.3);
+      transform: translateY(-1px);
+    }
+
+    .button:active {
+      transform: translateY(0);
+    }
+
+    .button.secondary {
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .settings {
+      padding: 15px 20px;
+      background: rgba(0, 0, 0, 0.1);
+      border-top: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .settings h2 {
+      font-size: 14px;
+      margin-bottom: 10px;
+      opacity: 0.9;
+    }
+
+    .setting-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+      font-size: 13px;
+    }
+
+    .setting-item label {
+      flex: 1;
+    }
+
+    .setting-item input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      cursor: pointer;
+    }
+
+    .status {
+      padding: 10px 20px;
+      background: rgba(0, 0, 0, 0.1);
+      font-size: 12px;
+      text-align: center;
+      opacity: 0.8;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      background: rgba(255, 255, 255, 0.3);
+      border-radius: 10px;
+      font-size: 11px;
+      margin-left: 5px;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>Portfolio Hub</h1>
+    <p>通知・タスク管理・コンテスト</p>
+  </div>
+
+  <div class="content">
+    <a href="http://localhost:3003/hub" target="_blank" class="button">
+      🏠 アプリケーションハブ
+    </a>
+    <a href="http://localhost:3003/atcoder" target="_blank" class="button">
+      🏆 AtCoder管理
+    </a>
+    <a href="http://localhost:3003/tasks" target="_blank" class="button">
+      📋 タスク管理
+    </a>
+    <a href="http://localhost:3003/finance" target="_blank" class="button">
+      💰 家計簿
+    </a>
+    <a href="http://localhost:3003" target="_blank" class="button secondary">
+      🔗 ポートフォリオサイト
+    </a>
+  </div>
+
+  <div class="settings">
+    <h2>⚙️ 通知設定</h2>
+    <div class="setting-item">
+      <label for="notificationsEnabled">通知を有効にする</label>
+      <input type="checkbox" id="notificationsEnabled" checked>
+    </div>
+    <div class="setting-item">
+      <label for="atCoderReminders">AtCoderリマインダー</label>
+      <input type="checkbox" id="atCoderReminders" checked>
+    </div>
+    <div class="setting-item">
+      <label for="taskReminders">タスクリマインダー</label>
+      <input type="checkbox" id="taskReminders" checked>
+    </div>
+    <div class="setting-item">
+      <label for="jobReminders">就活リマインダー</label>
+      <input type="checkbox" id="jobReminders" checked>
+    </div>
+  </div>
+
+  <div class="status">
+    <span id="status">最終更新: 刚刚</span>
+    <span class="badge" id="badge">0</span>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

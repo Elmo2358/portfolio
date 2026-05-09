@@ -4,7 +4,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
-import { Settings, Bell } from "lucide-react"
+import { Switch } from "@/components/ui/switch"
+import { Settings, Bell, CheckCircle2 } from "lucide-react"
 import { useState, useEffect } from "react"
 import { toast } from "sonner"
 
@@ -26,6 +27,13 @@ export default function SettingsPage() {
   const [notifications, setNotifications] = useState<NotificationLog[]>([])
   const [loadingNotifications, setLoadingNotifications] = useState(true)
   const [notificationPermission, setNotificationPermission] = useState<NotificationPermission>("default")
+
+  // Google Tasks同期の状態
+  const [googleTasksEnabled, setGoogleTasksEnabled] = useState(false)
+  const [googleTasklists, setGoogleTasklists] = useState<Array<{ id: string; title: string }>>([])
+  const [selectedTasklist, setSelectedTasklist] = useState("")
+  const [loadingGoogleTasks, setLoadingGoogleTasks] = useState(false)
+  const [googleTasksSetupRequired, setGoogleTasksSetupRequired] = useState(false)
 
   // 通知権限を確認
   useEffect(() => {
@@ -50,6 +58,27 @@ export default function SettingsPage() {
       }
     }
     fetchNotifications()
+  }, [])
+
+  // Google Tasks設定を取得
+  useEffect(() => {
+    const fetchGoogleTasksSettings = async () => {
+      try {
+        const res = await fetch("/api/hub/tasks/google-sync")
+        const data = await res.json()
+
+        if (res.ok) {
+          setGoogleTasksEnabled(data.syncEnabled)
+          setGoogleTasklists(data.taskLists || [])
+          setSelectedTasklist(data.selectedTasklistId || "")
+        } else if (data.setupRequired) {
+          setGoogleTasksSetupRequired(true)
+        }
+      } catch (error) {
+        console.error("Error fetching Google Tasks settings:", error)
+      }
+    }
+    fetchGoogleTasksSettings()
   }, [])
 
   const requestNotificationPermission = async () => {
@@ -173,6 +202,55 @@ export default function SettingsPage() {
     }
   }
 
+  const handleGoogleTasksToggle = async (enabled: boolean) => {
+    setLoadingGoogleTasks(true)
+    try {
+      const res = await fetch("/api/hub/tasks/google-sync", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ enabled, tasklistId: selectedTasklist }),
+      })
+
+      const data = await res.json()
+
+      if (res.ok) {
+        setGoogleTasksEnabled(enabled)
+        toast.success(data.message)
+      } else {
+        toast.error(data.error || "設定の保存に失敗しました")
+      }
+    } catch (error) {
+      console.error("Error toggling Google Tasks:", error)
+      toast.error("エラーが発生しました")
+    } finally {
+      setLoadingGoogleTasks(false)
+    }
+  }
+
+  const handleSyncGoogleTasks = async () => {
+    setLoadingGoogleTasks(true)
+    try {
+      const res = await fetch("/api/hub/tasks/google-sync", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "sync" }),
+      })
+
+      const data = await res.json()
+
+      if (res.ok) {
+        toast.success(`同期完了！${data.created}件作成、${data.updated}件更新`)
+      } else {
+        toast.error(data.error || "同期に失敗しました")
+      }
+    } catch (error) {
+      console.error("Error syncing Google Tasks:", error)
+      toast.error("エラーが発生しました")
+    } finally {
+      setLoadingGoogleTasks(false)
+    }
+  }
+
   return (
     <div className="container py-6">
       <div className="mx-auto max-w-2xl space-y-4">
@@ -293,6 +371,86 @@ export default function SettingsPage() {
             <p className="text-xs text-muted-foreground">
               💡 ヒント: iPhoneでホーム画面に追加すると、アプリのように通知を受け取れます
             </p>
+          </CardContent>
+        </Card>
+
+        {/* Google Tasks同期 */}
+        <Card className="border-2 border-emerald-500 bg-emerald-50 dark:bg-emerald-950 dark:border-emerald-600">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-emerald-700 dark:text-emerald-300 text-lg flex items-center gap-2">
+              <CheckCircle2 className="h-5 w-5" />
+              Google Tasks同期
+            </CardTitle>
+            <CardDescription className="text-sm">
+              タスクをGoogle Tasksと双方向同期します
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {googleTasksSetupRequired ? (
+              <div className="p-3 rounded bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200 text-sm">
+                Google Tasksを使用するには、Googleアカウントとの連携が必要です。
+                <Button
+                  variant="link"
+                  className="p-0 h-auto text-yellow-900 dark:text-yellow-100 underline"
+                  asChild
+                >
+                  <a href="https://myaccount.google.com/permissions" target="_blank" rel="noopener noreferrer">
+                    Googleアカウント設定を開く
+                  </a>
+                </Button>
+              </div>
+            ) : (
+              <>
+                <div className="flex items-center justify-between">
+                  <div className="flex-1">
+                    <p className="text-sm font-medium">同期を有効にする</p>
+                    <p className="text-xs text-muted-foreground">
+                      {googleTasksEnabled ? "Google Tasksと同期中" : "同期は無効になっています"}
+                    </p>
+                  </div>
+                  <Switch
+                    checked={googleTasksEnabled}
+                    onCheckedChange={handleGoogleTasksToggle}
+                    disabled={loadingGoogleTasks}
+                  />
+                </div>
+
+                {googleTasksEnabled && googleTasklists.length > 0 && (
+                  <div>
+                    <Label htmlFor="tasklist" className="text-sm">タスクリストを選択</Label>
+                    <select
+                      id="tasklist"
+                      value={selectedTasklist}
+                      onChange={(e) => setSelectedTasklist(e.target.value)}
+                      disabled={loadingGoogleTasks}
+                      className="mt-1.5 w-full h-9 rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                    >
+                      <option value="">選択してください</option>
+                      {googleTasklists.map((list) => (
+                        <option key={list.id} value={list.id}>
+                          {list.title}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+
+                {googleTasksEnabled && (
+                  <Button
+                    onClick={handleSyncGoogleTasks}
+                    disabled={loadingGoogleTasks}
+                    variant="outline"
+                    className="w-full border-emerald-600 text-emerald-600 hover:bg-emerald-600 hover:text-white dark:border-emerald-500 dark:text-emerald-400 text-sm"
+                  >
+                    {loadingGoogleTasks ? "同期中..." : "🔄 今すぐGoogle Tasksと同期"}
+                  </Button>
+                )}
+
+                <p className="text-xs text-muted-foreground">
+                  💡 同期を有効にすると、サイトのタスクがGoogle Tasksに追加され、Google Tasksの変更もサイトに反映されます。
+                </p>
+              </>
+            )}
           </CardContent>
         </Card>
 

@@ -21,6 +21,42 @@ interface HeatmapProps {
   days?: number
 }
 
+// キャッシュキーを生成
+const getCacheKey = (days: number) => `heatmap_cache_${days}`
+
+// キャッシュからデータを取得
+function getCachedData(days: number) {
+  if (typeof window === "undefined") return null
+  try {
+    const cached = localStorage.getItem(getCacheKey(days))
+    if (cached) {
+      const { data, stats, timestamp } = JSON.parse(cached)
+      // 1時間は有効とする
+      const now = Date.now()
+      if (now - timestamp < 60 * 60 * 1000) {
+        return { data, stats }
+      }
+    }
+  } catch {
+    return null
+  }
+  return null
+}
+
+// データをキャッシュに保存
+function setCachedData(days: number, data: HeatmapData[], stats: HeatmapStats) {
+  if (typeof window === "undefined") return
+  try {
+    localStorage.setItem(getCacheKey(days), JSON.stringify({
+      data,
+      stats,
+      timestamp: Date.now()
+    }))
+  } catch {
+    // localStorageが無効な場合は無視
+  }
+}
+
 export function ActivityHeatmap({ days = 365 }: HeatmapProps) {
   const [data, setData] = useState<HeatmapData[]>([])
   const [stats, setStats] = useState<HeatmapStats | null>(null)
@@ -29,16 +65,33 @@ export function ActivityHeatmap({ days = 365 }: HeatmapProps) {
 
   useEffect(() => {
     const fetchData = async () => {
+      // まずキャッシュをチェック
+      const cached = getCachedData(days)
+      if (cached) {
+        setData(cached.data)
+        setStats(cached.stats)
+        setLoading(false)
+      }
+
+      // バックグラウンドで最新データを取得
       try {
-        const res = await fetch(`/api/hub/atcoder/heatmap?days=${days}`)
+        const res = await fetch(`/api/hub/atcoder/heatmap?days=${days}`, {
+          cache: "no-store"
+        })
         const json = await res.json()
 
         if (json.success) {
           setData(json.data)
           setStats(json.stats)
+          // キャッシュを更新
+          setCachedData(days, json.data, json.stats)
         }
       } catch (error) {
         console.error("Error fetching heatmap data:", error)
+        // キャッシュがあればそれを使い続ける
+        if (!cached) {
+          setLoading(false)
+        }
       } finally {
         setLoading(false)
       }

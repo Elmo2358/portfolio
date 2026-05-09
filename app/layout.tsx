@@ -5,6 +5,10 @@ import { Header } from "@/components/layout/Header"
 import { Footer } from "@/components/layout/Footer"
 import { Providers } from "./providers"
 import { Toaster } from "sonner"
+import { CommandPalette } from "@/components/command-palette"
+import { KeyboardShortcutsHelp } from "@/components/keyboard-shortcuts-help"
+import { WebVitalsMonitor } from "@/components/performance/web-vitals"
+import { ProgressBar } from "@/components/loading/progress-bar"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -35,12 +39,16 @@ export default function RootLayout({
       </head>
       <body className={inter.className}>
         <Providers>
+          <ProgressBar />
+          <WebVitalsMonitor />
           <div className="flex min-h-screen flex-col">
             <Header />
             <main className="flex-1">{children}</main>
             <Footer />
           </div>
           <Toaster position="top-right" richColors />
+          <CommandPalette />
+          <KeyboardShortcutsHelp />
         </Providers>
       </body>
     </html>

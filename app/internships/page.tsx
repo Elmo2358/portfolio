@@ -1,19 +1,8 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Briefcase, Building2, Lightbulb, TrendingUp } from "lucide-react"
+import { Card, CardContent } from "@/components/ui/card"
+import { Briefcase } from "lucide-react"
 import { prisma } from "@/lib/prisma"
-
-const getColorClasses = (color: string) => {
-  const colors = {
-    emerald: {
-      border: "border-emerald-500 bg-emerald-50 dark:bg-emerald-950 dark:border-emerald-600",
-      badge: "bg-emerald-600 text-white hover:bg-emerald-700 dark:bg-emerald-500 dark:hover:bg-emerald-400",
-      timeline: "bg-emerald-600 dark:bg-emerald-500",
-      icon: "bg-emerald-600 dark:bg-emerald-500"
-    }
-  }
-  return colors.emerald
-}
+import { InternshipCard } from "@/components/internships/internship-card"
+import { PageHeader } from "@/components/layout/page-header"
 
 export default async function InternshipsPage() {
   const internships = await prisma.internship.findMany({
@@ -24,19 +13,13 @@ export default async function InternshipsPage() {
   return (
     <div className="container py-12">
       <div className="mx-auto max-w-4xl">
-        <div className="mb-12 text-center animate-fadeIn">
-          <div className="mb-4 flex justify-center">
-            <div className="p-4 rounded-full bg-emerald-600 dark:bg-emerald-500">
-              <Briefcase className="h-12 w-12 text-white" />
-            </div>
-          </div>
-          <h1 className="mb-4 text-4xl font-bold text-emerald-600 dark:text-emerald-400">
-            実習・インターンシップ
-          </h1>
-          <p className="text-xl text-emerald-800 dark:text-emerald-200">Internships & Experiences</p>
-        </div>
+        <PageHeader
+          icon={<Briefcase className="h-12 w-12 text-white" />}
+          title="実習・インターンシップ"
+          description="Internships & Experiences"
+        />
 
-        <div className="space-y-8 stagger-200">
+        <div className="space-y-8">
           {internships.length === 0 ? (
             <Card className="border-2 border-emerald-500 bg-emerald-50 dark:bg-emerald-950 dark:border-emerald-600">
               <CardContent className="py-12 text-center">
@@ -46,18 +29,20 @@ export default async function InternshipsPage() {
               </CardContent>
             </Card>
           ) : (
-            internships.map((internship, index) => {
-              const colorClasses = getColorClasses("emerald")
-              return (
-                <div key={internship.id} className="relative">
-                  {index !== internships.length - 1 && (
-                    <div className={`absolute left-8 top-20 h-[calc(100%-2rem)] w-0.5 ${colorClasses.timeline}`} />
-                  )}
-                  <Card className={`ml-16 hover:shadow-xl transition-all hover:-translate-y-1 border-2 animate-slideUp ${colorClasses.border}`}>
-                    <div className={`absolute left-[-3rem] top-8 flex h-8 w-8 items-center justify-center rounded-full ${colorClasses.icon} text-sm font-bold text-white shadow-lg`}>
-                      {index + 1}
-                    </div>
-                    <CardHeader>
+            internships.map((internship, index) => (
+              <InternshipCard
+                key={internship.id}
+                internship={internship}
+                index={index}
+                total={internships.length}
+              />
+            ))
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
                       <div className="flex items-start justify-between">
                         <div className="flex items-start gap-3">
                           <div className={`p-2 rounded-lg ${colorClasses.icon}`}>

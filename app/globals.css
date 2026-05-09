@@ -55,6 +55,37 @@
   }
   body {
     @apply bg-background text-foreground;
+    transition-property: color, background-color, border-color, text-decoration-color, fill, stroke;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    transition-duration: 200ms;
+  }
+
+  /* モバイル向けの最適化 */
+  @media (max-width: 768px) {
+    body {
+      font-size: 16px; /* iOSでの自動ズームを防止 */
+    }
+
+    /* タッチ操作の最適化 */
+    button,
+    a,
+    input,
+    select,
+    textarea {
+      touch-action: manipulation;
+    }
+
+    /* ボタンの最小サイズを確保 */
+    button,
+    .btn {
+      min-height: 44px;
+      min-width: 44px;
+    }
+
+    /* スクロールのスムーズ化 */
+    * {
+      -webkit-overflow-scrolling: touch;
+    }
   }
 }
 

@@ -17,6 +17,7 @@ interface Reminder {
   notifyMethod: string
   reminder24h?: boolean
   reminder1h?: boolean
+  reminderCustom?: string
   calendarEventId?: string
 }
 
@@ -51,6 +52,11 @@ export function ReminderButton({
   const [addToCalendar, setAddToCalendar] = useState(true)
   const [reminder24h, setReminder24h] = useState(false)
   const [reminder1h, setReminder1h] = useState(false)
+  const [reminder30m, setReminder30m] = useState(false)
+  const [reminder15m, setReminder15m] = useState(false)
+  const [reminder3d, setReminder3d] = useState(false)
+  const [reminder1w, setReminder1w] = useState(false)
+  const [customMinutes, setCustomMinutes] = useState("")
 
   // 既存のリマインダーを確認
   useEffect(() => {
@@ -77,6 +83,18 @@ export function ReminderButton({
     setLoading(true)
 
     try {
+      // カスタム通知設定を構築
+      const customReminders: string[] = []
+      if (reminder15m) customReminders.push("15m")
+      if (reminder30m) customReminders.push("30m")
+      if (reminder1h) customReminders.push("1h")
+      if (reminder24h) customReminders.push("24h")
+      if (reminder3d) customReminders.push("3d")
+      if (reminder1w) customReminders.push("1w")
+      if (customMinutes) {
+        customReminders.push(`${customMinutes}m`)
+      }
+
       const res = await fetch("/api/hub/reminders", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -90,6 +108,7 @@ export function ReminderButton({
           addToCalendar,
           reminder24h,
           reminder1h,
+          reminderCustom: customReminders.length > 0 ? JSON.stringify(customReminders) : undefined,
         }),
       })
 
@@ -192,15 +211,25 @@ export function ReminderButton({
 
           <div>
             <Label className="text-sm">追加の通知タイミング（任意）</Label>
-            <div className="mt-2 space-y-2">
+            <div className="mt-2 grid grid-cols-2 gap-2">
               <div className="flex items-center space-x-2">
                 <Checkbox
-                  id="reminder24h"
-                  checked={reminder24h}
-                  onCheckedChange={(checked) => setReminder24h(checked as boolean)}
+                  id="reminder15m"
+                  checked={reminder15m}
+                  onCheckedChange={(checked) => setReminder15m(checked as boolean)}
                 />
-                <Label htmlFor="reminder24h" className="text-sm cursor-pointer">
-                  24時間前に通知
+                <Label htmlFor="reminder15m" className="text-sm cursor-pointer">
+                  15分前
+                </Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="reminder30m"
+                  checked={reminder30m}
+                  onCheckedChange={(checked) => setReminder30m(checked as boolean)}
+                />
+                <Label htmlFor="reminder30m" className="text-sm cursor-pointer">
+                  30分前
                 </Label>
               </div>
               <div className="flex items-center space-x-2">
@@ -210,9 +239,56 @@ export function ReminderButton({
                   onCheckedChange={(checked) => setReminder1h(checked as boolean)}
                 />
                 <Label htmlFor="reminder1h" className="text-sm cursor-pointer">
-                  1時間前に通知
+                  1時間前
                 </Label>
               </div>
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="reminder24h"
+                  checked={reminder24h}
+                  onCheckedChange={(checked) => setReminder24h(checked as boolean)}
+                />
+                <Label htmlFor="reminder24h" className="text-sm cursor-pointer">
+                  24時間前
+                </Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="reminder3d"
+                  checked={reminder3d}
+                  onCheckedChange={(checked) => setReminder3d(checked as boolean)}
+                />
+                <Label htmlFor="reminder3d" className="text-sm cursor-pointer">
+                  3日前
+                </Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="reminder1w"
+                  checked={reminder1w}
+                  onCheckedChange={(checked) => setReminder1w(checked as boolean)}
+                />
+                <Label htmlFor="reminder1w" className="text-sm cursor-pointer">
+                  1週間前
+                </Label>
+              </div>
+            </div>
+
+            <div className="mt-3 flex items-center gap-2">
+              <Label htmlFor="customMinutes" className="text-sm whitespace-nowrap">
+                カスタム（分）:
+              </Label>
+              <Input
+                id="customMinutes"
+                type="number"
+                min="1"
+                max="10080"
+                placeholder="例: 45"
+                value={customMinutes}
+                onChange={(e) => setCustomMinutes(e.target.value)}
+                className="flex-1 h-8"
+              />
+              <span className="text-xs text-muted-foreground">分前に通知</span>
             </div>
           </div>
 

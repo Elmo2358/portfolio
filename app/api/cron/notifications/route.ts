@@ -5,6 +5,27 @@ import { getPendingReminders, markReminderAsNotified } from "@/lib/reminders"
 import { prisma } from "@/lib/prisma"
 
 /**
+ * カスタム時間オフセットを日本語タイトルに変換
+ */
+function formatCustomTimeTitle(offset: string, baseTitle: string): string {
+  const match = offset.match(/^(\d+)([mhdw])$/)
+  if (!match) return `【リマインダー】${baseTitle}`
+
+  const value = parseInt(match[1], 10)
+  const unit = match[2]
+
+  let unitText = ""
+  switch (unit) {
+    case "m": unitText = value === 1 ? "1分" : `${value}分`; break
+    case "h": unitText = value === 1 ? "1時間" : `${value}時間`; break
+    case "d": unitText = value === 1 ? "1日" : `${value}日`; break
+    case "w": unitText = value === 1 ? "1週間" : `${value}週間`; break
+  }
+
+  return `【${unitText}前】${baseTitle}`
+}
+
+/**
  * 通知送信Cronジョブ
  * 15分ごとに実行され、通知時刻が来たリマインダーを送信
  */
@@ -50,7 +71,14 @@ export async function POST(req: NextRequest) {
         let notificationTitle = reminder.title
         let notificationMessage = reminder.description || ""
 
-        if (timeDiff > oneDay - oneHour && timeDiff <= oneDay) {
+        // カスタム通知オフセットがある場合
+        const customOffset = (reminder as any)._customTimeOffset
+        if (customOffset) {
+          notificationType = `reminder_custom_${customOffset}`
+          notificationTitle = formatCustomTimeTitle(customOffset, reminder.title)
+          const offsetText = formatCustomTimeTitle(customOffset, "").replace("【", "").replace("】", "")
+          notificationMessage = `${offsetText}後のリマインダー: ${reminder.description || reminder.title}`
+        } else if (timeDiff > oneDay - oneHour && timeDiff <= oneDay) {
           // 24時間前の通知
           notificationType = "reminder_24h"
           notificationTitle = `【24時間前】${reminder.title}`

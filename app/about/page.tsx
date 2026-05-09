@@ -2,6 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { prisma } from "@/lib/prisma"
 import { User, Brain, Heart, Users, Briefcase } from "lucide-react"
+import { PageHeader } from "@/components/layout/page-header"
 
 export default async function AboutPage() {
   // サークル活動・チーム開発経験を取得
@@ -13,16 +14,15 @@ export default async function AboutPage() {
   return (
     <div className="container py-12">
       <div className="mx-auto max-w-4xl">
-        <div className="mb-12 text-center animate-fadeIn">
-          <h1 className="mb-4 text-4xl font-bold text-emerald-600 dark:text-emerald-400">
-            自己紹介
-          </h1>
-          <p className="text-xl text-muted-foreground">About Me</p>
-        </div>
+        <PageHeader
+          icon={<User className="h-12 w-12 text-white" />}
+          title="自己紹介"
+          description="About Me"
+        />
 
-        <div className="space-y-8 stagger-200">
+        <div className="space-y-8">
           {/* Basic Info */}
-          <Card className="border-2 border-emerald-500 bg-emerald-50 dark:bg-emerald-950 dark:border-emerald-600 animate-slideUp">
+          <Card className="border-2 border-emerald-500 bg-emerald-50 dark:bg-emerald-950 dark:border-emerald-600">
             <CardHeader>
               <div className="flex items-center gap-3">
                 <div className="p-2 rounded-lg bg-emerald-600 dark:bg-emerald-500">

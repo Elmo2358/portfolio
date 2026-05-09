@@ -1,4 +1,13 @@
-import { JobHuntManager } from "@/components/hub/jobhunt-manager"
+import dynamic from "next/dynamic"
+import { CardListSkeleton } from "@/components/loading/card-skeleton"
+
+const JobHuntManager = dynamic(
+  () => import("@/components/hub/jobhunt-manager").then(mod => ({ default: mod.JobHuntManager })),
+  {
+    loading: () => <CardListSkeleton count={6} />,
+    ssr: false
+  }
+)
 
 export default function JobHuntPage() {
   return (
