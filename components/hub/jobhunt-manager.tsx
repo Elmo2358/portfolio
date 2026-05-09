@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Plus, Building2, Briefcase, Trophy, XCircle, Calendar, Trash2, Edit2, TrendingUp } from "lucide-react"
+import { Plus, Building2, Briefcase, Trophy, XCircle, Calendar, Trash2, Edit2, TrendingUp, ExternalLink } from "lucide-react"
 import { format } from "date-fns"
 import { ja } from "date-fns/locale"
 import { ReminderButton } from "@/components/hub/reminder-button"
@@ -17,6 +17,7 @@ interface JobApplication {
   status: "ES提出" | "テスト面接" | "最終面接" | "内定" | "落選"
   appliedDate: Date
   notes: string | null
+  notionUrl: string | null
 }
 
 interface JobHuntStats {
@@ -332,6 +333,18 @@ export function JobHuntManager() {
                         {application.notes}
                       </p>
                     )}
+
+                    {application.notionUrl && (
+                      <a
+                        href={application.notionUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="mt-2 inline-flex items-center gap-1 text-sm text-emerald-600 dark:text-emerald-400 hover:underline"
+                      >
+                        <ExternalLink className="h-4 w-4" />
+                        Notionページを開く
+                      </a>
+                    )}
                   </div>
 
                   <div className="flex gap-2">
@@ -401,7 +414,8 @@ function ApplicationForm({
     appliedDate: application
       ? new Date(application.appliedDate).toISOString().split('T')[0]
       : new Date().toISOString().split('T')[0],
-    notes: application?.notes || ""
+    notes: application?.notes || "",
+    notionUrl: application?.notionUrl || ""
   })
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -490,6 +504,17 @@ function ApplicationForm({
                 className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
                 rows={3}
                 placeholder="選考のメモや次のステップなど"
+              />
+            </div>
+
+            <div>
+              <label className="mb-2 block text-sm font-medium">Notion URL</label>
+              <input
+                type="url"
+                value={formData.notionUrl}
+                onChange={(e) => setFormData({ ...formData, notionUrl: e.target.value })}
+                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                placeholder="https://www.notion.so/..."
               />
             </div>
 

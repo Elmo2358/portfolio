@@ -1,8 +1,8 @@
 # プロジェクト現状 (STATUS)
 
-**最終更新**: 2026-05-07
-**バージョン**: v2.0.0
-**開発サーバー**: http://localhost:3003
+**最終更新**: 2026-05-09
+**バージョン**: v2.1.0
+**開発サーバー**: http://localhost:3000
 
 ---
 
@@ -34,7 +34,7 @@
 | Next.js API Routes | REST API |
 | Prisma ORM | データベースアクセス |
 | SQLite | 開発用データベース |
-| NextAuth.js v4 | 認証（Credentials Provider） |
+| NextAuth.js v4 | 認証（Credentials + Google Provider） |
 
 ### ホスティング（予定）
 - **Platform**: Vercel
@@ -89,6 +89,9 @@
 |--------|----------|------|
 | コンテストスケジュール | ✅ | CLIST API、モック対応 |
 | Google Calendar連携 | ✅ | コンテスト追加、汎用イベント |
+| Google OAuth 2.0連携 | ✅ | Googleアカウント認証、アクセストークン管理 |
+| Google Tasks同期 | ✅ | タスクの双方向同期、タスクリスト選択 |
+| Notion連携 | ✅ | Notionデータベースとの双方向同期 |
 | 汎用リマインダー | ✅ | 全アプリ対応、24h/1h前通知 |
 | ブラウザ通知 | ✅ | Web Push API |
 | アプリ内通知 | ✅ | Toast（Sonner） |
@@ -99,6 +102,9 @@
 
 | 機能 | ステータス | 説明 |
 |--------|----------|------|
+| Notion Wiki連携 | ✅ | Wiki/Docs用データベース連携 |
+| Notion URL紐づけ | ✅ | タスク、就活、バケツリストにNotionリンク |
+| AtCoder解説リンク | ✅ | 公式解説ページへのクイックアクセス |
 | データエクスポート | ✅ | JSON/CSV、全アプリ対応 |
 | Chrome拡張機能 | ✅ | 通知、クイックアクセス |
 | ページ遷移アニメーション | ✅ | Framer Motion |
@@ -113,13 +119,13 @@
 
 | モデル | 用途 | リレーション |
 |--------|------|-------------|
-| User | ユーザー | 全モデルの親 |
+| User | ユーザー、Google OAuth連携 | 全モデルの親 |
 | Qualification | 資格・試験 | User |
 | Internship | インターンシップ | User |
 | TeamExperience | サークル活動 | User |
 | Project | プロジェクト | User |
 | Skill | スキル | User |
-| Task | タスク | User |
+| Task | タスク、Google Tasks同期 | User |
 | Income | 収入 | User |
 | Expense | 支出 | User |
 | JobApplication | 就活応募 | User |
@@ -129,24 +135,26 @@
 | AtCoderProblem | AtCoder問題メタデータ | - |
 | AtCoderUserProblem | ユーザー問題進捗 | User, AtCoderProblem |
 | AtCoderSubmission | 提出履歴 | User, AtCoderProblem |
+| ContestReminder | コンテストリマインダー | User |
 | Reminder | 汎用リマインダー | User |
-| NotificationLog | 通知履歴 | - |
+| NotificationLog | 通知履歴 | User |
 
 ---
 
 ## 🔧 開発環境
 
 ### 現在のポート
-- **開発サーバー**: 3003（3000-3002が使用中のため）
-- **NextAuth URL**: `http://localhost:3003`
+- **開発サーバー**: 3000
+- **NextAuth URL**: `http://localhost:3000`
 
 ### 環境変数（.env.local）
 ```env
 DATABASE_URL="file:./dev.db"
-NEXTAUTH_URL="http://localhost:3003"
+NEXTAUTH_URL="http://localhost:3000"
 NEXTAUTH_SECRET="your-secret-key-change-this-in-production"
 CRON_SECRET="change-this-to-a-random-string-in-production"
-GOOGLE_CALENDAR_ACCESS_TOKEN="..."
+GOOGLE_CLIENT_ID="your-google-client-id"
+GOOGLE_CLIENT_SECRET="your-google-client-secret"
 ```
 
 ### ログイン情報
@@ -245,6 +253,26 @@ hp/
 
 ## 📝 最近の変更
 
+### 2026-05-09
+- ✅ Notion Wiki連携を実装
+  - Wiki/Docs用Notionデータベース連携
+  - /wikiアプリでNotionページ一覧表示・検索
+  - 各アプリ（タスク、就活、バケツリスト）にNotion URL紐づけ機能
+  - AtCoder問題に公式解説ページへのリンク
+  - Server Actionsを使用した設定保存
+- ✅ ユーザー管理の修正
+  - admin@portfolio.local ユーザーの作成
+  - 認証セッションとデータベースの整合性を修正
+- ✅ Google OAuth 2.0連携を実装
+  - NextAuth.jsにGoogleプロバイダーを追加
+  - アクセストークン、リフレッシュトークンをデータベースに保存
+  - Googleアカウント連携UIを追加
+- ✅ Google Tasks同期を実装
+  - タスクリストの取得
+  - タスクの双方向同期
+  - 設定ページでタスクリスト選択・同期オンオフ
+- ✅ Chrome拡張機能のタスク完了APIを実装
+
 ### 2026-05-07
 - ✅ Chrome拡張機能の基本実装完了
 - ✅ ページ遷移アニメーション（Framer Motion）
@@ -261,7 +289,7 @@ hp/
 
 詳細は [ROADMAP.md](ROADMAP.md) を参照
 
-1. **Chrome拡張機能の強化** - 通知音、カスタマイズ
-2. **パッケージ化と配布** - Chrome Web Store提出
-3. **パフォーマンス最適化** - ヒートマップ、遅延読み
-4. **他サービス連携** - Notion, Google Tasks
+1. **Notion連携** - データベース同期、タスク管理
+2. **パフォーマンス最適化** - ヒートマップ、遅延読み
+3. **Chrome拡張機能の強化** - 通知音、カスタマイズ
+4. **パッケージ化と配布** - Chrome Web Store提出

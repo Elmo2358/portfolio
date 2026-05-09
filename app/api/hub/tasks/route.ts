@@ -83,7 +83,7 @@ export async function POST(req: NextRequest) {
     const body = await req.json()
     console.log("POST /api/hub/tasks - Request body:", body)
 
-    const { title, description, status, priority, dueDate } = body
+    const { title, description, status, priority, dueDate, notionUrl } = body
 
     // バリデーション
     if (!title || title.trim().length === 0) {
@@ -106,7 +106,8 @@ export async function POST(req: NextRequest) {
         description: description?.trim() || null,
         status,
         priority,
-        dueDate: dueDate ? new Date(dueDate) : null
+        dueDate: dueDate ? new Date(dueDate) : null,
+        notionUrl: notionUrl?.trim() || null
       }
     })
 

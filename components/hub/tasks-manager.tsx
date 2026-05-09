@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Plus, CheckCircle2, Clock, AlertCircle, Trash2, Edit2, Calendar } from "lucide-react"
+import { Plus, CheckCircle2, Clock, AlertCircle, Trash2, Edit2, Calendar, ExternalLink } from "lucide-react"
 import { format } from "date-fns"
 import { ja } from "date-fns/locale"
 import { ReminderButton } from "@/components/hub/reminder-button"
@@ -18,6 +18,7 @@ interface Task {
   dueDate: Date | null
   completedAt: Date | null
   createdAt: Date
+  notionUrl: string | null
 }
 
 type StatusFilter = "all" | "todo" | "in_progress" | "completed"
@@ -310,13 +311,24 @@ export function TasksManager() {
                       <p className="text-sm text-muted-foreground mb-2">{task.description}</p>
                     )}
 
-                    <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                    <div className="flex items-center gap-4 text-xs text-muted-foreground flex-wrap">
                       {task.dueDate && (
                         <div className={`flex items-center gap-1 ${isOverdue(task) ? "text-red-600 dark:text-red-400" : ""}`}>
                           <Calendar className="h-3 w-3" />
                           {format(new Date(task.dueDate), "yyyy/MM/dd", { locale: ja })}
                           {isOverdue(task) && " (期限超過)"}
                         </div>
+                      )}
+                      {task.notionUrl && (
+                        <a
+                          href={task.notionUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400 hover:underline"
+                        >
+                          <ExternalLink className="h-3 w-3" />
+                          Notion
+                        </a>
                       )}
                       <div>
                         作成: {format(new Date(task.createdAt), "yyyy/MM/dd", { locale: ja })}
@@ -392,6 +404,7 @@ function TaskForm({
   const [dueDate, setDueDate] = useState(
     task?.dueDate ? new Date(task.dueDate).toISOString().split("T")[0] : ""
   )
+  const [notionUrl, setNotionUrl] = useState(task?.notionUrl || "")
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -400,7 +413,8 @@ function TaskForm({
       description,
       status,
       priority,
-      dueDate: dueDate ? new Date(dueDate) : null
+      dueDate: dueDate ? new Date(dueDate) : null,
+      notionUrl: notionUrl || null
     })
   }
 
@@ -470,6 +484,20 @@ function TaskForm({
                 onChange={(e) => setDueDate(e.target.value)}
                 className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
               />
+            </div>
+
+            <div>
+              <label className="mb-2 block text-sm font-medium">Notion URL（任意）</label>
+              <input
+                type="url"
+                placeholder="https://www.notion.so/..."
+                value={notionUrl}
+                onChange={(e) => setNotionUrl(e.target.value)}
+                className="w-full rounded-md border border-input bg-background px-3 py-2 text-xs font-mono"
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                関連するNotionページのURLを入力してください
+              </p>
             </div>
 
             <div className="flex gap-2">

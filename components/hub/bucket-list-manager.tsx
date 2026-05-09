@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Plus, Sparkles, MapPin, Calendar, Trash2, Edit2, CheckCircle2, Clock, Target, Flame } from "lucide-react"
+import { Plus, Sparkles, MapPin, Calendar, Trash2, Edit2, CheckCircle2, Clock, Target, Flame, ExternalLink } from "lucide-react"
 import { format } from "date-fns"
 import { ja } from "date-fns/locale"
 import { ReminderButton } from "@/components/hub/reminder-button"
@@ -19,6 +19,7 @@ interface BucketListItem {
   completedAt: Date | null
   priority: number // 1-5
   createdAt: Date
+  notionUrl: string | null
 }
 
 interface BucketStats {
@@ -335,6 +336,18 @@ export function BucketListManager() {
                           達成日: {format(new Date(item.completedAt), "yyyy/MM/dd", { locale: ja })}
                         </p>
                       )}
+
+                      {item.notionUrl && (
+                        <a
+                          href={item.notionUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="mt-2 inline-flex items-center gap-1 text-sm text-emerald-600 dark:text-emerald-400 hover:underline"
+                        >
+                          <ExternalLink className="h-4 w-4" />
+                          Notionページを開く
+                        </a>
+                      )}
                     </div>
 
                     <div className="flex gap-1">
@@ -456,7 +469,8 @@ function BucketListForm({
     description: item?.description || "",
     status: item?.status || "planning",
     targetDate: item?.targetDate ? new Date(item.targetDate).toISOString().split('T')[0] : "",
-    priority: item?.priority?.toString() || "3"
+    priority: item?.priority?.toString() || "3",
+    notionUrl: item?.notionUrl || ""
   })
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -569,6 +583,17 @@ function BucketListForm({
                 className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
                 rows={3}
                 placeholder="詳細やメモなど"
+              />
+            </div>
+
+            <div>
+              <label className="mb-2 block text-sm font-medium">Notion URL</label>
+              <input
+                type="url"
+                value={formData.notionUrl}
+                onChange={(e) => setFormData({ ...formData, notionUrl: e.target.value })}
+                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                placeholder="https://www.notion.so/..."
               />
             </div>
 

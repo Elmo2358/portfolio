@@ -121,3 +121,35 @@ export async function getAtCoderContest(contestId: string) {
 export async function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms))
 }
+
+/**
+ * AtCoderの公式解説ページURLを生成
+ * @param problemId 問題ID (例: abc250_a)
+ * @returns 解説ページURL
+ */
+export function getEditorialUrl(problemId: string): string {
+  // problemId形式: {contest_id}_{task_id}
+  // 例: abc250_a → contest=abc250, task=a
+  const match = problemId.match(/^([a-z0-9]+)_([a-z0-9]+)$/i)
+  if (!match) {
+    return ""
+  }
+
+  const [, contestId, taskId] = match
+  return `https://atcoder.jp/contests/${contestId}/editorial/${taskId}`
+}
+
+/**
+ * AtCoderの問題提出ページURLを生成（自分の提出を確認するため）
+ * @param problemId 問題ID
+ * @returns 提出ページURL
+ */
+export function getSubmissionsUrl(problemId: string): string {
+  const match = problemId.match(/^([a-z0-9]+)_([a-z0-9]+)$/i)
+  if (!match) {
+    return ""
+  }
+
+  const [, contestId, taskId] = match
+  return `https://atcoder.jp/contests/${contestId}/submissions?f.Task=${taskId}`
+}

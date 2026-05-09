@@ -36,7 +36,7 @@ export async function PUT(
     }
 
     const body = await req.json()
-    const { title, category, description, status, targetDate, priority } = body
+    const { title, category, description, status, targetDate, priority, notionUrl } = body
 
     // バリデーション
     if (title !== undefined && title.trim().length === 0) {
@@ -72,7 +72,8 @@ export async function PUT(
         ...(status && { status }),
         ...(targetDate !== undefined && { targetDate: targetDate ? new Date(targetDate) : null }),
         ...(priority !== undefined && { priority }),
-        ...(completedAt !== undefined && { completedAt })
+        ...(completedAt !== undefined && { completedAt }),
+        ...(notionUrl !== undefined && { notionUrl: notionUrl.trim() || null })
       }
     })
 

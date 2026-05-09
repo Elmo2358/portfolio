@@ -36,7 +36,7 @@ export async function PUT(
     }
 
     const body = await req.json()
-    const { type, company, position, status, appliedDate, notes } = body
+    const { type, company, position, status, appliedDate, notes, notionUrl } = body
 
     // バリデーション
     if (company !== undefined && company.trim().length === 0) {
@@ -59,7 +59,8 @@ export async function PUT(
         ...(position !== undefined && { position: position.trim() || null }),
         ...(status && { status }),
         ...(appliedDate !== undefined && { appliedDate: appliedDate ? new Date(appliedDate) : new Date() }),
-        ...(notes !== undefined && { notes: notes.trim() || null })
+        ...(notes !== undefined && { notes: notes.trim() || null }),
+        ...(notionUrl !== undefined && { notionUrl: notionUrl.trim() || null })
       }
     })
 

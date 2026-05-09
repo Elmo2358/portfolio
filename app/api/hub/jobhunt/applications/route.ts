@@ -59,7 +59,7 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json()
-    const { type, company, position, status, appliedDate, notes } = body
+    const { type, company, position, status, appliedDate, notes, notionUrl } = body
 
     // バリデーション
     if (!company || company.trim().length === 0) {
@@ -82,7 +82,8 @@ export async function POST(req: NextRequest) {
         position: position?.trim() || null,
         status,
         appliedDate: appliedDate ? new Date(appliedDate) : new Date(),
-        notes: notes?.trim() || null
+        notes: notes?.trim() || null,
+        notionUrl: notionUrl?.trim() || null
       }
     })
 

@@ -26,6 +26,7 @@ import {
   Flame,
   Trash2,
   Save,
+  BookOpen,
 } from "lucide-react"
 
 interface Problem {
@@ -513,9 +514,20 @@ export function AtCoderManager() {
                       href={problem.url}
                       target="_blank"
                       rel="noopener noreferrer"
+                      title="問題ページを開く"
                     >
                       <Button variant="outline" size="sm">
                         <ExternalLink className="h-4 w-4" />
+                      </Button>
+                    </a>
+                    <a
+                      href={`https://atcoder.jp/contests/${problem.contestId}/editorial/${problem.id.split('_').pop()}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      title="解説ページを開く"
+                    >
+                      <Button variant="outline" size="sm">
+                        <BookOpen className="h-4 w-4" />
                       </Button>
                     </a>
                     <Button

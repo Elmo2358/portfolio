@@ -20,14 +20,15 @@ model User {
   atCoderId             String?   @unique // AtCoderユーザーID
   googleTasksEnabled    Boolean   @default(false) // Google Tasks同期有効/無効
   googleTasksTasklistId String?   // Google TasksのタスクリストID
-  notionEnabled         Boolean   @default(false) // Notion同期有効/無効
-  notionDatabaseId      String?   // NotionデータベースID
-  notionPropertyMapping String?   // Notionプロパティマッピング（JSON）
+  notionWikiEnabled     Boolean   @default(false) // Notion Wiki有効/無効
+  notionWikiDatabaseId  String?   // Notion WikiデータベースID
   // Google OAuth連携用
   googleAccountId       String?   // GoogleアカウントID
   googleAccessToken     String?   // Google OAuthアクセストークン
   googleRefreshToken    String?   // Google OAuthリフレッシュトークン
   googleTokenExpiresAt  DateTime? // トークン有効期限
+  // Notion連携用
+  notionAccessToken      String?   // Notion APIアクセストークン
   createdAt             DateTime  @default(now())
   updatedAt             DateTime  @updatedAt
 
@@ -154,7 +155,7 @@ model Task {
   dueDate     DateTime?
   completedAt DateTime?
   googleTaskId String?  // Google TasksのタスクID
-  notionPageId String?  // NotionページID
+  notionUrl   String?   // NotionページURL
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -201,6 +202,7 @@ model JobApplication {
   status      String   // ES提出, テスト面接, 最終面接, 内定, 落選
   appliedDate DateTime // 申請日
   notes       String?  // メモ
+  notionUrl   String?  // NotionページURL
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -252,6 +254,7 @@ model BucketListItem {
   targetDate  DateTime?
   completedAt DateTime?
   priority    Int      // 優先度（1-5）
+  notionUrl   String?  // NotionページURL
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -263,14 +266,15 @@ model BucketListItem {
 
 // AtCoder問題メタデータ
 model AtCoderProblem {
-  id          String   @id // 問題ID (例: abc250_a)
-  contestId   String   // コンテストID (例: abc250)
-  title       String   // 問題タイトル
-  difficulty  Int?     // 推定難易度（レーティング値）
-  tags        String?  // アルゴリズムタグ（JSON配列）
-  url         String   // AtCoder問題ページURL
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id             String   @id // 問題ID (例: abc250_a)
+  contestId      String   // コンテストID (例: abc250)
+  title          String   // 問題タイトル
+  difficulty     Int?     // 推定難易度（レーティング値）
+  tags           String?  // アルゴリズムタグ（JSON配列）
+  url            String   // AtCoder問題ページURL
+  explanationUrl String?  // 解説ページURL
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 
   // リレーション
   userProblems  AtCoderUserProblem[]

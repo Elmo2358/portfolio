@@ -15,14 +15,15 @@ import {
 export async function GET(req: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
-    if (!session?.user?.id) {
+    if (!session?.user?.email) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
     // ユーザーのGoogle連携情報を取得
     const user = await prisma.user.findUnique({
-      where: { id: session.user.id },
+      where: { email: session.user.email },
       select: {
+        id: true,
         googleTasksEnabled: true,
         googleTasksTasklistId: true,
         googleAccessToken: true,
@@ -68,8 +69,16 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
-    if (!session?.user?.id) {
+    if (!session?.user?.email) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { email: session.user.email },
+    })
+
+    if (!user) {
+      return NextResponse.json({ error: "User not found" }, { status: 404 })
     }
 
     const body = await req.json()
@@ -77,7 +86,7 @@ export async function POST(req: NextRequest) {
 
     // 同期設定を保存
     await prisma.user.update({
-      where: { id: session.user.id },
+      where: { id: user.id },
       data: {
         googleTasksEnabled: enabled,
         googleTasksTasklistId: tasklistId,
@@ -103,14 +112,15 @@ export async function POST(req: NextRequest) {
 export async function PUT(req: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
-    if (!session?.user?.id) {
+    if (!session?.user?.email) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
     // ユーザーのGoogle連携情報を取得
     const user = await prisma.user.findUnique({
-      where: { id: session.user.id },
+      where: { email: session.user.email },
       select: {
+        id: true,
         googleTasksEnabled: true,
         googleTasksTasklistId: true,
         googleAccessToken: true,
@@ -134,6 +144,7 @@ export async function PUT(req: NextRequest) {
 
     const accessToken = user.googleAccessToken
     const tasklistId = user.googleTasksTasklistId
+    const userId = user.id
 
     const body = await req.json()
     const { action, taskId, googleTaskId } = body
@@ -142,7 +153,7 @@ export async function PUT(req: NextRequest) {
       case "create": {
         // 新規タスクをGoogle Tasksに追加
         const task = await prisma.task.findUnique({
-          where: { id: taskId, userId: session.user.id },
+          where: { id: taskId, userId },
         })
 
         if (!task) {
@@ -167,7 +178,7 @@ export async function PUT(req: NextRequest) {
       case "update": {
         // タスクを更新
         const task = await prisma.task.findUnique({
-          where: { id: taskId, userId: session.user.id },
+          where: { id: taskId, userId },
         })
 
         if (!task) {
@@ -211,7 +222,7 @@ export async function PUT(req: NextRequest) {
           // 既存のタスクを検索
           const existing = await prisma.task.findFirst({
             where: {
-              userId: session.user.id,
+              userId,
               googleTaskId: gt.id,
             },
           })
@@ -233,7 +244,7 @@ export async function PUT(req: NextRequest) {
             // 新規作成（既にサイトから作成されたタスクは除外）
             await prisma.task.create({
               data: {
-                userId: session.user.id,
+                userId,
                 title: gt.title,
                 description: gt.notes,
                 dueDate: gt.due ? new Date(gt.due) : null,

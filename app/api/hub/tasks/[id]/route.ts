@@ -24,7 +24,7 @@ export async function PUT(
     }
 
     const body = await req.json()
-    const { title, description, status, priority, dueDate, completedAt } = body
+    const { title, description, status, priority, dueDate, completedAt, notionUrl } = body
 
     // タスクの存在確認と権限チェック
     const existingTask = await prisma.task.findUnique({
@@ -61,7 +61,8 @@ export async function PUT(
         ...(status && { status }),
         ...(priority && { priority }),
         ...(dueDate !== undefined && { dueDate: dueDate ? new Date(dueDate) : null }),
-        ...(completedAt !== undefined && { completedAt: completedAt ? new Date(completedAt) : null })
+        ...(completedAt !== undefined && { completedAt: completedAt ? new Date(completedAt) : null }),
+        ...(notionUrl !== undefined && { notionUrl: notionUrl.trim() || null })
       }
     })
 

@@ -63,7 +63,7 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json()
-    const { title, category, description, status, targetDate, priority } = body
+    const { title, category, description, status, targetDate, priority, notionUrl } = body
 
     // バリデーション
     if (!title || title.trim().length === 0) {
@@ -90,7 +90,8 @@ export async function POST(req: NextRequest) {
         description: description?.trim() || null,
         status,
         targetDate: targetDate ? new Date(targetDate) : null,
-        priority: priority || 3
+        priority: priority || 3,
+        notionUrl: notionUrl?.trim() || null
       }
     })
 

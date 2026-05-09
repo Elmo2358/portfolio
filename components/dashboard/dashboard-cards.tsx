@@ -3,7 +3,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
-import { CheckCircle2, DollarSign, Briefcase, Gamepad2, Sparkles, Code2, Settings, BarChart3 } from "lucide-react"
+import { CheckCircle2, DollarSign, Briefcase, Gamepad2, Sparkles, Code2, Settings, BarChart3, BookOpen } from "lucide-react"
 
 const apps = [
   {
@@ -59,12 +59,21 @@ const apps = [
     path: "/hub/atcoder",
     color: "bg-emerald-600 dark:bg-emerald-500",
     status: "available"
+  },
+  {
+    id: 7,
+    title: "Wiki",
+    description: "Notionで作成したWiki・ドキュメントを管理",
+    icon: BookOpen,
+    path: "/hub/wiki",
+    color: "bg-emerald-600 dark:bg-emerald-500",
+    status: "available"
   }
 ]
 
 export function DashboardCards() {
   return (
-    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 stagger-200">
+    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 stagger-200">
       {apps.map((app) => (
         <Card
           key={app.id}
