@@ -23,6 +23,11 @@ model User {
   notionEnabled         Boolean   @default(false) // Notion同期有効/無効
   notionDatabaseId      String?   // NotionデータベースID
   notionPropertyMapping String?   // Notionプロパティマッピング（JSON）
+  // Google OAuth連携用
+  googleAccountId       String?   // GoogleアカウントID
+  googleAccessToken     String?   // Google OAuthアクセストークン
+  googleRefreshToken    String?   // Google OAuthリフレッシュトークン
+  googleTokenExpiresAt  DateTime? // トークン有効期限
   createdAt             DateTime  @default(now())
   updatedAt             DateTime  @updatedAt
 

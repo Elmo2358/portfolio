@@ -19,23 +19,35 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const accessToken = req.headers.get("x-google-access-token")
+    // ユーザーのGoogle連携情報を取得
+    const user = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: {
+        googleTasksEnabled: true,
+        googleTasksTasklistId: true,
+        googleAccessToken: true,
+        googleTokenExpiresAt: true,
+      },
+    })
 
-    if (!accessToken) {
+    // Google連携が未設定の場合
+    if (!user?.googleAccessToken) {
       return NextResponse.json(
-        { error: "Google access token is required", setupRequired: true },
+        { error: "Google連携が必要です", setupRequired: true },
         { status: 400 }
       )
     }
 
-    // ユーザーの同期設定を取得
-    const user = await prisma.user.findUnique({
-      where: { id: session.user.id },
-      select: { googleTasksEnabled: true, googleTasksTasklistId: true },
-    })
+    // アクセストークンの有効期限チェック
+    if (user.googleTokenExpiresAt && user.googleTokenExpiresAt < new Date()) {
+      return NextResponse.json(
+        { error: "Googleアクセストークンの有効期限が切れています。再連携してください。", setupRequired: true },
+        { status: 400 }
+      )
+    }
 
     // タスクリストを取得
-    const taskLists = await getTaskLists(accessToken)
+    const taskLists = await getTaskLists(user.googleAccessToken)
 
     return NextResponse.json({
       success: true,
@@ -95,23 +107,23 @@ export async function PUT(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const accessToken = req.headers.get("x-google-access-token")
+    // ユーザーのGoogle連携情報を取得
+    const user = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: {
+        googleTasksEnabled: true,
+        googleTasksTasklistId: true,
+        googleAccessToken: true,
+        googleTokenExpiresAt: true,
+      },
+    })
 
-    if (!accessToken) {
+    if (!user?.googleAccessToken) {
       return NextResponse.json(
-        { error: "Google access token is required" },
+        { error: "Google連携が必要です", setupRequired: true },
         { status: 400 }
       )
     }
-
-    const body = await req.json()
-    const { action, taskId, googleTaskId } = body
-
-    // ユーザーの設定を取得
-    const user = await prisma.user.findUnique({
-      where: { id: session.user.id },
-      select: { googleTasksEnabled: true, googleTasksTasklistId: true },
-    })
 
     if (!user?.googleTasksEnabled || !user.googleTasksTasklistId) {
       return NextResponse.json(
@@ -120,7 +132,11 @@ export async function PUT(req: NextRequest) {
       )
     }
 
+    const accessToken = user.googleAccessToken
     const tasklistId = user.googleTasksTasklistId
+
+    const body = await req.json()
+    const { action, taskId, googleTaskId } = body
 
     switch (action) {
       case "create": {

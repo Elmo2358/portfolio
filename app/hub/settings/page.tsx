@@ -8,6 +8,8 @@ import { Switch } from "@/components/ui/switch"
 import { Settings, Bell, CheckCircle2 } from "lucide-react"
 import { useState, useEffect } from "react"
 import { toast } from "sonner"
+import { signIn, useSession } from "next-auth/react"
+import { useRouter, useSearchParams } from "next/navigation"
 
 interface NotificationLog {
   id: string
@@ -20,6 +22,10 @@ interface NotificationLog {
 }
 
 export default function SettingsPage() {
+  const router = useRouter()
+  const searchParams = useSearchParams()
+  const { data: session, status } = useSession()
+
   const [atCoderId, setAtCoderId] = useState("")
   const [loading, setLoading] = useState(false)
   const [syncing, setSyncing] = useState(false)
@@ -34,6 +40,12 @@ export default function SettingsPage() {
   const [selectedTasklist, setSelectedTasklist] = useState("")
   const [loadingGoogleTasks, setLoadingGoogleTasks] = useState(false)
   const [googleTasksSetupRequired, setGoogleTasksSetupRequired] = useState(false)
+
+  // Google OAuth連携の状態
+  const [googleConnected, setGoogleConnected] = useState(false)
+  const [googleAccountId, setGoogleAccountId] = useState("")
+  const [googleAuthConfigured, setGoogleAuthConfigured] = useState(false)
+  const [loadingGoogleAuth, setLoadingGoogleAuth] = useState(false)
 
   // 通知権限を確認
   useEffect(() => {
@@ -80,6 +92,64 @@ export default function SettingsPage() {
     }
     fetchGoogleTasksSettings()
   }, [])
+
+  // Google OAuth連携の状態を取得
+  const fetchGoogleAuthStatus = async () => {
+    try {
+      console.log("🔵 Fetching Google auth status...")
+      const res = await fetch("/api/hub/settings/google-auth")
+      const data = await res.json()
+
+      console.log("🔵 Google auth status response:", data)
+
+      if (res.ok) {
+        setGoogleConnected(data.isConnected)
+        setGoogleAccountId(data.googleAccountId || "")
+        setGoogleAuthConfigured(data.isConfigured)
+
+        if (data.isConnected && !googleConnected) {
+          toast.success("Google連携が完了しました！")
+        }
+      }
+    } catch (error) {
+      console.error("Error fetching Google auth status:", error)
+    }
+  }
+
+  useEffect(() => {
+    fetchGoogleAuthStatus()
+  }, [])
+
+  // セッションが更新されたときもステータスを再取得
+  useEffect(() => {
+    if (status === "authenticated") {
+      console.log("🔵 Session authenticated, fetching Google auth status...")
+      fetchGoogleAuthStatus()
+    }
+  }, [status])
+
+  // Google連携が確立されたらタスクリストを取得
+  useEffect(() => {
+    const fetchTaskLists = async () => {
+      if (googleConnected && !googleTasksSetupRequired) {
+        try {
+          const res = await fetch("/api/hub/tasks/google-sync")
+          const data = await res.json()
+
+          if (res.ok && data.taskLists) {
+            setGoogleTasklists(data.taskLists)
+            // タスクリストが選択されていない場合は最初のタスクリストを選択
+            if (!selectedTasklist && data.taskLists.length > 0) {
+              setSelectedTasklist(data.taskLists[0].id)
+            }
+          }
+        } catch (error) {
+          console.error("Error fetching task lists:", error)
+        }
+      }
+    }
+    fetchTaskLists()
+  }, [googleConnected, googleTasksSetupRequired])
 
   const requestNotificationPermission = async () => {
     if (!("Notification" in window)) {
@@ -205,10 +275,24 @@ export default function SettingsPage() {
   const handleGoogleTasksToggle = async (enabled: boolean) => {
     setLoadingGoogleTasks(true)
     try {
+      // タスクリストが選択されていない場合は、最初のタスクリストを自動選択
+      let tasklistId = selectedTasklist
+      if (enabled && !tasklistId && googleTasklists.length > 0) {
+        tasklistId = googleTasklists[0].id
+        setSelectedTasklist(tasklistId)
+      }
+
+      // タスクリストが必要な場合はエラー
+      if (enabled && !tasklistId) {
+        toast.error("タスクリストを選択してください")
+        setLoadingGoogleTasks(false)
+        return
+      }
+
       const res = await fetch("/api/hub/tasks/google-sync", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ enabled, tasklistId: selectedTasklist }),
+        body: JSON.stringify({ enabled, tasklistId }),
       })
 
       const data = await res.json()
@@ -248,6 +332,45 @@ export default function SettingsPage() {
       toast.error("エラーが発生しました")
     } finally {
       setLoadingGoogleTasks(false)
+    }
+  }
+
+  // Google OAuth連携のハンドラー
+  const handleGoogleAuth = async () => {
+    setLoadingGoogleAuth(true)
+    try {
+      // NextAuthのGoogleサインインを開始（設定ページに戻る）
+      await signIn("google", { callbackUrl: "/hub/settings" })
+    } catch (error) {
+      console.error("Error initiating Google auth:", error)
+      toast.error("Google連携の開始に失敗しました")
+      setLoadingGoogleAuth(false)
+    }
+  }
+
+  // Google OAuth連携解除のハンドラー
+  const handleGoogleDisconnect = async () => {
+    setLoadingGoogleAuth(true)
+    try {
+      const res = await fetch("/api/hub/settings/google-auth", {
+        method: "DELETE",
+      })
+
+      const data = await res.json()
+
+      if (res.ok) {
+        setGoogleConnected(false)
+        setGoogleAccountId("")
+        setGoogleTasksEnabled(false)
+        toast.success(data.message || "Google連携を解除しました")
+      } else {
+        toast.error(data.error || "連携解除に失敗しました")
+      }
+    } catch (error) {
+      console.error("Error disconnecting Google auth:", error)
+      toast.error("エラーが発生しました")
+    } finally {
+      setLoadingGoogleAuth(false)
     }
   }
 
@@ -374,6 +497,65 @@ export default function SettingsPage() {
           </CardContent>
         </Card>
 
+        {/* Google OAuth連携 */}
+        <Card className="border-2 border-emerald-500 bg-emerald-50 dark:bg-emerald-950 dark:border-emerald-600">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-emerald-700 dark:text-emerald-300 text-lg flex items-center gap-2">
+              <CheckCircle2 className="h-5 w-5" />
+              Googleアカウント連携
+            </CardTitle>
+            <CardDescription className="text-sm">
+              Google TasksやGoogleカレンダーと連携します
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {!googleAuthConfigured ? (
+              <div className="p-3 rounded bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200 text-sm space-y-2">
+                <p>⚠️ Google OAuth設定が完了していません</p>
+                <p className="text-xs">.env.localにGOOGLE_CLIENT_IDとGOOGLE_CLIENT_SECRETを設定してください</p>
+                <p className="text-xs">詳しくは <code className="bg-yellow-200 dark:bg-yellow-800 px-1 rounded">GOOGLE_OAUTH_SETUP.md</code> を参照してください</p>
+              </div>
+            ) : googleConnected ? (
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-emerald-700 dark:text-emerald-300">✓ 連携済み</p>
+                    <p className="text-xs text-muted-foreground">
+                      {googleAccountId ? `アカウント: ${googleAccountId}` : "Googleアカウントと連携中"}
+                    </p>
+                  </div>
+                  <div className="h-2 w-2 rounded-full bg-emerald-500" />
+                </div>
+                <Button
+                  onClick={handleGoogleDisconnect}
+                  disabled={loadingGoogleAuth}
+                  variant="outline"
+                  className="w-full border-red-600 text-red-600 hover:bg-red-600 hover:text-white dark:border-red-500 dark:text-red-400 text-sm"
+                >
+                  {loadingGoogleAuth ? "処理中..." : "連携を解除"}
+                </Button>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <p className="text-sm text-muted-foreground">
+                  Googleアカウントと連携すると、以下の機能が使えるようになります：
+                </p>
+                <ul className="text-xs text-muted-foreground space-y-1 list-disc list-inside">
+                  <li>Google Tasksとのタスク同期</li>
+                  <li>Googleカレンダーへのイベント追加</li>
+                </ul>
+                <Button
+                  onClick={handleGoogleAuth}
+                  disabled={loadingGoogleAuth}
+                  className="w-full bg-emerald-600 hover:bg-emerald-700"
+                >
+                  {loadingGoogleAuth ? "連携中..." : "Googleアカウントで連携"}
+                </Button>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
         {/* Google Tasks同期 */}
         <Card className="border-2 border-emerald-500 bg-emerald-50 dark:bg-emerald-950 dark:border-emerald-600">
           <CardHeader className="pb-3">
@@ -401,21 +583,8 @@ export default function SettingsPage() {
               </div>
             ) : (
               <>
-                <div className="flex items-center justify-between">
-                  <div className="flex-1">
-                    <p className="text-sm font-medium">同期を有効にする</p>
-                    <p className="text-xs text-muted-foreground">
-                      {googleTasksEnabled ? "Google Tasksと同期中" : "同期は無効になっています"}
-                    </p>
-                  </div>
-                  <Switch
-                    checked={googleTasksEnabled}
-                    onCheckedChange={handleGoogleTasksToggle}
-                    disabled={loadingGoogleTasks}
-                  />
-                </div>
-
-                {googleTasksEnabled && googleTasklists.length > 0 && (
+                {/* タスクリスト選択（常に表示） */}
+                {googleTasklists.length > 0 && (
                   <div>
                     <Label htmlFor="tasklist" className="text-sm">タスクリストを選択</Label>
                     <select
@@ -434,6 +603,20 @@ export default function SettingsPage() {
                     </select>
                   </div>
                 )}
+
+                <div className="flex items-center justify-between">
+                  <div className="flex-1">
+                    <p className="text-sm font-medium">同期を有効にする</p>
+                    <p className="text-xs text-muted-foreground">
+                      {googleTasksEnabled ? "Google Tasksと同期中" : "同期は無効になっています"}
+                    </p>
+                  </div>
+                  <Switch
+                    checked={googleTasksEnabled}
+                    onCheckedChange={handleGoogleTasksToggle}
+                    disabled={loadingGoogleTasks || !selectedTasklist}
+                  />
+                </div>
 
                 {googleTasksEnabled && (
                   <Button
