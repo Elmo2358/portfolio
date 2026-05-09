@@ -163,11 +163,150 @@
 ## 🎯 今後の長期計画
 
 ### 第5フェーズ：AI連携（将来）
-- OpenAI Structured Outputs統合
-- ユーザーデータ分析
-- 学習パス自動生成
-- コード分析と改善提案
-- LLMによる学習アドバイス
+
+#### 概要
+AtCoder学習サポートLLM機能を実装し、ユーザーの競プロ学習をAIで支援する。
+
+#### 機能1: 問題推薦システム
+**説明**: ユーザーのレート・解答状況・学習履歴から最適な問題を推薦
+
+**実装内容**:
+- [ ] ユーザーのAC状況・苦手なジャンルを分析
+- [ ] レートに応じた問題推薦（abc-c/abc-d/arc-a等）
+- [ ] 学習目的に応じたカリキュラum生成
+  - DP強化
+  - グラフ理論
+  - 文字列/正規表現
+  - 数学・数論
+- [ ] 過去の類似問題を推薦（復習支援）
+
+**技術的ポイント**:
+- Claude API / OpenAI API使用
+- AtCoder Problems APIで問題メタデータ取得
+- ユーザーの提出履歴を分析
+- タグベースの問題分類（difficulty/algorithm）
+
+**関連ファイル**:
+- `app/api/hub/atcoder/recommendations/`
+- `components/hub/atcoder/recommendation-card.tsx`
+
+---
+
+#### 機能2: コード分析・改善提案
+**説明**: 提出コードをLLMが分析し、改善点を提案
+
+**実装内容**:
+- [ ] 提出コードの自動取得
+- [ ] LLMによるコードレビュー
+  - バグ発見
+  - 計算量分析
+  - 実装の簡素化提案
+  - Python/C++のベストプラクティス
+- [ ] 改善コードの生成
+- [ ] 公式解説との比較
+
+**技術的ポイント**:
+- AtCoder APIから提出ソース取得
+- GitHub Copilot API / Claude Code Analysis API
+- AST（抽象構文木）を使用したコード解析
+- タイムスタンプ・メモリ使用量の分析
+
+**関連ファイル**:
+- `app/api/hub/atcoder/analyze/[submissionId]/route.ts`
+- `components/hub/atcoder/code-review.tsx`
+
+---
+
+#### 機能3: 学習アドバイス・Q&A
+**説明**: ユーザーの疑問をLLMが回答
+
+**実装内容**:
+- [ ] 問題文に対するヒント生成
+- [ ] 解法の説明生成
+  - アルゴリズムの選択理由
+  - 時間計算量・空間計算量の解説
+- [ ] 間違えた問題の解説
+- [ ] チャットボット形式での質問応答
+
+**技術的ポイント**:
+- RAG（検索拡張生成）で公式解説・過去の質問を参照
+- Vector Database（Pinecone/Qdrant）で解説をembed
+- LangChain / Vercel AI SDK
+
+**関連ファイル**:
+- `app/api/ai/qa/route.ts`
+- `components/hub/atcoder/qa-chat.tsx`
+
+---
+
+#### 機能4: 学習プラン自動生成
+**説明**: 目標（色・レート・期間）から学習計画を生成
+
+**実装内容**:
+- [ ] 目標入力（例: 3ヶ月で水色になる）
+- [ ] 現在のレート・AC状況の分析
+- [ ] 日次・週次学習タスクの生成
+- [ ] 進捗管理とプランの動的調整
+
+**技術的ポイント**:
+- ユーザーの過去の成長速度から実現可能性を判断
+- Virtual Contestの作成支援
+- 学習時間の記録・分析
+
+**関連ファイル**:
+- `app/api/ai/learning-plan/route.ts`
+- `app/hub/learning-plan/`
+
+---
+
+#### 技術スタック
+| カテゴリ | 技術選択 |
+|----------|----------|
+| LLM API | Claude 3.5 Sonnet / GPT-4o |
+| Vector DB | Pinecone / Qdrant Cloud |
+| AI SDK | Vercel AI SDK / LangChain |
+| Frontend | AI SDK Components (useChat, useCompletion) |
+| RAG | AtCoder公式解説、ユーザー投稿解説 |
+
+---
+
+#### 実装スケジュール（予定）
+
+**Phase 1: 問題推薦システム（2週間）**
+- ユーザー分析ロジック実装
+- Claude APIで推薦ロジック実装
+- UI/UX実装
+
+**Phase 2: コード分析（2週間）**
+- 提出コード取得
+- LLM分析パイプライン構築
+- 結果表示UI
+
+**Phase 3: 学習アドバイス（1週間）**
+- Q&Aチャット実装
+- RAGシステム構築
+- ヒント生成機能
+
+**Phase 4: 学習プラン生成（1週間）**
+- 目標設定UI
+- プラン生成ロジック
+- 進捗管理機能
+
+---
+
+#### コスト見積もり（月間）
+| サービス | 利用想定 | 概算費用 |
+|----------|----------|----------|
+| Claude API | 100万tokens/月 | ~$15 |
+| Pinecone | 1万ベクトル | ~$20 |
+| 合計 | - | ~$35/月 |
+
+---
+
+#### 参考資料
+- [AtCoder Problems API](https://kenkoooo.com/atcoder/resources/)
+- [AtCoderヒント集 - GitHub](https://github.com/kenkoooo/AtCoderProblems)
+- [公式解説アーカイブ](https://github.com/atcoder/library_checker)
 
 ---
 
