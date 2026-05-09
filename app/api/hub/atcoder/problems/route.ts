@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
+import { getAtCoderProblem } from "@/lib/atcoder"
 
 // GET: 問題一覧取得（検索・フィルタリング対応）
 export async function GET(req: NextRequest) {
@@ -97,13 +98,48 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json()
-    const { problemId, title, contestId, url, status, memo } = body
+    const { problemId, title, url, status, memo } = body
+    let contestId = body.contestId
 
     if (!problemId || !title || !url) {
       return NextResponse.json(
         { error: "Missing required fields" },
         { status: 400 }
       )
+    }
+
+    // URL形式の検証
+    const validUrlPattern = /^https:\/\/atcoder\.jp\/contests\/[^\/]+\/tasks\/[^\/]+$/
+    if (!validUrlPattern.test(url)) {
+      return NextResponse.json(
+        { error: "無効なAtCoder URLです。正しいURLを入力してください。" },
+        { status: 400 }
+      )
+    }
+
+    // URLから問題IDを抽出して照合
+    const urlProblemId = url.split("/tasks/")[1]
+    if (urlProblemId !== problemId) {
+      return NextResponse.json(
+        { error: "URLと問題IDが一致しません。" },
+        { status: 400 }
+      )
+    }
+
+    // AtCoder Problems APIで問題の存在を確認
+    try {
+      const apiProblem = await getAtCoderProblem(problemId)
+      if (!apiProblem) {
+        return NextResponse.json(
+          { error: "AtCoderに存在しない問題IDです。正しい問題IDを入力してください。" },
+          { status: 400 }
+        )
+      }
+      // APIから取得した情報で上書き（より正確なデータ）
+      contestId = apiProblem.contest_id
+    } catch (apiError) {
+      console.error("Error validating problem with AtCoder API:", apiError)
+      // APIエラーは無視して続行（ネットワーク問題等の場合）
     }
 
     // 問題が存在しない場合は作成

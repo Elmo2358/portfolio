@@ -12,6 +12,7 @@ import { StreakCard } from "@/components/hub/atcoder/streak-card"
 import { ContestSchedule } from "@/components/hub/atcoder/contest-schedule"
 import { ChatInterface } from "@/components/hub/atcoder/ai/qa/chat-interface"
 import { HintRevealer } from "@/components/hub/atcoder/ai/qa/hint-revealer"
+import { RecommendationCard } from "@/components/hub/atcoder/recommendation-card"
 import {
   Dialog,
   DialogContent,
@@ -101,6 +102,10 @@ export function AtCoderManager() {
     contestId: "",
     url: "",
   })
+  const [urlValidation, setUrlValidation] = useState<{
+    status: "idle" | "loading" | "valid" | "invalid"
+    message: string
+  }>({ status: "idle", message: "" })
 
   // 問題編集
   const [editingProblem, setEditingProblem] = useState<Problem | null>(null)
@@ -182,6 +187,66 @@ export function AtCoderManager() {
     }
   }
 
+  // URLから問題IDを抽出して検証
+  const validateProblemUrl = async (url: string) => {
+    // URL形式のチェック
+    const urlPattern = /^https:\/\/atcoder\.jp\/contests\/([^/]+)\/tasks\/([^/]+)$/
+    const match = url.match(urlPattern)
+
+    if (!match) {
+      setUrlValidation({
+        status: "invalid",
+        message: "無効なAtCoder URLです",
+      })
+      return
+    }
+
+    const [, contestId, problemId] = match
+
+    // 問題IDを自動入力
+    setNewProblem((prev) => ({ ...prev, problemId, contestId }))
+
+    // APIで問題の存在確認
+    setUrlValidation({ status: "loading", message: "問題を確認中..." })
+
+    try {
+      const res = await fetch(`/api/hub/atcoder/validate-problem?problemId=${encodeURIComponent(problemId)}`)
+
+      if (res.ok) {
+        const data = await res.json()
+        if (data.exists) {
+          // 問題が存在する場合はタイトルを自動入力
+          setNewProblem((prev) => ({
+            ...prev,
+            problemId: data.problem.id,
+            title: data.problem.title,
+            contestId: data.problem.contestId,
+          }))
+          setUrlValidation({
+            status: "valid",
+            message: `✓ ${data.problem.title}`,
+          })
+        } else {
+          setUrlValidation({
+            status: "invalid",
+            message: "問題が見つかりません",
+          })
+        }
+      } else {
+        setUrlValidation({
+          status: "invalid",
+          message: "問題の確認に失敗しました",
+        })
+      }
+    } catch (error) {
+      console.error("Error validating problem:", error)
+      setUrlValidation({
+        status: "idle",
+        message: "",
+      })
+    }
+  }
+
   const handleAddProblem = async () => {
     try {
       const res = await fetch("/api/hub/atcoder/problems", {
@@ -192,6 +257,7 @@ export function AtCoderManager() {
 
       if (res.ok) {
         setNewProblem({ problemId: "", title: "", contestId: "", url: "" })
+        setUrlValidation({ status: "idle", message: "" })
         setIsAddDialogOpen(false)
         await fetchProblems()
         await fetchStats()
@@ -203,6 +269,20 @@ export function AtCoderManager() {
       console.error("Error adding problem:", error)
       alert("問題の追加に失敗しました")
     }
+  }
+
+  // ダイアログが閉じる時のハンドラ
+  const handleCloseDialog = () => {
+    setNewProblem({ problemId: "", title: "", contestId: "", url: "" })
+    setUrlValidation({ status: "idle", message: "" })
+    setIsAddDialogOpen(false)
+  }
+
+  // ダイアログが開く時のハンドラ
+  const handleOpenDialog = () => {
+    setNewProblem({ problemId: "", title: "", contestId: "", url: "" })
+    setUrlValidation({ status: "idle", message: "" })
+    setIsAddDialogOpen(true)
   }
 
   const handleUpdateProblem = async () => {
@@ -332,8 +412,8 @@ export function AtCoderManager() {
           {/* ストリーク詳細カード */}
           <StreakCard
             currentStreak={stats.overview.streak}
-            longestStreak={stats.overview.longestStreak || 0}
-            forgivenessUsed={stats.overview.forgivenessUsed || 0}
+            longestStreak={0}
+            forgivenessUsed={0}
           />
         </>
       )}
@@ -343,6 +423,9 @@ export function AtCoderManager() {
 
       {/* コンテストスケジュール */}
       <ContestSchedule limit={10} sites={["atcoder.jp", "codeforces.com", "yukicoder.me"]} />
+
+      {/* AI問題推薦 */}
+      <RecommendationCard onAddProblem={async () => await fetchProblems()} />
 
       {/* 検索・フィルタ・追加 */}
       <Card>
@@ -381,11 +464,11 @@ export function AtCoderManager() {
                 <option value="upsolved_ac">コンテスト後AC</option>
                 <option value="review">復習中</option>
               </select>
-              <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+              <Dialog open={isAddDialogOpen} onOpenChange={handleCloseDialog}>
                 <DialogTrigger asChild>
                   <Button
                     className="bg-emerald-600 hover:bg-emerald-700 h-12 whitespace-nowrap"
-                    onClick={() => setIsAddDialogOpen(true)}
+                    onClick={handleOpenDialog}
                   >
                     <Plus className="h-4 w-4 mr-2" />
                     問題を追加
@@ -438,21 +521,47 @@ export function AtCoderManager() {
                         id="url"
                         placeholder="https://atcoder.jp/contests/abc250/tasks/abc250_a"
                         value={newProblem.url}
-                        onChange={(e) =>
+                        onChange={(e) => {
                           setNewProblem({ ...newProblem, url: e.target.value })
-                        }
+                          setUrlValidation({ status: "idle", message: "" })
+                        }}
+                        onBlur={(e) => {
+                          if (e.target.value) {
+                            validateProblemUrl(e.target.value)
+                          }
+                        }}
                       />
+                      {urlValidation.message && (
+                        <p className={`text-xs mt-1 ${
+                          urlValidation.status === "valid"
+                            ? "text-emerald-600"
+                            : urlValidation.status === "invalid"
+                            ? "text-red-600"
+                            : "text-muted-foreground"
+                        }`}>
+                          {urlValidation.message}
+                        </p>
+                      )}
                     </div>
                   </div>
                   <DialogFooter>
                     <Button
                       variant="outline"
-                      onClick={() => setIsAddDialogOpen(false)}
+                      onClick={handleCloseDialog}
                     >
                       キャンセル
                     </Button>
-                    <Button onClick={handleAddProblem}>
-                      追加
+                    <Button
+                      onClick={handleAddProblem}
+                      disabled={
+                        !newProblem.problemId ||
+                        !newProblem.title ||
+                        !newProblem.url ||
+                        urlValidation.status === "invalid" ||
+                        urlValidation.status === "loading"
+                      }
+                    >
+                      {urlValidation.status === "loading" ? "確認中..." : "追加"}
                     </Button>
                   </DialogFooter>
                 </DialogContent>

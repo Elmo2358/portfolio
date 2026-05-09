@@ -97,11 +97,17 @@ ${editorialText}
 }
 
 /**
- * 問題推薦用プロンプト（将来実装用）
+ * 問題推薦用プロンプト
  */
 export const RECOMMENDATION_PROMPTS = {
   system: `あなたはAtCoderの問題推薦システムです。
-ユーザーのレートや解答状況に基づいて、最適な問題を推薦してください。`,
+ユーザーのレートや解答状況に基づいて、最適な問題を推薦してください。
+
+以下のガイドラインに従ってください：
+- ユーザーの現在のレートより少し難しめの問題を推薦する
+- 未解決の問題を優先する
+- 学習目的に合った問題を選ぶ
+- JSON形式で問題IDと理由を返す`,
 
   analyzeUser: (userData: {
     acCount: number
@@ -116,4 +122,55 @@ export const RECOMMENDATION_PROMPTS = {
 - 現在のレート: ${userData.currentRating || "不明"}
 
 ユーザーの現状と、次に取り組むべき問題の傾向を分析してください。`,
+
+  byDifficulty: (userData: {
+    avgDifficulty: number
+    solvedCount: number
+    targetDifficulty?: number
+  }) =>
+    `以下のユーザーデータに基づいて、推薦する問題のdifficulty範囲を決定してください：
+- 平均AC difficulty: ${userData.avgDifficulty}
+- AC数: ${userData.solvedCount}
+- 目標difficulty: ${userData.targetDifficulty || "なし"}
+
+推薦するdifficultyの範囲（下限〜上限）をJSON形式で返してください。
+例: {"min": 800, "max": 1200, "reason": "現在のレートに適した問題です"}`,
+
+  byGenre: (genre: string, userData: {
+    acCount: number
+    currentRating?: number
+  }) =>
+    `以下の条件で${genre}に関する問題を推薦してください：
+- ユーザーAC数: ${userData.acCount}
+- 現在のレート: ${userData.currentRating || "不明"}
+
+${genre}の典型問題と、少しひねった問題のバランスを考慮してください。
+推薦する問題のdifficulty範囲をJSON形式で返してください。`,
+
+  review: (userData: {
+    acCount: number
+    recentAcProblems: Array<{ id: string; difficulty: number | null; date: string }>
+  }) =>
+    `以下のユーザーデータに基づいて、復習すべき問題の基準を決定してください：
+- 総AC数: ${userData.acCount}
+- 最近のAC問題: ${userData.recentAcProblems.length}件
+
+復習に適した条件（difficulty範囲、経過日数など）をJSON形式で返してください。
+例: {"difficultyMin": 400, "difficultyMax": 1000, "daysAgo": 30, "reason": "基礎固めのため"}`,
+
+  selectFromProblems: (problems: Array<{
+    id: string
+    title: string
+    difficulty?: number
+  }>, count: number, criteria: string) =>
+    `以下の問題リストから「${criteria}」という基準で${count}個の問題を選んでください：
+
+${problems.map((p, i) => `${i + 1}. ${p.id}: ${p.title} (difficulty: ${p.difficulty || "不明"})`).join("\n")}
+
+選んだ問題のIDと選択理由をJSON形式で返してください：
+{
+  "recommendations": [
+    {"id": "abc123_a", "title": "問題名", "reason": "選択理由"}
+  ]
+}`,
 }

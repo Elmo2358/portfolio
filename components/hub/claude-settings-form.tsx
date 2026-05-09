@@ -143,6 +143,8 @@ export function ClaudeSettingsForm({
         </div>
       ) : (
         <form action={handleSubmit} className="space-y-4">
+          <input type="hidden" name="enabled" value="true" />
+
           <div className="space-y-2">
             <Label htmlFor="apiKey">z.ai API Key</Label>
             <div className="flex gap-2">
