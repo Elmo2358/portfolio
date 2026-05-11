@@ -174,3 +174,118 @@ ${problems.map((p, i) => `${i + 1}. ${p.id}: ${p.title} (difficulty: ${p.difficu
   ]
 }`,
 }
+
+/**
+ * コードレビュー用プロンプト
+ */
+export const CODE_REVIEW_PROMPTS = {
+  system: `あなたはAtCoderの提出コードをレビューするAIアシスタントです。
+競技プログラミングのコードについて、以下の観点から分析してください：
+
+評価基準：
+- 正確性：アルゴリズムが正しいか、バグの可能性
+- 効率性：時間計算量、空間計算量、無駄な処理
+- 可読性：命名、構造、コメント
+- 慣習：言語のイディオマティックな使用、ベストプラクティス
+- エッジケース：境界条件の処理、特殊ケース
+
+日本語で回答してください。`,
+
+  review: (code: string, language: string, problemInfo?: {
+    title: string
+    difficulty?: number
+  }) => `以下の競技プログラミングコードをレビューしてください：
+
+言語: ${language}
+${problemInfo ? `問題: ${problemInfo.title} (difficulty: ${problemInfo.difficulty || '不明'})` : ''}
+
+コード:
+${code}
+
+以下の形式でJSONを出力してください：
+{
+  "overallRating": "S|A|B|C|D",
+  "strengths": ["良い点1", "良い点2"],
+  "improvements": ["改善点1", "改善点2"],
+  "complexityScore": 1-10,
+  "bugs": ["潜在的なバグ1", "バグ2"],
+  "summary": "全体的な要約（2-3文）"
+}
+
+評価基準：
+- S: 模範的な解答、改善点なし
+- A: 優れた解答、小さな改善可能
+- B: 良い解答、いくつかの改善点あり
+- C: 通るが改善が必要
+- D: 問題あり（バグ、非効率、可読性低）`,
+}
+
+/**
+ * 学習プラン生成用プロンプト
+ */
+export const LEARNING_PLAN_PROMPTS = {
+  system: `あなたは競技プログラミングの学習プランを立てるAIコーチです。
+ユーザーの目標と現在の実力に基づいて、効果的な学習プランを作成してください。
+
+プラン作成の原則：
+- 段階的な難易度上昇
+- 多様なジャンルの覆盖（DP、グラフ、文字列、数学等）
+- 復習時間の確保
+- 実践（コンテスト参加）の機会
+- 現実的な目標設定
+
+日本語で回答してください。`,
+
+  generatePlan: (userData: {
+    currentRating?: number
+    acCount: number
+    avgDifficulty?: number
+    weakGenres?: string[]
+  }, goals: {
+    targetRating?: number
+    targetDate: string
+    focusAreas?: string[]
+  }) => {
+    const weeksUntilGoal = Math.ceil(
+      (new Date(goals.targetDate).getTime() - Date.now()) / (7 * 24 * 60 * 60 * 1000)
+    )
+
+    return `以下のユーザーの学習プランを作成してください：
+
+## ユーザー現状
+- 現在のレート: ${userData.currentRating || '不明'}
+- AC数: ${userData.acCount}
+- 平均difficulty: ${userData.avgDifficulty || '不明'}
+${userData.weakGenres ? `- 苦手ジャンル: ${userData.weakGenres.join(', ')}` : ''}
+
+## 目標
+${goals.targetRating ? `- 目標レート: ${goals.targetRating}` : '- レート目標: なし（スキル向上重視）'}
+- 目標日: ${goals.targetDate}（あと${weeksUntilGoal}週間）
+${goals.focusAreas ? `- 重点分野: ${goals.focusAreas.join(', ')}` : ''}
+
+以下の形式でJSONを出力してください：
+{
+  "weeklyMilestones": [
+    {
+      "week": 1,
+      "title": "週のテーマ",
+      "goals": ["目標1", "目標2"],
+      "problemCount": 10,
+      "focusArea": "DP",
+      "difficultyMin": 800,
+      "difficultyMax": 1200
+    }
+  ],
+  "recommendedProblems": [
+    { "id": "abc123_a", "reason": "基礎固め" }
+  ],
+  "studyAdvice": "全体的なアドバイス（2-3文）"
+}
+
+注意点：
+- ${weeksUntilGoal}週間以内で収めること
+- 各週の問題数は現実的（週5-15問）
+- 難易度は段階的に上げる
+- ${goals.focusAreas && goals.focusAreas.length > 0 ? goals.focusAreas.join(', ') : '様々なジャンル'}をカバー`
+  },
+}

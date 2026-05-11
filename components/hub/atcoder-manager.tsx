@@ -13,6 +13,8 @@ import { ContestSchedule } from "@/components/hub/atcoder/contest-schedule"
 import { ChatInterface } from "@/components/hub/atcoder/ai/qa/chat-interface"
 import { HintRevealer } from "@/components/hub/atcoder/ai/qa/hint-revealer"
 import { RecommendationCard } from "@/components/hub/atcoder/recommendation-card"
+import { CodeReviewCard } from "@/components/hub/atcoder/code-review-card"
+import { LearningPlanCard } from "@/components/hub/atcoder/learning-plan-card"
 import {
   Dialog,
   DialogContent,
@@ -426,6 +428,12 @@ export function AtCoderManager() {
 
       {/* AI問題推薦 */}
       <RecommendationCard onAddProblem={async () => await fetchProblems()} />
+
+      {/* AIコードレビュー */}
+      <CodeReviewCard onReviewGenerated={async () => await fetchStats()} />
+
+      {/* AI学習プラン */}
+      <LearningPlanCard onTaskComplete={async () => await fetchStats()} />
 
       {/* 検索・フィルタ・追加 */}
       <Card>

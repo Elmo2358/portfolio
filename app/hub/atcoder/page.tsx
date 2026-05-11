@@ -35,17 +35,20 @@ export default async function AtCoderPage() {
         <Card className="mb-6 border-2 border-emerald-500 bg-emerald-50 dark:bg-emerald-950 dark:border-emerald-600">
           <CardHeader>
             <CardTitle className="text-emerald-700 dark:text-emerald-300">
-              AI機能（第5フェーズ）
+              AI機能（第5フェーズ完了 ✅）
             </CardTitle>
           </CardHeader>
           <CardContent className="text-sm text-emerald-800 dark:text-emerald-200">
             <ul className="list-disc list-inside space-y-1">
               <li>AIヒント生成（問題のヒントを3段階で提供）</li>
               <li>AI Q&Aチャット（競技プログラミングについて質問応答）</li>
+              <li>AI問題推薦（実力に合わせた問題を提案）</li>
+              <li>AIコードレビュー（提出コードの分析と改善提案）</li>
+              <li>AI学習プラン（目標から最適な学習計画を生成）</li>
               <li>問題編集ダイアログから直接AI機能を利用可能</li>
             </ul>
             <p className="mt-3 text-xs text-muted-foreground">
-              ※ 使用にはClaude APIキーが必要です。設定画面から入力してください。
+              ※ 使用にはz.ai APIキーが必要です。設定画面から入力してください。
             </p>
           </CardContent>
         </Card>

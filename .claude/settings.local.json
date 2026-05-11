@@ -73,10 +73,17 @@
       "Bash(rm -rf .next)",
       "Bash(curl -s http://localhost:3000/ -o /dev/null -w \"%{http_code}\")",
       "Bash(pkill -f \"node.*next\")",
-      "Bash(xargs -I {} taskkill //F //PID {})"
+      "Bash(xargs -I {} taskkill //F //PID {})",
+      "Bash(mkdir -p \"c:/Users/kerox/hp/app/api/ai/learning-plans/[planId]/tasks\")",
+      "Bash(npx shadcn-ui@latest add progress)",
+      "Bash(npx shadcn@latest add progress)",
+      "Bash(tasklist)",
+      "Bash(curl -s http://localhost:3002/api/debug/mock-code-review -X POST -H \"Content-Type: application/json\")",
+      "Bash(grep -v \"^\\\\.$\\\\|^\\\\.\\\\.$\\\\|node_modules\\\\|\\\\.next\\\\|\\\\.git\\\\|app\\\\|components\\\\|hooks\\\\|lib\\\\|prisma\\\\|public\\\\|docs\\\\|extension\\\\|scripts\\\\|types\")"
     ],
     "additionalDirectories": [
-      "c:\\Users\\kerox\\hp\\app\\api\\hub\\tasks\\[id]"
+      "c:\\Users\\kerox\\hp\\app\\api\\hub\\tasks\\[id]",
+      "c:\\Users\\kerox\\hp\\app\\api\\ai\\learning-plans\\[planId]"
     ]
   }
 }

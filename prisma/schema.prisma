@@ -60,6 +60,11 @@ model User {
   notificationLogs NotificationLog[]
   // AI Q&A
   qaConversations QaConversation[]
+  // Code Reviews
+  codeReviews CodeReview[]
+  // Learning Plans
+  learningPlans LearningPlan[]
+  learningTasks LearningTask[]
 }
 
 // 資格・試験情報（ポートフォリオ表示）
@@ -441,4 +446,94 @@ model HintCache {
 
   @@unique([problemId, hintLevel])
   @@index([problemId])
+}
+
+// ===== コードレビュー機能 =====
+
+// AIコードレビュー
+model CodeReview {
+  id              String   @id @default(cuid())
+  userId          String
+  submissionId    String   // AtCoderの提出ID
+
+  // ソースコード（キャッシュ用）
+  sourceCode      String   // 提出されたソースコード
+  language        String   // 使用言語
+  problemId       String   // 問題ID
+  problemTitle    String?  // 問題タイトル
+
+  // AIレビュー結果
+  overallRating   String?  // S, A, B, C, D
+  strengths       String?  // 良い点（JSON配列）
+  improvements    String?  // 改善点（JSON配列）
+  complexityScore Int?     // 複雑度スコア（1-10）
+  bugs            String?  // 潜在的なバグ（JSON配列）
+  summary         String?  // 全体的な要約
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  userRel         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, submissionId])
+  @@index([userId, createdAt])
+  @@index([problemId])
+}
+
+// ===== 学習プラン機能 =====
+
+// 学習プラン
+model LearningPlan {
+  id              String   @id @default(cuid())
+  userId          String
+
+  // 目標設定
+  targetRating    Int?     // 目標レーティング
+  targetDate      DateTime // 目標達成日
+  currentRating   Int?     // 現在のレーティング
+
+  // プラン内容
+  weeklyMilestones String  // 週次マイルストーン（JSON配列）
+  recommendedProblems String // 推薦問題リスト（JSON配列）
+  studyAdvice     String?  // 学習アドバイス
+
+  // 進捗
+  progress        Float    @default(0) // 進捗率（0-100）
+  completedTasks  String   // 完了したタスク（JSON配列）
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  userRel         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tasks           LearningTask[]
+
+  @@index([userId])
+}
+
+// 学習タスク
+model LearningTask {
+  id              String   @id @default(cuid())
+  planId          String
+  userId          String
+
+  title           String   // タスク名
+  description     String?  // 説明
+  taskType        String   // problem, concept, contest, review
+  dueDate         DateTime? // 期限
+  status          String   @default("pending") // pending, in_progress, completed, skipped
+
+  // 問題関連の場合
+  problemId       String?
+
+  // リソース
+  resources       String?  // 参考資料（JSON配列）
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  plan            LearningPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
+  userRel         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([planId, dueDate])
+  @@index([userId, status])
 }
