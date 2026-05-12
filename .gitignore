@@ -40,3 +40,8 @@ prisma/dev.db-journal
 
 # claude settings
 .claude/settings.local.json
+
+# UEC Portal session data
+.uec-sessions/
+*.db
+*.db-journal
