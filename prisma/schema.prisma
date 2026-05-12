@@ -32,6 +32,9 @@ model User {
   // Claude AI連携用
   claudeApiKey           String?   // Claude APIキー（ユーザー自身のキー）
   claudeApiEnabled       Boolean   @default(false) // Claude API有効/無効
+  // UECポータル連携用
+  uecPortalEnabled       Boolean   @default(false) // UECポータル有効/無効
+  uecPortalDataDir       String?   // uec-portal-cliのデータディレクトリパス
   createdAt             DateTime  @default(now())
   updatedAt             DateTime  @updatedAt
 
@@ -65,6 +68,11 @@ model User {
   // Learning Plans
   learningPlans LearningPlan[]
   learningTasks LearningTask[]
+  // UECポータル
+  uecNotices UecNotice[]
+  uecScheduleEntries UecScheduleEntry[]
+  uecTimetableEntries UecTimetableEntry[]
+  uecSyncLogs UecSyncLog[]
 }
 
 // 資格・試験情報（ポートフォリオ表示）
@@ -536,4 +544,83 @@ model LearningTask {
 
   @@index([planId, dueDate])
   @@index([userId, status])
+}
+
+// ===== UECポータル関連 =====
+
+// UECお知らせキャッシュ
+model UecNotice {
+  id              String   @id @default(cuid())
+  userId          String
+  title           String
+  date            String?
+  publisher       String?
+  category        String?
+  href            String?
+  rawText         String
+  unread          Boolean  @default(false)
+  detailHtml      String?  // 詳細HTML
+  detailText      String?  // 詳細テキスト
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  userRel         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, date])
+  @@index([userId, unread])
+}
+
+// UEC予定キャッシュ
+model UecScheduleEntry {
+  id              String   @id @default(cuid())
+  userId          String
+  dateLabel       String
+  weekday         String
+  time            String?
+  title           String
+  rawText         String
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  userRel         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, dateLabel])
+}
+
+// UEC時間割キャッシュ
+model UecTimetableEntry {
+  id              String   @id @default(cuid())
+  userId          String
+  day             String
+  period          String
+  title           String
+  courseCode      String?
+  room            String?
+  rawText         String
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  userRel         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, day, period])
+}
+
+// UEC同期ログ
+model UecSyncLog {
+  id              String   @id @default(cuid())
+  userId          String
+  dataType        String   // notices, schedule, timetable, all
+  status          String   // success, error
+  itemCount       Int?     // 取得件数
+  errorMessage    String?
+  syncDuration    Int?     // 同所要害（ミリ秒）
+
+  createdAt       DateTime @default(now())
+
+  userRel         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
 }

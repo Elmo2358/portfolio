@@ -3,7 +3,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
-import { CheckCircle2, DollarSign, Briefcase, Gamepad2, Sparkles, Code2, Settings, BarChart3, BookOpen } from "lucide-react"
+import { CheckCircle2, DollarSign, Briefcase, Gamepad2, Sparkles, Code2, Settings, BarChart3, BookOpen, GraduationCap } from "lucide-react"
 
 const apps = [
   {
@@ -66,6 +66,15 @@ const apps = [
     description: "Notionで作成したWiki・ドキュメントを管理",
     icon: BookOpen,
     path: "/hub/wiki",
+    color: "bg-emerald-600 dark:bg-emerald-500",
+    status: "available"
+  },
+  {
+    id: 8,
+    title: "UECポータル",
+    description: "大学からのお知らせ・予定・時間割を確認",
+    icon: GraduationCap,
+    path: "/hub/uec",
     color: "bg-emerald-600 dark:bg-emerald-500",
     status: "available"
   }

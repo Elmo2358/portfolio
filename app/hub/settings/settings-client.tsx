@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
-import { Bell, CheckCircle2 } from "lucide-react"
+import { Bell, CheckCircle2, GraduationCap } from "lucide-react"
 import { useState, useEffect } from "react"
 import { toast } from "sonner"
 import { signIn, useSession } from "next-auth/react"
@@ -43,6 +43,10 @@ export function SettingsClient() {
   const [googleAccountId, setGoogleAccountId] = useState("")
   const [googleAuthConfigured, setGoogleAuthConfigured] = useState(false)
   const [loadingGoogleAuth, setLoadingGoogleAuth] = useState(false)
+
+  // UECポータル連携の状態
+  const [uecPortalEnabled, setUecPortalEnabled] = useState(false)
+  const [loadingUecPortal, setLoadingUecPortal] = useState(false)
 
   // 通知権限を確認
   useEffect(() => {
@@ -127,6 +131,22 @@ export function SettingsClient() {
       fetchGoogleAuthStatus()
     }
   }, [status])
+
+  // UECポータル連携の状態を取得
+  useEffect(() => {
+    const fetchUecPortalStatus = async () => {
+      try {
+        const res = await fetch("/api/hub/uec/status")
+        const data = await res.json()
+        if (data.success) {
+          setUecPortalEnabled(data.status.enabled)
+        }
+      } catch (error) {
+        console.error("Error fetching UEC portal status:", error)
+      }
+    }
+    fetchUecPortalStatus()
+  }, [])
 
   // Google連携が確立されたらタスクリストを取得
   useEffect(() => {
@@ -371,6 +391,32 @@ export function SettingsClient() {
       toast.error("エラーが発生しました")
     } finally {
       setLoadingGoogleAuth(false)
+    }
+  }
+
+  // UECポータル連携のハンドラー
+  const handleUecPortalToggle = async (enabled: boolean) => {
+    setLoadingUecPortal(true)
+    try {
+      const res = await fetch("/api/hub/uec/status", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ enabled }),
+      })
+
+      const data = await res.json()
+
+      if (res.ok) {
+        setUecPortalEnabled(enabled)
+        toast.success(data.message || "UECポータル連携を更新しました")
+      } else {
+        toast.error(data.error || "設定の保存に失敗しました")
+      }
+    } catch (error) {
+      console.error("Error toggling UEC portal:", error)
+      toast.error("エラーが発生しました")
+    } finally {
+      setLoadingUecPortal(false)
     }
   }
 
@@ -621,6 +667,50 @@ export function SettingsClient() {
                 💡 同期を有効にすると、サイトのタスクがGoogle Tasksに追加され、Google Tasksの変更もサイトに反映されます。
               </p>
             </>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* UECポータル連携 */}
+      <Card className="border-2 border-emerald-500 bg-emerald-50 dark:bg-emerald-950 dark:border-emerald-600">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-emerald-700 dark:text-emerald-300 text-lg flex items-center gap-2">
+            <GraduationCap className="h-5 w-5" />
+            UECポータル連携
+          </CardTitle>
+          <CardDescription className="text-sm">
+            大学からのお知らせ・予定・時間割を取得します
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <div className="p-3 rounded bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200 text-sm space-y-1">
+            <p className="font-semibold">📝 事前準備が必要です</p>
+            <ul className="text-xs space-y-1 list-disc list-inside">
+              <li>uec-portal-cliをインストールしてログインしてください</li>
+              <li>詳しくは <a href="https://github.com/teshu0/uec-portal-cli" target="_blank" rel="noopener noreferrer" className="underline">GitHub</a> を参照</li>
+            </ul>
+          </div>
+          <div className="flex items-center justify-between">
+            <div className="flex-1">
+              <p className="text-sm font-medium">UECポータル連携を有効にする</p>
+              <p className="text-xs text-muted-foreground">
+                {uecPortalEnabled ? "UECポータルと連携中" : "連携は無効になっています"}
+              </p>
+            </div>
+            <Switch
+              checked={uecPortalEnabled}
+              onCheckedChange={handleUecPortalToggle}
+              disabled={loadingUecPortal}
+            />
+          </div>
+          {uecPortalEnabled && (
+            <Button
+              onClick={() => window.location.href = "/hub/uec"}
+              variant="outline"
+              className="w-full border-emerald-600 text-emerald-600 hover:bg-emerald-600 hover:text-white dark:border-emerald-500 dark:text-emerald-400 text-sm"
+            >
+              UECポータルページを開く
+            </Button>
           )}
         </CardContent>
       </Card>

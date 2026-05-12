@@ -67,6 +67,7 @@
 | メディア管理 | `/hub/media` | ✅ | ゲーム・読書記録、評価 |
 | バケツリスト | `/hub/bucket` | ✅ | やりたいこと、進捗管理 |
 | AtCoder管理 | `/hub/atcoder` | ✅ | 問題管理、ヒートマップ、統計 |
+| UECポータル | `/hub/uec` | ✅ | お知らせ、予定、時間割 |
 | 設定 | `/hub/settings` | ✅ | AtCoder ID、データエクスポート |
 | 通知一覧 | `/hub/notifications` | ✅ | 通知履歴、既読化 |
 | ダッシュボード | `/hub/dashboard` | ✅ | 統計ダッシュボード |
@@ -128,6 +129,68 @@
 
 **第5フェーズ完了日**: 2026-05-11
 
+### 第6フェーズ：UECポータル連携（実装完了）
+
+**目的**: 大学からのお知らせ・予定・時間割をポータルサイトで確認
+
+**実装方針**: CLIでのログイン + Next.js APIでデータ取得
+
+| ステップ | ステータス | 説明 |
+|----------|----------|------|
+| Playwright環境セットアップ | ✅ | Playwrightインストール、Chromiumセットアップ |
+| モックデータでUI実装 | ✅ | お知らせ、予定、時間割の表示 |
+| セッション管理の実装 | ✅ | lib/uec-portal/session.ts |
+| CLIログイン実装 | ✅ | scripts/uec-login.ts, scripts/uec-logout.ts |
+| スクレイピング処理の実装 | ✅ | lib/uec-portal/scraper.ts |
+| ログアウト機能 | ✅ | /api/hub/uec/logout |
+| UI統合 | ✅ | CLIログイン案内、データ表示 |
+| お知らせ詳細取得 | ✅ | #src1要素から本文抽出 |
+| 全お知らせ取得 | ✅ | カテゴリ別クリックですべて取得 |
+| カテゴリ別表示 | ✅ | アコーディオンUI、一覧表示切り替え |
+
+**実装済み機能**:
+- Prismaスキーマ（UecNotice, UecScheduleEntry, UecTimetableEntry, UecSyncLog）
+- APIルート（/api/hub/uec/*）
+  - GET/POST /status - 連携状態・有効/無効切り替え
+  - GET /login - セッション状態確認
+  - POST /logout - ログアウト
+  - POST /sync - データ同期
+  - GET /notices - お知らせ取得（limit=all対応）
+  - GET /schedule - 予定取得
+  - GET /timetable - 時間割取得
+- UECポータルページ（/hub/uec）- タブ式UI
+- セッション管理（.uec-sessions/ディレクトリ、7日有効期限）
+- CLI同期機能（`npm run uec:sync`）
+  - ブラウザ手動ログイン（2段階認証対応）
+  - Enterキーでログイン検出（自動遷移なし）
+  - カテゴリ別お知らせ取得（全169件対応）
+  - ID+カテゴリ複合キーで重複排除
+- お知らせ詳細取得（getNoticeDetail.phpから#src1要素を抽出）
+- カテゴリ別表示UI（アコーディオン形式、一覧/カテゴリ切り替え）
+- 設定画面連携（UECポータル有効/無効切り替え）
+
+**使用方法**:
+
+```bash
+# 同期（ブラウザが起動します）
+npm run uec:sync
+
+# ログアウト
+npm run uec:logout
+```
+
+**技術スタック**:
+- Playwright (Chromium)
+- Prismaキャッシュモデル
+- Next.js API Routes
+- Node.js スクリプト（scripts/uec-sync.js）
+
+**制約事項**:
+- Vercel Serverless Functionsでは動作しない（ローカルまたはRailway等のコンテナ環境での使用を想定）
+- ログインはCLIのみ対応（Webからのログインはセキュリティ上の理由で非対応）
+
+**第6フェーズ完了日**: 2026-05-12
+
 ---
 
 ## 🗄️ データベーススキーマ
@@ -159,6 +222,10 @@
 | CodeReview | AIコードレビュー | User |
 | LearningPlan | 学習プラン | User |
 | LearningTask | 学習タスク | User, LearningPlan |
+| UecNotice | UECお知らせキャッシュ | User |
+| UecScheduleEntry | UEC予定キャッシュ | User |
+| UecTimetableEntry | UEC時間割キャッシュ | User |
+| UecSyncLog | UEC同期ログ | User |
 
 ---
 
@@ -273,6 +340,16 @@ hp/
 ---
 
 ## 📝 最近の変更
+
+### 2026-05-12
+
+- ✅ 第6フェーズ：UECポータル連携お知らせ機能強化
+  - お知らせ詳細取得機能（#src1要素から本文抽出）
+  - カテゴリ別お知らせ取得（全169件対応）
+  - ID+カテゴリ複合キーで重複排除（同じお知らせが複数カテゴリに属する場合に対応）
+  - Enterキーでログイン検出（自動遷移によるログイン妨害問題を解決）
+  - カテゴリ別表示UI（アコーディオン形式、一覧/カテゴリ表示切り替え）
+  - limit=allパラメータ対応ですべてのお知らせを取得
 
 ### 2026-05-11
 
