@@ -240,7 +240,7 @@ export async function checkLoginStatus(): Promise<boolean> {
 /**
  * 保存されたストレージ状態を使用してブラウザコンテキストを作成
  */
-export async function createPersistentContext(): Promise<BrowserContext> {
+export async function createPersistentContext(): Promise<{ context: BrowserContext; browser: any }> {
   // 通常のブラウザを起動して、保存されたストレージ状態を読み込む
   const browser = await chromium.launch({
     headless: false,

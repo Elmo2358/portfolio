@@ -17,42 +17,6 @@ const apps = [
   },
   {
     id: 2,
-    title: "家計簿",
-    description: "収入と支出を管理するアプリケーション",
-    icon: DollarSign,
-    path: "/hub/finance",
-    color: "bg-emerald-600 dark:bg-emerald-500",
-    status: "available"
-  },
-  {
-    id: 3,
-    title: "就活管理",
-    description: "就職活動の情報を管理するアプリケーション",
-    icon: Briefcase,
-    path: "/hub/jobhunt",
-    color: "bg-emerald-600 dark:bg-emerald-500",
-    status: "available"
-  },
-  {
-    id: 4,
-    title: "メディア管理",
-    description: "ゲームと読書の履歴を管理するアプリケーション",
-    icon: Gamepad2,
-    path: "/hub/media",
-    color: "bg-emerald-600 dark:bg-emerald-500",
-    status: "available"
-  },
-  {
-    id: 5,
-    title: "やりたいことリスト",
-    description: "旅行ややりたいことを計画するアプリケーション",
-    icon: Sparkles,
-    path: "/hub/bucket",
-    color: "bg-emerald-600 dark:bg-emerald-500",
-    status: "available"
-  },
-  {
-    id: 6,
     title: "AtCoder問題管理",
     description: "競技プログラミングの学習進捗を管理するアプリケーション",
     icon: Code2,
@@ -61,11 +25,47 @@ const apps = [
     status: "available"
   },
   {
-    id: 7,
+    id: 3,
+    title: "家計簿",
+    description: "収入と支出を管理するアプリケーション",
+    icon: DollarSign,
+    path: "/hub/finance",
+    color: "bg-emerald-600 dark:bg-emerald-500",
+    status: "available"
+  },
+  {
+    id: 4,
+    title: "就活管理",
+    description: "就職活動の情報を管理するアプリケーション",
+    icon: Briefcase,
+    path: "/hub/jobhunt",
+    color: "bg-emerald-600 dark:bg-emerald-500",
+    status: "available"
+  },
+  {
+    id: 5,
     title: "Wiki",
     description: "Notionで作成したWiki・ドキュメントを管理",
     icon: BookOpen,
     path: "/hub/wiki",
+    color: "bg-emerald-600 dark:bg-emerald-500",
+    status: "available"
+  },
+  {
+    id: 6,
+    title: "メディア管理",
+    description: "ゲームと読書の履歴を管理するアプリケーション",
+    icon: Gamepad2,
+    path: "/hub/media",
+    color: "bg-emerald-600 dark:bg-emerald-500",
+    status: "available"
+  },
+  {
+    id: 7,
+    title: "やりたいことリスト",
+    description: "旅行ややりたいことを計画するアプリケーション",
+    icon: Sparkles,
+    path: "/hub/bucket",
     color: "bg-emerald-600 dark:bg-emerald-500",
     status: "available"
   },
@@ -103,7 +103,7 @@ export function DashboardCards() {
           </CardHeader>
           <CardContent className="flex-grow flex items-end">
             {app.status === "available" ? (
-              app.id === 2 ? (
+              app.id === 3 ? (
                 // 家計簿アプリのみ2つのボタン
                 <div className="flex gap-2 w-full">
                   <Button

@@ -132,6 +132,7 @@ export async function POST(req: NextRequest) {
         weeklyMilestones: JSON.stringify(planData.weeklyMilestones),
         recommendedProblems: JSON.stringify(planData.recommendedProblems),
         studyAdvice: planData.studyAdvice,
+        completedTasks: "0",
       },
     })
 

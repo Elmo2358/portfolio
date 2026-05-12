@@ -3,7 +3,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
-import { CheckCircle2, DollarSign, Briefcase, Gamepad2, Sparkles, Code2, Settings, BarChart3, Search } from "lucide-react"
+import { CheckCircle2, DollarSign, Briefcase, Gamepad2, Sparkles, Code2, Settings, BarChart3, Search, BookOpen, ArrowRight } from "lucide-react"
 import { CardListSkeleton } from "@/components/loading/card-skeleton"
 import dynamic from "next/dynamic"
 
@@ -43,6 +43,29 @@ export default function HubPage() {
                 >
                   検索
                 </Button>
+              </Link>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* 使い方ガイド */}
+        <div className="mb-8 animate-fadeIn">
+          <Card className="border-2 border-emerald-500 bg-gradient-to-r from-emerald-50 to-emerald-100 dark:from-emerald-950 dark:to-emerald-900 dark:border-emerald-600">
+            <CardContent className="pt-6">
+              <Link
+                href="/hub/guide"
+                className="flex items-center gap-3 text-emerald-700 dark:text-emerald-300 hover:text-emerald-900 dark:hover:text-emerald-100 transition-colors"
+              >
+                <div className="p-3 rounded-lg bg-emerald-600 dark:bg-emerald-500">
+                  <BookOpen className="h-6 w-6 text-white" />
+                </div>
+                <div className="flex-1">
+                  <div className="font-semibold text-lg">アプリケーション使い方ガイド</div>
+                  <div className="text-sm text-emerald-600 dark:text-emerald-400">
+                    毎日のルーチンと各アプリの活用方法（2026年夏季版）
+                  </div>
+                </div>
+                <ArrowRight className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
               </Link>
             </CardContent>
           </Card>

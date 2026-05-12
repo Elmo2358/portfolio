@@ -237,7 +237,7 @@ export function CodeReviewCard({ onReviewGenerated, className }: CodeReviewCardP
               ) : (
                 <Select value={selectedSubmissionId} onValueChange={setSelectedSubmissionId}>
                   <SelectTrigger>
-                    <SelectValue placeholder="提出を選択..." />
+                    <SelectValue>提出を選択...</SelectValue>
                   </SelectTrigger>
                   <SelectContent>
                     {submissions.map((sub) => (

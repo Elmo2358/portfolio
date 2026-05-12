@@ -422,6 +422,13 @@ export function SettingsClient() {
 
   return (
     <>
+      {/* ===== 外部サービス連携 ===== */}
+      <div className="flex items-center gap-2 my-4">
+        <div className="h-px flex-1 bg-emerald-500 dark:bg-emerald-600" />
+        <h2 className="text-sm font-semibold text-emerald-700 dark:text-emerald-300">外部サービス連携</h2>
+        <div className="h-px flex-1 bg-emerald-500 dark:bg-emerald-600" />
+      </div>
+
       {/* AtCoder連携 */}
       <Card className="border-2 border-emerald-500 bg-emerald-50 dark:bg-emerald-950 dark:border-emerald-600">
         <CardHeader className="pb-3">
@@ -474,60 +481,6 @@ export function SettingsClient() {
               {syncing ? "同期中..." : "今すぐ同期"}
             </Button>
           </div>
-        </CardContent>
-      </Card>
-
-      {/* ブラウザ通知設定 */}
-      <Card className="border-2 border-emerald-500 bg-emerald-50 dark:bg-emerald-950 dark:border-emerald-600">
-        <CardHeader className="pb-3">
-          <CardTitle className="text-emerald-700 dark:text-emerald-300 text-lg flex items-center gap-2">
-            <Bell className="h-5 w-5" />
-            ブラウザ通知
-          </CardTitle>
-          <CardDescription className="text-sm">
-            リマインダーをブラウザ通知で受け取ります
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium">通知の状態</p>
-              <p className="text-xs text-muted-foreground">
-                {notificationPermission === "granted"
-                  ? "通知が有効です"
-                  : notificationPermission === "denied"
-                  ? "通知が拒否されています"
-                  : "通知が許可されていません"}
-              </p>
-            </div>
-            <div className={`h-2 w-2 rounded-full ${
-              notificationPermission === "granted"
-                ? "bg-emerald-500"
-                : notificationPermission === "denied"
-                ? "bg-red-500"
-                : "bg-gray-400"
-            }`} />
-          </div>
-          {notificationPermission !== "granted" && (
-            <Button
-              onClick={requestNotificationPermission}
-              className="w-full bg-emerald-600 hover:bg-emerald-700"
-            >
-              通知を有効にする
-            </Button>
-          )}
-          <div className="flex gap-2">
-            <Button
-              onClick={triggerTestNotifications}
-              variant="outline"
-              className="flex-1 border-emerald-600 text-emerald-600 hover:bg-emerald-600 hover:text-white dark:border-emerald-500 dark:text-emerald-400"
-            >
-              通知テスト
-            </Button>
-          </div>
-          <p className="text-xs text-muted-foreground">
-            💡 ヒント: iPhoneでホーム画面に追加すると、アプリのように通知を受け取れます
-          </p>
         </CardContent>
       </Card>
 
@@ -715,6 +668,74 @@ export function SettingsClient() {
         </CardContent>
       </Card>
 
+      {/* ===== 通知設定 ===== */}
+      <div className="flex items-center gap-2 my-4">
+        <div className="h-px flex-1 bg-emerald-500 dark:bg-emerald-600" />
+        <h2 className="text-sm font-semibold text-emerald-700 dark:text-emerald-300">通知設定</h2>
+        <div className="h-px flex-1 bg-emerald-500 dark:bg-emerald-600" />
+      </div>
+
+      {/* ブラウザ通知設定 */}
+      <Card className="border-2 border-emerald-500 bg-emerald-50 dark:bg-emerald-950 dark:border-emerald-600">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-emerald-700 dark:text-emerald-300 text-lg flex items-center gap-2">
+            <Bell className="h-5 w-5" />
+            ブラウザ通知
+          </CardTitle>
+          <CardDescription className="text-sm">
+            リマインダーをブラウザ通知で受け取ります
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium">通知の状態</p>
+              <p className="text-xs text-muted-foreground">
+                {notificationPermission === "granted"
+                  ? "通知が有効です"
+                  : notificationPermission === "denied"
+                  ? "通知が拒否されています"
+                  : "通知が許可されていません"}
+              </p>
+            </div>
+            <div className={`h-2 w-2 rounded-full ${
+              notificationPermission === "granted"
+                ? "bg-emerald-500"
+                : notificationPermission === "denied"
+                ? "bg-red-500"
+                : "bg-gray-400"
+            }`} />
+          </div>
+          {notificationPermission !== "granted" && (
+            <Button
+              onClick={requestNotificationPermission}
+              className="w-full bg-emerald-600 hover:bg-emerald-700"
+            >
+              通知を有効にする
+            </Button>
+          )}
+          <div className="flex gap-2">
+            <Button
+              onClick={triggerTestNotifications}
+              variant="outline"
+              className="flex-1 border-emerald-600 text-emerald-600 hover:bg-emerald-600 hover:text-white dark:border-emerald-500 dark:text-emerald-400"
+            >
+              通知テスト
+            </Button>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            💡 ヒント: iPhoneでホーム画面に追加すると、アプリのように通知を受け取れます
+          </p>
+        </CardContent>
+      </Card>
+
+      {/* ===== データ管理 ===== */}
+      <div className="flex items-center gap-2 my-4">
+        <div className="h-px flex-1 bg-emerald-500 dark:bg-emerald-600" />
+        <h2 className="text-sm font-semibold text-emerald-700 dark:text-emerald-300">データ管理</h2>
+        <div className="h-px flex-1 bg-emerald-500 dark:bg-emerald-600" />
+      </div>
+
       {/* データエクスポート */}
       <Card className="border-2 border-emerald-500 bg-emerald-50 dark:bg-emerald-950 dark:border-emerald-600">
         <CardHeader className="pb-3">
@@ -822,36 +843,6 @@ export function SettingsClient() {
           )}
         </CardContent>
       </Card>
-
-      <div className="p-3 rounded-lg border-2 border-emerald-500 bg-emerald-50 dark:bg-emerald-950 dark:border-emerald-600">
-        <h3 className="font-semibold text-emerald-700 dark:text-emerald-300 mb-1.5 text-sm">第3フェーズ実装中</h3>
-        <div className="mb-2">
-          <p className="text-xs font-semibold text-emerald-700 dark:text-emerald-300 mb-1">第2フェーズ完了！🎉</p>
-          <ul className="list-disc list-inside text-xs text-emerald-800 dark:text-emerald-200 space-y-0.5 ml-1 mb-2">
-            <li>✓ AtCoder IDの保存</li>
-            <li>✓ 提出履歴の自動取得</li>
-            <li>✓ AC問題の自動反映</li>
-            <li>✓ 定期同期（1時間ごと）</li>
-            <li>✓ ヒートマップによる学習履歴の可視化</li>
-            <li>✓ ストリーク管理の強化（週1回の寛容措置）</li>
-          </ul>
-        </div>
-        <p className="text-xs font-semibold text-emerald-700 dark:text-emerald-300 mb-1">第3フェーズ完了！🎉</p>
-        <ul className="list-disc list-inside text-xs text-emerald-800 dark:text-emerald-200 space-y-0.5 ml-1 mb-2">
-          <li>✓ CLIST API連携（コンテストスケジュール表示）</li>
-          <li>✓ リマインダー設定（通知オン・オフ）</li>
-          <li>✓ Google Calendar連携（カレンダー追加ボタン）</li>
-          <li>✓ 汎用リマインダー機能（タスク・就活・バケツリスト）</li>
-          <li>✓ 通知送信システム（Cronジョブ + Web Push）</li>
-          <li>✓ 通知タイミングのカスタマイズ（24時間前、1時間前）</li>
-          <li>✓ PWA対応（ホーム画面に追加）</li>
-        </ul>
-        <p className="text-xs font-semibold text-emerald-700 dark:text-emerald-300 mb-1">第4フェーズ（今後の実装予定）</p>
-        <ul className="list-disc list-inside text-xs text-emerald-800 dark:text-emerald-200 space-y-0.5 ml-1">
-          <li>• Chrome拡張機能（サイト外通知）</li>
-          <li>• メール通知</li>
-        </ul>
-      </div>
     </>
   )
 }

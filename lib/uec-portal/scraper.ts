@@ -255,7 +255,7 @@ async function isAuthenticatedPage(page: Page): Promise<boolean> {
 
     // 最終チェック: ページのコンテンツを確認
     const pageText = await page.textContent("body");
-    return pageText && !pageText.includes("ログインしてください") && !pageText.includes("Login Required");
+    return !!pageText && !pageText.includes("ログインしてください") && !pageText.includes("Login Required");
   } catch {
     return false;
   }

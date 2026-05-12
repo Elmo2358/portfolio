@@ -131,7 +131,7 @@ export async function createContextWithSession(): Promise<BrowserContext> {
     locale: "ja-JP",
     timezoneId: "Asia/Tokyo",
     viewport: { width: 1280, height: 720 },
-    storageState: storageState || undefined,
+    storageState: (storageState || undefined) as any,
   });
 
   return context;
