@@ -25,6 +25,7 @@ yarn-error.log*
 # local env files
 .env*.local
 .env
+.env.production
 
 # vercel
 .vercel
@@ -57,3 +58,5 @@ terraform/*.tfvars
 !terraform/terraform.tfvars.example
 terraform/*.tfplan
 terraform/*.plan
+
+.vercel
