@@ -2,11 +2,15 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import {
-  Code, Database, Wrench, Gamepad2, LucideIcon,
-  FileCode, Terminal, Globe, Server, Cloud, Cpu,
-  Layout, Palette, Settings, Box, Braces
+  Code, Database, Wrench, Gamepad2, LucideIcon
 } from "lucide-react"
 import { motion } from "framer-motion"
+import {
+  SiTypescript, SiJavascript, SiNextdotjs, SiReact,
+  SiTailwindcss, SiHtml5, SiPython, SiGit,
+  SiGithub, SiRuby, SiPostgresql, SiMysql, SiVercel,
+  SiGodotengine, SiUnity, SiC
+} from "react-icons/si"
 
 interface Skill {
   name: string
@@ -25,79 +29,63 @@ function getCategoryIcon(iconName: string): LucideIcon {
   const icons: { [key: string]: LucideIcon } = {
     'プログラミング言語': Code,
     'フレームワーク': Code,
-    'CSSフレームワーク': Palette,
-    'Web技術': Globe,
+    'CSSフレームワーク': Code,
+    'Web技術': Code,
     'ツール': Wrench,
-    'インフラ': Server,
+    'インフラ': Database,
     'ゲーム開発': Gamepad2,
   }
   return icons[iconName] || Code
 }
 
-function getSkillIcon(skillName: string): LucideIcon {
-  const icons: { [key: string]: LucideIcon } = {
-    // プログラミング言語
-    'TypeScript': FileCode,
-    'JavaScript': FileCode,
-    'Python': Terminal,
-    'Java': Box,
-    'C++': Braces,
-    'C#': Braces,
-    'Go': FileCode,
-    'Rust': Settings,
-    'PHP': FileCode,
+// ブランドカラーマッピング
+const brandColors: { [key: string]: string } = {
+  'TypeScript': '#3178C6',
+  'JavaScript': '#F7DF1E',
+  'Next.js': '#000000',
+  'React': '#61DAFB',
+  'Tailwind CSS': '#06B6D4',
+  'HTML/CSS': '#E34F26',
+  'HTML': '#E34F26',
+  'CSS': '#1572B6',
+  'Python': '#3776AB',
+  'Git': '#F05032',
+  'GitHub': '#181717',
+  'Git/GitHub': '#181717',
+  'C言語': '#A8B9CC',
+  'C': '#A8B9CC',
+  'Ruby': '#CC342D',
+  'PostgreSQL': '#336791',
+  'MySQL': '#4479A1',
+  'データベース': '#336791',
+  'Vercel': '#000000',
+  'Godot Engine': '#478CBF',
+  'Godot': '#478CBF',
+  'Unity': '#222C37',
+}
 
-    // フレームワーク
-    'Next.js': Layout,
-    'React': Layout,
-    'Vue.js': Layout,
-    'Nuxt': Layout,
-    'Svelte': Layout,
-    'NestJS': Box,
-    'Express': Server,
-    'FastAPI': Server,
-    'Django': Server,
-    'Flask': Server,
-    'Spring Boot': Box,
-
-    // CSS/UI
-    'Tailwind CSS': Palette,
-    'shadcn/ui': Layout,
-    'Chakra UI': Layout,
-    'Material-UI': Palette,
-
-    // Web技術
-    'HTML': Globe,
-    'CSS': Palette,
-    'REST API': Globe,
-    'GraphQL': Terminal,
-
-    // データベース
-    'PostgreSQL': Database,
-    'MySQL': Database,
-    'SQLite': Database,
-    'MongoDB': Database,
-    'Redis': Database,
-    'Prisma': Database,
-
-    // インフラ/クラウド
-    'Docker': Box,
-    'Kubernetes': Server,
-    'AWS': Cloud,
-    'Vercel': Cloud,
-    'GitHub': Box,
-
-    // ツール
-    'Git': Box,
-    'VS Code': FileCode,
-    'Figma': Palette,
-
-    // ゲーム開発
-    'Unity': Gamepad2,
-    'Unreal Engine': Gamepad2,
-    'Godot': Gamepad2,
-  }
-  return icons[skillName] || Code
+const skillIconMap: { [key: string]: React.ComponentType<{ style?: React.CSSProperties }> } = {
+  'TypeScript': SiTypescript,
+  'JavaScript': SiJavascript,
+  'Next.js': SiNextdotjs,
+  'React': SiReact,
+  'Tailwind CSS': SiTailwindcss,
+  'HTML/CSS': SiHtml5,
+  'HTML': SiHtml5,
+  'Python': SiPython,
+  'Git': SiGit,
+  'GitHub': SiGithub,
+  'Git/GitHub': SiGithub,
+  'C言語': SiC,
+  'C': SiC,
+  'Ruby': SiRuby,
+  'PostgreSQL': SiPostgresql,
+  'MySQL': SiMysql,
+  'データベース': SiPostgresql,
+  'Vercel': SiVercel,
+  'Godot Engine': SiGodotengine,
+  'Godot': SiGodotengine,
+  'Unity': SiUnity,
 }
 
 export function SkillCategoryCard({ category, skills, iconName, index }: SkillCategoryCardProps) {
@@ -122,18 +110,21 @@ export function SkillCategoryCard({ category, skills, iconName, index }: SkillCa
         <CardContent>
           <div className="flex flex-wrap gap-2">
             {skills.map((skill, skillIndex) => {
-              const SkillIcon = getSkillIcon(skill.name)
+              const SkillIcon = skillIconMap[skill.name]
+              const brandColor = brandColors[skill.name]
               return (
                 <motion.div
                   key={skill.name}
-                  className="flex items-center gap-1.5 rounded-lg border border-emerald-400 bg-white px-3 py-1.5 dark:bg-emerald-900 dark:border-emerald-700"
+                  className="flex items-center gap-1.5 rounded-lg border border-emerald-400 bg-white px-2.5 py-2 dark:bg-emerald-900 dark:border-emerald-700"
                   initial={{ opacity: 0, scale: 0.8 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ duration: 0.2, delay: index * 0.15 + skillIndex * 0.03 }}
                   whileHover={{ scale: 1.05 }}
                 >
-                  <SkillIcon className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
-                  <span className="text-sm font-medium text-emerald-700 dark:text-emerald-300">{skill.name}</span>
+                  {SkillIcon && brandColor ? (
+                    <SkillIcon style={{ color: brandColor }} className="h-6 w-6" />
+                  ) : null}
+                  <span className="text-xs text-gray-700 dark:text-gray-300">{skill.name}</span>
                 </motion.div>
               )
             })}

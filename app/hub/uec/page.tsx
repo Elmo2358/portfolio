@@ -32,25 +32,6 @@ export default async function UecPortalPage() {
           </div>
         </div>
 
-        <Card className="mb-6 border-2 border-emerald-500 bg-emerald-50 dark:bg-emerald-950 dark:border-emerald-600">
-          <CardHeader>
-            <CardTitle className="text-emerald-700 dark:text-emerald-300">
-              第6フェーズ：UECポータル連携
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="text-sm text-emerald-800 dark:text-emerald-200">
-            <ul className="list-disc list-inside space-y-1">
-              <li>お知らせの取得・表示（未読フィルター対応）</li>
-              <li>今週の予定の確認</li>
-              <li>時間割の表示</li>
-              <li>手動同期ボタン（最新データを取得）</li>
-            </ul>
-            <p className="mt-3 text-xs text-muted-foreground">
-              ※ 使用にはuec-portal-cliのインストールとログインが必要です。
-            </p>
-          </CardContent>
-        </Card>
-
         <UecPortalManager />
       </div>
     </div>

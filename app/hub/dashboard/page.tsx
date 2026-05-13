@@ -44,17 +44,25 @@ export default function DashboardPage() {
   const [stats, setStats] = useState<Stats | null>(null)
   const [period, setPeriod] = useState<Period>("week")
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   const fetchStats = async () => {
     setLoading(true)
+    setError(null)
     try {
       const res = await fetch(`/api/hub/dashboard/stats?period=${period}`)
+      if (!res.ok) {
+        throw new Error(`HTTP error! status: ${res.status}`)
+      }
       const data = await res.json()
       if (data.success) {
         setStats(data.stats)
+      } else {
+        setError(data.error || "データの取得に失敗しました")
       }
     } catch (error) {
       console.error("Error fetching stats:", error)
+      setError("統計データの読み込みエラーが発生しました")
     } finally {
       setLoading(false)
     }
@@ -64,11 +72,27 @@ export default function DashboardPage() {
     fetchStats()
   }, [period])
 
-  if (loading || !stats) {
+  if (loading) {
     return (
       <div className="container py-8">
         <div className="text-center py-12">
           <p className="text-muted-foreground">読み込み中...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (error || !stats) {
+    return (
+      <div className="container py-8">
+        <div className="text-center py-12">
+          <p className="text-red-500 mb-4">{error || "データの読み込みに失敗しました"}</p>
+          <button
+            onClick={fetchStats}
+            className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700"
+          >
+            再試行
+          </button>
         </div>
       </div>
     )

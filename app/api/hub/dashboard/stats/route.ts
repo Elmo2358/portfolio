@@ -53,8 +53,9 @@ export async function GET(req: NextRequest) {
     })
   } catch (error) {
     console.error("Error fetching dashboard stats:", error)
+    const errorMessage = error instanceof Error ? error.message : "Unknown error"
     return NextResponse.json(
-      { error: "Failed to fetch stats" },
+      { error: "Failed to fetch stats", details: errorMessage },
       { status: 500 }
     )
   }
@@ -97,17 +98,31 @@ async function getTaskStats(userId: string, startDate: Date, endDate: Date) {
     _count: true,
   })
 
-  // 期間中の完了タスク（日次）
-  const completedByDay = await prisma.$queryRaw`
-    SELECT DATE(completedAt) as date, COUNT(*) as count
-    FROM Task
-    WHERE userId = ${userId}
-      AND status = 'completed'
-      AND completedAt >= ${startDate.toISOString()}
-      AND completedAt <= ${endDate.toISOString()}
-    GROUP BY DATE(completedAt)
-    ORDER BY date ASC
-  ` as { date: string, count: number }[]
+  // 期間中の完了タスク（日次）- Prismaで取得してJSで集計
+  const completedTasks = await prisma.task.findMany({
+    where: {
+      userId,
+      status: "completed",
+      completedAt: { gte: startDate, lte: endDate },
+    },
+    select: {
+      completedAt: true,
+    },
+  })
+
+  // 日次集計
+  const completedByDayMap = new Map<string, number>()
+  completedTasks.forEach(task => {
+    if (task.completedAt) {
+      const date = new Date(task.completedAt)
+      const dateKey = date.toISOString().split('T')[0] // YYYY-MM-DD
+      completedByDayMap.set(dateKey, (completedByDayMap.get(dateKey) || 0) + 1)
+    }
+  })
+
+  const completedByDay = Array.from(completedByDayMap.entries())
+    .map(([date, count]) => ({ date, count }))
+    .sort((a, b) => a.date.localeCompare(b.date))
 
   return {
     total,
@@ -258,19 +273,32 @@ async function getAtCoderStats(userId: string, startDate: Date, endDate: Date) {
     },
   })
 
-  // 期間中のAC提出（日次）
-  const submissionsByDay = await prisma.$queryRaw`
-    SELECT
-      DATE(datetime(epochSecond, 'unixepoch')) as date,
-      COUNT(*) as count
-    FROM AtCoderSubmission
-    WHERE userId = ${userId}
-      AND result = 'AC'
-      AND epochSecond >= ${Math.floor(startDate.getTime() / 1000)}
-      AND epochSecond <= ${Math.floor(endDate.getTime() / 1000)}
-    GROUP BY DATE(datetime(epochSecond, 'unixepoch'))
-    ORDER BY date ASC
-  ` as { date: string, count: number }[]
+  // 期間中のAC提出（日次）- Prismaで取得してJSで集計
+  const acSubmissions = await prisma.atCoderSubmission.findMany({
+    where: {
+      userId,
+      result: "AC",
+      epochSecond: {
+        gte: Math.floor(startDate.getTime() / 1000),
+        lte: Math.floor(endDate.getTime() / 1000),
+      },
+    },
+    select: {
+      epochSecond: true,
+    },
+  })
+
+  // 日次集計
+  const submissionsByDayMap = new Map<string, number>()
+  acSubmissions.forEach(submission => {
+    const date = new Date(submission.epochSecond * 1000)
+    const dateKey = date.toISOString().split('T')[0] // YYYY-MM-DD
+    submissionsByDayMap.set(dateKey, (submissionsByDayMap.get(dateKey) || 0) + 1)
+  })
+
+  const submissionsByDay = Array.from(submissionsByDayMap.entries())
+    .map(([date, count]) => ({ date, count }))
+    .sort((a, b) => a.date.localeCompare(b.date))
 
   return {
     solved,

@@ -55,9 +55,12 @@ export default function ContactPage() {
               </div>
             </CardHeader>
             <CardContent>
-              <p className="text-emerald-800 dark:text-emerald-200">
-                現在準備中です。近日中に公開予定です。
-              </p>
+              <a
+                href="mailto:kigami.yusuke@gmail.com"
+                className="text-emerald-600 dark:text-emerald-400 hover:underline"
+              >
+                kigami.yusuke@gmail.com
+              </a>
             </CardContent>
           </Card>
 
