@@ -45,3 +45,15 @@ prisma/dev.db-journal
 .uec-sessions/
 *.db
 *.db-journal
+
+# terraform
+terraform/.terraform/
+terraform/*.tfstate
+terraform/*.tfstate.*
+terraform/*.tfstate.backup
+terraform/*.tfstate.lock.info
+terraform/terraform.tfvars
+terraform/*.tfvars
+!terraform/terraform.tfvars.example
+terraform/*.tfplan
+terraform/*.plan

@@ -137,12 +137,24 @@ npm run start
 
 ## デプロイ
 
-### Vercelへのデプロイ
+2つの方法でデプロイできます：
+
+### 方法1: Vercelダッシュボード（簡単）
 
 1. GitHubリポジトリを作成してコードをプッシュ
 2. [Vercel](https://vercel.com) にアクセスしてインポート
-3. 環境変数を設定
+3. 環境変数を設定（DATABASE_URL, NEXTAUTH_URL, NEXTAUTH_SECRET）
 4. デプロイ完了
+
+### 方法2: Terraform（Infrastructure as Code）
+
+```bash
+cd terraform
+terraform init
+terraform apply
+```
+
+詳しくは [DEPLOYMENT.md](DEPLOYMENT.md) を参照してください。
 
 ## 今後の予定
 

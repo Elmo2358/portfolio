@@ -1,0 +1,30 @@
+# ===================================================================
+# Terraform変数設定ファイル
+# ※ このファイルを terraform.tfvars として保存し、値を入力してください
+# ※ terraform.tfvars は .gitignore に追加済みです
+# ===================================================================
+
+# Vercel APIトークン（https://vercel.com/account/tokens から取得）
+vercel_api_token = "your-vercel-api-token-here"
+
+# GitHubリポジトリ
+github_repo = "Elmo2358/portfolio"
+
+# プロジェクト名
+project_name = "portfolio"
+
+# ===================================================================
+# シークレットキー
+# ===================================================================
+
+# NextAuthシークレット（openssl rand -base64 32 で生成）
+nextauth_secret = "your-nextauth-secret-here"
+
+# Cronジョブシークレット（openssl rand -base64 32 で生成）
+cron_secret = "your-cron-secret-here"
+
+# ===================================================================
+# 注意点
+# ===================================================================
+# DATABASE_URL は Vercel ダッシュボードから手動で設定してください
+# カスタムドメインは main.tf で直接設定してください

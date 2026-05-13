@@ -79,7 +79,18 @@
       "Bash(npx shadcn@latest add progress)",
       "Bash(tasklist)",
       "Bash(curl -s http://localhost:3002/api/debug/mock-code-review -X POST -H \"Content-Type: application/json\")",
-      "Bash(grep -v \"^\\\\.$\\\\|^\\\\.\\\\.$\\\\|node_modules\\\\|\\\\.next\\\\|\\\\.git\\\\|app\\\\|components\\\\|hooks\\\\|lib\\\\|prisma\\\\|public\\\\|docs\\\\|extension\\\\|scripts\\\\|types\")"
+      "Bash(grep -v \"^\\\\.$\\\\|^\\\\.\\\\.$\\\\|node_modules\\\\|\\\\.next\\\\|\\\\.git\\\\|app\\\\|components\\\\|hooks\\\\|lib\\\\|prisma\\\\|public\\\\|docs\\\\|extension\\\\|scripts\\\\|types\")",
+      "mcp__zread__get_repo_structure",
+      "Bash(git clone *)",
+      "Bash(bunx playwright *)",
+      "Bash(bun run *)",
+      "Bash(ls -la ~/AppData/Local/ms-playwright/ 2>/dev/null || echo \"Playwright browsers not found in default location\")",
+      "Read(//c/Users/kerox/AppData/Local/ms-playwright/**)",
+      "Bash(UEC_PORTAL_CLI_BROWSER_PATH=\"C:\\\\Program Files\\\\Google\\\\Chrome\\\\Application\\\\chrome.exe\" bun run uec login)",
+      "Bash(node index.ts login)",
+      "Bash(npx playwright *)",
+      "Bash(curl -s http://localhost:3000/api/hub/uec/login)",
+      "Bash(cat c:\\\\\\\\Users\\\\\\\\kerox\\\\\\\\hp\\\\\\\\debug-notice.html)"
     ],
     "additionalDirectories": [
       "c:\\Users\\kerox\\hp\\app\\api\\hub\\tasks\\[id]",
