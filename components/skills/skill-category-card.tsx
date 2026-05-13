@@ -1,8 +1,11 @@
 "use client"
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Code, Database, Wrench, Gamepad2, LucideIcon } from "lucide-react"
+import {
+  Code, Database, Wrench, Gamepad2, LucideIcon,
+  FileCode, Terminal, Globe, Server, Cloud, Cpu,
+  Layout, Palette, Settings, Box, Braces
+} from "lucide-react"
 import { motion } from "framer-motion"
 
 interface Skill {
@@ -18,55 +21,87 @@ interface SkillCategoryCardProps {
   index: number
 }
 
-function getIconByName(iconName: string): LucideIcon {
+function getCategoryIcon(iconName: string): LucideIcon {
   const icons: { [key: string]: LucideIcon } = {
     'プログラミング言語': Code,
     'フレームワーク': Code,
-    'CSSフレームワーク': Code,
-    'Web技術': Code,
+    'CSSフレームワーク': Palette,
+    'Web技術': Globe,
     'ツール': Wrench,
-    'インフラ': Database,
+    'インフラ': Server,
     'ゲーム開発': Gamepad2,
   }
   return icons[iconName] || Code
 }
 
-function getLevelColor(level: number): string {
-  switch (level) {
-    case 5:
-      return "bg-purple-600 text-white hover:bg-purple-700 dark:bg-purple-500 dark:hover:bg-purple-400"
-    case 4:
-      return "bg-blue-600 text-white hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-400"
-    case 3:
-      return "bg-emerald-600 text-white hover:bg-emerald-700 dark:bg-emerald-500 dark:hover:bg-emerald-400"
-    case 2:
-      return "bg-yellow-600 text-white hover:bg-yellow-700 dark:bg-yellow-500 dark:hover:bg-yellow-400"
-    case 1:
-      return "bg-gray-600 text-white hover:bg-gray-700 dark:bg-gray-500 dark:hover:bg-gray-400"
-    default:
-      return "bg-gray-600 text-white hover:bg-gray-700 dark:bg-gray-500 dark:hover:bg-gray-400"
-  }
-}
+function getSkillIcon(skillName: string): LucideIcon {
+  const icons: { [key: string]: LucideIcon } = {
+    // プログラミング言語
+    'TypeScript': FileCode,
+    'JavaScript': FileCode,
+    'Python': Terminal,
+    'Java': Box,
+    'C++': Braces,
+    'C#': Braces,
+    'Go': FileCode,
+    'Rust': Settings,
+    'PHP': FileCode,
 
-function getLevelText(level: number): string {
-  switch (level) {
-    case 5:
-      return "専門家"
-    case 4:
-      return "熟練"
-    case 3:
-      return "中級"
-    case 2:
-      return "初級"
-    case 1:
-      return "学習中"
-    default:
-      return "-"
+    // フレームワーク
+    'Next.js': Layout,
+    'React': Layout,
+    'Vue.js': Layout,
+    'Nuxt': Layout,
+    'Svelte': Layout,
+    'NestJS': Box,
+    'Express': Server,
+    'FastAPI': Server,
+    'Django': Server,
+    'Flask': Server,
+    'Spring Boot': Box,
+
+    // CSS/UI
+    'Tailwind CSS': Palette,
+    'shadcn/ui': Layout,
+    'Chakra UI': Layout,
+    'Material-UI': Palette,
+
+    // Web技術
+    'HTML': Globe,
+    'CSS': Palette,
+    'REST API': Globe,
+    'GraphQL': Terminal,
+
+    // データベース
+    'PostgreSQL': Database,
+    'MySQL': Database,
+    'SQLite': Database,
+    'MongoDB': Database,
+    'Redis': Database,
+    'Prisma': Database,
+
+    // インフラ/クラウド
+    'Docker': Box,
+    'Kubernetes': Server,
+    'AWS': Cloud,
+    'Vercel': Cloud,
+    'GitHub': Box,
+
+    // ツール
+    'Git': Box,
+    'VS Code': FileCode,
+    'Figma': Palette,
+
+    // ゲーム開発
+    'Unity': Gamepad2,
+    'Unreal Engine': Gamepad2,
+    'Godot': Gamepad2,
   }
+  return icons[skillName] || Code
 }
 
 export function SkillCategoryCard({ category, skills, iconName, index }: SkillCategoryCardProps) {
-  const Icon = getIconByName(iconName)
+  const CategoryIcon = getCategoryIcon(iconName)
 
   return (
     <motion.div
@@ -79,46 +114,29 @@ export function SkillCategoryCard({ category, skills, iconName, index }: SkillCa
         <CardHeader>
           <div className="flex items-center gap-3">
             <div className="p-2 rounded-lg bg-emerald-600 dark:bg-emerald-500">
-              <Icon className="h-5 w-5 text-white" />
+              <CategoryIcon className="h-5 w-5 text-white" />
             </div>
             <CardTitle className="text-emerald-700 dark:text-emerald-300">{category}</CardTitle>
           </div>
         </CardHeader>
         <CardContent>
-          <div className="space-y-3">
-            {skills.map((skill, skillIndex) => (
-              <motion.div
-                key={skill.name}
-                className="rounded-lg border-2 border-emerald-500 bg-emerald-100 p-3 dark:bg-emerald-900 dark:border-emerald-600"
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.3, delay: index * 0.15 + skillIndex * 0.05 }}
-              >
-                <div className="flex items-start justify-between mb-1">
-                  <h4 className="font-semibold text-emerald-700 dark:text-emerald-300">{skill.name}</h4>
-                  <Badge className={getLevelColor(skill.level)}>
-                    {getLevelText(skill.level)}
-                  </Badge>
-                </div>
-                {skill.description && (
-                  <p className="text-sm text-emerald-600 dark:text-emerald-400 mt-1">
-                    {skill.description}
-                  </p>
-                )}
-                <div className="mt-2 flex gap-1">
-                  {Array.from({ length: 5 }).map((_, i) => (
-                    <div
-                      key={i}
-                      className={`h-1.5 flex-1 rounded-full ${
-                        i < skill.level
-                          ? "bg-emerald-600 dark:bg-emerald-500"
-                          : "bg-emerald-300 dark:bg-emerald-800"
-                      }`}
-                    />
-                  ))}
-                </div>
-              </motion.div>
-            ))}
+          <div className="flex flex-wrap gap-2">
+            {skills.map((skill, skillIndex) => {
+              const SkillIcon = getSkillIcon(skill.name)
+              return (
+                <motion.div
+                  key={skill.name}
+                  className="flex items-center gap-1.5 rounded-lg border border-emerald-400 bg-white px-3 py-1.5 dark:bg-emerald-900 dark:border-emerald-700"
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.2, delay: index * 0.15 + skillIndex * 0.03 }}
+                  whileHover={{ scale: 1.05 }}
+                >
+                  <SkillIcon className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+                  <span className="text-sm font-medium text-emerald-700 dark:text-emerald-300">{skill.name}</span>
+                </motion.div>
+              )
+            })}
           </div>
         </CardContent>
       </Card>
