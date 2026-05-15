@@ -64,7 +64,7 @@ const brandColors: { [key: string]: string } = {
   'Unity': '#222C37',
 }
 
-const skillIconMap: { [key: string]: React.ComponentType<{ style?: React.CSSProperties }> } = {
+const skillIconMap: { [key: string]: React.ComponentType<{ style?: React.CSSProperties; className?: string }> } = {
   'TypeScript': SiTypescript,
   'JavaScript': SiJavascript,
   'Next.js': SiNextdotjs,
