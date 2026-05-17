@@ -44,6 +44,7 @@ export default async function SettingsPage() {
           claudeApiKey: true,
           claudeApiEnabled: true,
           clistApiKey: true,
+          clistUsername: true,
           clistApiEnabled: true,
         },
       })
