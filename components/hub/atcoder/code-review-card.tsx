@@ -10,23 +10,24 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
-import { Code2, Loader2, Sparkles, ExternalLink } from "lucide-react"
+import { Code2, Loader2, Sparkles, ExternalLink, CheckCircle2 } from "lucide-react"
 
-interface Submission {
-  id: string
-  problemId: string
-  result: string
-  language: string
-  epochSecond: number
+interface BulkReviewResponse {
+  reviews: Array<{
+    id: string
+    submissionId: string
+    problemId: string
+    problemTitle: string
+    overallRating: string
+    summary: string
+    strengths: string[]
+    improvements: string[]
+    complexityScore: number
+    bugs: string[]
+  }>
+  count: number
+  message: string
 }
 
 interface CodeReviewData {
@@ -61,92 +62,47 @@ const ratingLabels: Record<string, string> = {
 }
 
 export function CodeReviewCard({ onReviewGenerated, className }: CodeReviewCardProps) {
-  const [submissions, setSubmissions] = useState<Submission[]>([])
-  const [selectedSubmissionId, setSelectedSubmissionId] = useState<string>("")
-  const [reviews, setReviews] = useState<CodeReviewData[]>([])
-  const [loading, setLoading] = useState(false)
-  const [submissionsLoading, setSubmissionsLoading] = useState(true)
+  const [recentReviews, setRecentReviews] = useState<CodeReviewData[]>([])
+  const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [generating, setGenerating] = useState(false)
+  const [completedCount, setCompletedCount] = useState(0)
+  const [totalCount, setTotalCount] = useState(0)
   const [selectedReview, setSelectedReview] = useState<CodeReviewData | null>(null)
   const [dialogOpen, setDialogOpen] = useState(false)
+  const [bulkResult, setBulkResult] = useState<BulkReviewResponse | null>(null)
 
-  // 提出一覧を取得
   useEffect(() => {
-    fetchSubmissions()
+    fetchRecentReviews()
   }, [])
 
-  // レビュー一覧を取得
-  useEffect(() => {
-    fetchReviews()
-  }, [])
-
-  const fetchSubmissions = async () => {
-    setSubmissionsLoading(true)
+  const fetchRecentReviews = async () => {
+    setLoading(true)
     setError(null)
 
     try {
-      // 統計APIから提出履歴を取得
-      const res = await fetch("/api/hub/atcoder/stats")
-
-      if (!res.ok) {
-        throw new Error("Failed to fetch submissions")
-      }
-
-      const data = await res.json()
-
-      // 最近のAC提出を取得
-      const recentAc = await prismaGetRecentSubmissions()
-
-      setSubmissions(recentAc)
-    } catch (err) {
-      console.error("Error fetching submissions:", err)
-      setError("提出の取得に失敗しました")
-    } finally {
-      setSubmissionsLoading(false)
-    }
-  }
-
-  // Prismaから最近の提出を取得するヘルパー関数
-  // ※実際にはAPIを通して取得する必要がありますが、簡略化のため
-  const prismaGetRecentSubmissions = async (): Promise<Submission[]> => {
-    // ここではAPIを呼び出して最近の提出を取得
-    try {
-      const res = await fetch("/api/hub/atcoder/submissions?limit=20&result=AC")
-      if (res.ok) {
-        const data = await res.json()
-        return data.submissions || []
-      }
-    } catch {
-      // エラー時は空配列
-    }
-    return []
-  }
-
-  const fetchReviews = async () => {
-    try {
-      const res = await fetch("/api/hub/atcoder/code-review?limit=5")
+      const res = await fetch("/api/hub/atcoder/code-review?limit=3")
 
       if (res.ok) {
         const data = await res.json()
-        setReviews(data.reviews || [])
+        setRecentReviews(data.reviews || [])
       }
     } catch (err) {
       console.error("Error fetching reviews:", err)
+    } finally {
+      setLoading(false)
     }
   }
 
-  const generateReview = async () => {
-    if (!selectedSubmissionId) return
-
+  const generateBulkReview = async () => {
     setGenerating(true)
     setError(null)
+    setCompletedCount(0)
+    setTotalCount(10)
 
     try {
       const res = await fetch("/api/hub/atcoder/code-review", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ submissionId: selectedSubmissionId }),
       })
 
       if (!res.ok) {
@@ -159,28 +115,19 @@ export function CodeReviewCard({ onReviewGenerated, className }: CodeReviewCardP
         return
       }
 
-      const reviewData = await res.json()
+      const data: BulkReviewResponse = await res.json()
+      setBulkResult(data)
+      setCompletedCount(data.count)
+      setTotalCount(data.count)
 
       // レビュー一覧を更新
-      await fetchReviews()
-
-      // レビュー詳細を設定してダイアログを開く
-      setSelectedReview({
-        id: reviewData.id,
-        submissionId: selectedSubmissionId,
-        problemId: reviewData.problemId || "",
-        problemTitle: reviewData.problemTitle || "",
-        overallRating: reviewData.overallRating,
-        summary: reviewData.summary,
-        createdAt: new Date().toISOString(),
-      })
-      setDialogOpen(true)
+      await fetchRecentReviews()
 
       if (onReviewGenerated) {
         onReviewGenerated()
       }
     } catch (err) {
-      console.error("Error generating review:", err)
+      console.error("Error generating bulk review:", err)
       setError("レビューの生成に失敗しました")
     } finally {
       setGenerating(false)
@@ -206,7 +153,7 @@ export function CodeReviewCard({ onReviewGenerated, className }: CodeReviewCardP
                 AI コードレビュー
               </CardTitle>
               <CardDescription>
-                提出コードをAIが分析・改善提案
+                直近10件のACコードを一括レビューして学習プランを更新
               </CardDescription>
             </div>
           </div>
@@ -221,60 +168,51 @@ export function CodeReviewCard({ onReviewGenerated, className }: CodeReviewCardP
           )}
 
           <div className="space-y-4">
-            {/* 提出選択 */}
-            <div>
-              <label className="text-sm font-medium mb-2 block">
-                レビューする提出を選択
-              </label>
-              {submissionsLoading ? (
-                <div className="flex items-center justify-center py-4">
-                  <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-                </div>
-              ) : submissions.length === 0 ? (
-                <div className="text-center py-4 text-sm text-muted-foreground">
-                  まだAC提出がありません
-                </div>
-              ) : (
-                <Select value={selectedSubmissionId} onValueChange={setSelectedSubmissionId}>
-                  <SelectTrigger>
-                    <SelectValue>提出を選択...</SelectValue>
-                  </SelectTrigger>
-                  <SelectContent>
-                    {submissions.map((sub) => (
-                      <SelectItem key={sub.id} value={sub.id}>
-                        {sub.problemId} - {new Date(sub.epochSecond * 1000).toLocaleDateString()}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              )}
+            {/* 説明 */}
+            <div className="text-sm text-muted-foreground">
+              <p>クリックすると、直近10件のACコードをAIがレビューします。</p>
+              <p>レビュー結果は学習プランの自動更新に使用されます。</p>
             </div>
 
-            {/* 生成ボタン */}
+            {/* 一括レビューボタン */}
             <Button
-              onClick={generateReview}
-              disabled={!selectedSubmissionId || generating}
+              onClick={generateBulkReview}
+              disabled={generating}
               className="w-full bg-orange-600 hover:bg-orange-700"
             >
               {generating ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  分析中...
+                  レビュー中... ({completedCount}/{totalCount})
                 </>
               ) : (
                 <>
                   <Code2 className="h-4 w-4 mr-2" />
-                  レビューを生成
+                  直近10件のコードをレビュー
                 </>
               )}
             </Button>
 
-            {/* 過去のレビュー */}
-            {reviews.length > 0 && (
+            {/* 完了メッセージ */}
+            {bulkResult && !generating && (
+              <div className="bg-emerald-50 dark:bg-emerald-950 border border-emerald-200 dark:border-emerald-800 rounded-lg p-4">
+                <div className="flex items-start gap-3">
+                  <CheckCircle2 className="h-5 w-5 text-emerald-600 mt-0.5" />
+                  <div>
+                    <p className="font-medium text-emerald-900 dark:text-emerald-100">
+                      {bulkResult.message}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* 最近のレビュー */}
+            {recentReviews.length > 0 && (
               <div className="mt-6">
-                <h3 className="text-sm font-medium mb-3">過去のレビュー</h3>
+                <h3 className="text-sm font-medium mb-3">最近のレビュー</h3>
                 <div className="space-y-2">
-                  {reviews.slice(0, 3).map((review) => (
+                  {recentReviews.map((review) => (
                     <div
                       key={review.id}
                       className="flex items-center justify-between p-3 bg-white dark:bg-gray-900 rounded-lg border cursor-pointer hover:border-orange-300"
@@ -361,15 +299,11 @@ function CodeReviewDialogContent({ review }: CodeReviewDialogContentProps) {
   const fetchReviewDetail = async () => {
     setLoading(true)
     try {
-      // 詳細データを取得
       const res = await fetch(`/api/hub/atcoder/code-review?submissionId=${review.submissionId}`)
       if (res.ok) {
         const data = await res.json()
         if (data.reviews && data.reviews.length > 0) {
           setFullReview(data.reviews[0])
-        } else {
-          // データがない場合は既存のreviewを使う
-          setFullReview(null)
         }
       }
     } catch (err) {
@@ -387,7 +321,6 @@ function CodeReviewDialogContent({ review }: CodeReviewDialogContentProps) {
     )
   }
 
-  // 表示するデータ（詳細が取得できればそれを使う）
   const displayReview = fullReview || review
 
   return (

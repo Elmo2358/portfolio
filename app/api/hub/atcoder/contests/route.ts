@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
-import { getUpcomingContests } from "@/lib/clist"
+import { getClistCredentials, getDefaultClistCredentials, formatContestsForAI } from "@/lib/clist"
 
 // GET: 今後のコンテストスケジュールを取得
 export async function GET(req: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
-    if (!session?.user?.id) {
+    if (!session?.user?.email) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
@@ -15,35 +15,48 @@ export async function GET(req: NextRequest) {
     const searchParams = req.nextUrl.searchParams
     const limit = parseInt(searchParams.get("limit") || "10")
     const sites = searchParams.get("sites")?.split(",") || undefined
+    const format = searchParams.get("format") || "json" // json or text (for AI prompts)
 
-    // CLIST API認証情報（環境変数から取得）
-    const username = process.env.CLIST_USERNAME
-    const apiKey = process.env.CLIST_API_KEY
+    // CLIST API認証情報の確認（ユーザー設定 → 環境変数）
+    const userCredentials = await getClistCredentials(session.user.email)
+    const defaultCredentials = getDefaultClistCredentials()
+    const credentials = userCredentials || defaultCredentials
 
-    // APIキーが未設定の場合はモックデータを返す
-    if (!username || !apiKey) {
-      console.log("CLIST API credentials not configured, using mock data")
+    if (!credentials) {
+      // APIキー未設定時は空の結果を返す（エラーにしない）
       return NextResponse.json({
         success: true,
-        contests: getMockContests(),
-        count: 3,
+        contests: [],
+        count: 0,
         mock: true,
       })
     }
 
-    // デフォルトではAtCoderと主要なコンテストサイトを取得
-    const defaultSites = sites || [
-      "atcoder.jp",
-      "codeforces.com",
-      "yukicoder.me",
-    ]
+    // デフォルトではAtCoderのみを取得
+    const defaultSites = sites || ["atcoder.jp"]
 
-    const contests = await getUpcomingContests(
-      username,
-      apiKey,
-      defaultSites,
-      limit
-    )
+    // lib/clist.tsの関数を使用（キャッシュ設定が適用される）
+    const { getUpcomingContests } = await import("@/lib/clist")
+    const contests = await getUpcomingContests(credentials, defaultSites, limit)
+
+    // 空配列チェック（APIエラー時）
+    if (!contests) {
+      return NextResponse.json({
+        success: true,
+        contests: [],
+        count: 0,
+        error: "Failed to fetch contests",
+      })
+    }
+
+    // テキスト形式（AIプロンプト用）
+    if (format === "text") {
+      const text = formatContestsForAI(contests)
+      return NextResponse.json({
+        contests: text,
+        count: contests.length,
+      })
+    }
 
     return NextResponse.json({
       success: true,
@@ -52,57 +65,12 @@ export async function GET(req: NextRequest) {
     })
   } catch (error) {
     console.error("Error fetching contests:", error)
-
-    // エラーの場合はモックデータを返す
-    console.log("Falling back to mock data due to error")
+    // エラー時も空の結果を返す
     return NextResponse.json({
       success: true,
-      contests: getMockContests(),
-      count: 3,
-      mock: true,
+      contests: [],
+      count: 0,
+      error: error instanceof Error ? error.message : String(error),
     })
   }
-}
-
-// モックデータ（APIキー未設定時用）
-function getMockContests() {
-  const now = new Date()
-  const tomorrow = new Date(now)
-  tomorrow.setDate(tomorrow.getDate() + 1)
-
-  const nextWeek = new Date(now)
-  nextWeek.setDate(nextWeek.getDate() + 7)
-
-  return [
-    {
-      id: "mock1",
-      event: "AtCoder Beginner Contest",
-      resource: "atcoder.jp",
-      start: tomorrow.toISOString(),
-      end: new Date(tomorrow.getTime() + 2 * 60 * 60 * 1000).toISOString(),
-      duration: "02:00:00",
-      href: "https://atcoder.jp/contests/abc001",
-      icons: [],
-    },
-    {
-      id: "mock2",
-      event: "Codeforces Round",
-      resource: "codeforces.com",
-      start: new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000).toISOString(),
-      end: new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000 + 2 * 60 * 60 * 1000).toISOString(),
-      duration: "02:00:00",
-      href: "https://codeforces.com/contest/1234",
-      icons: [],
-    },
-    {
-      id: "mock3",
-      event: "Yukicoder Contest",
-      resource: "yukicoder.me",
-      start: nextWeek.toISOString(),
-      end: new Date(nextWeek.getTime() + 2 * 60 * 60 * 1000).toISOString(),
-      duration: "02:00:00",
-      href: "https://yukicoder.me/contests/123",
-      icons: [],
-    },
-  ]
 }

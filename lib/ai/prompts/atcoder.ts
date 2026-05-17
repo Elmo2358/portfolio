@@ -194,7 +194,21 @@ export const CODE_REVIEW_PROMPTS = {
   review: (code: string, language: string, problemInfo?: {
     title: string
     difficulty?: number
-  }) => `以下の競技プログラミングコードをレビューしてください：
+  }, currentPlan?: {
+    currentZone?: string
+    targetZone?: string
+    studyAdvice?: string
+  }) => {
+    const planContext = currentPlan ? `
+
+## ユーザーの現在の学習プラン
+- 現在のゾーン: ${currentPlan.currentZone || "不明"}
+- 目標ゾーン: ${currentPlan.targetZone || "不明"}
+- 学習アドバイス: ${currentPlan.studyAdvice || "なし"}
+
+この学習プランの進捗を考慮して、以下のコードをレビューしてください。` : ""
+
+    return `以下の競技プログラミングコードをレビューしてください：${planContext}
 
 言語: ${language}
 ${problemInfo ? `問題: ${problemInfo.title} (difficulty: ${problemInfo.difficulty || '不明'})` : ''}
@@ -217,7 +231,8 @@ ${code}
 - A: 優れた解答、小さな改善可能
 - B: 良い解答、いくつかの改善点あり
 - C: 通るが改善が必要
-- D: 問題あり（バグ、非効率、可読性低）`,
+- D: 問題あり（バグ、非効率、可読性低）`
+  },
 }
 
 /**
@@ -225,67 +240,112 @@ ${code}
  */
 export const LEARNING_PLAN_PROMPTS = {
   system: `あなたは競技プログラミングの学習プランを立てるAIコーチです。
-ユーザーの目標と現在の実力に基づいて、効果的な学習プランを作成してください。
+ユーザーの現在の実力と、コードレビューで判明した課題に基づいて、
+次のレートゾーン（色）に到達するための学習プランを作成してください。
 
 プラン作成の原則：
 - 段階的な難易度上昇
 - 多様なジャンルの覆盖（DP、グラフ、文字列、数学等）
 - 復習時間の確保
 - 実践（コンテスト参加）の機会
-- 現実的な目標設定
+- 重要：期間ではなく、理解度と定着度を重視してください
 
-日本語で回答してください。`,
+出力形式：
+- 必ず有効なJSONのみを出力してください
+- JSON以外のテキスト（説明文、マークダウン等）は一切含めないでください
+- studyAdviceは簡潔な日本語2-3文で`,
 
   generatePlan: (userData: {
-    currentRating?: number
+    currentRating: number
+    currentZone: string
+    targetRating: number
+    targetZone: string
     acCount: number
-    avgDifficulty?: number
-    weakGenres?: string[]
-  }, goals: {
-    targetRating?: number
-    targetDate: string
-    focusAreas?: string[]
+    avgDifficulty: number
+    recentReviews: Array<{
+      rating: string
+      improvements: string[]
+      bugs: string[]
+    }>
+    previousMilestones?: Array<{
+      order: number
+      title: string
+      description?: string
+      goals: string[]
+      problemCount: number
+      focusArea: string
+      difficultyMin: number
+      difficultyMax: number
+    }>
+    previousAdvice?: string
+    upcomingContests?: string
   }) => {
-    const weeksUntilGoal = Math.ceil(
-      (new Date(goals.targetDate).getTime() - Date.now()) / (7 * 24 * 60 * 60 * 1000)
-    )
+    const zoneDiff = userData.targetRating - userData.currentRating
+    const hasPreviousPlan = userData.previousMilestones && userData.previousMilestones.length > 0
 
     return `以下のユーザーの学習プランを作成してください：
 
 ## ユーザー現状
-- 現在のレート: ${userData.currentRating || '不明'}
-- AC数: ${userData.acCount}
-- 平均difficulty: ${userData.avgDifficulty || '不明'}
-${userData.weakGenres ? `- 苦手ジャンル: ${userData.weakGenres.join(', ')}` : ''}
+- 推定レート: ${userData.currentRating} (${userData.currentZone})
+- 目標レート: ${userData.targetRating} (${userData.targetZone})
+- レート差: ${zoneDiff}
+- AC数（2026年以降）: ${userData.acCount}
+- 平均difficulty: ${userData.avgDifficulty}
 
-## 目標
-${goals.targetRating ? `- 目標レート: ${goals.targetRating}` : '- レート目標: なし（スキル向上重視）'}
-- 目標日: ${goals.targetDate}（あと${weeksUntilGoal}週間）
-${goals.focusAreas ? `- 重点分野: ${goals.focusAreas.join(', ')}` : ''}
+${hasPreviousPlan ? `
+## 前回の学習プラン
+- 前回のアドバイス: ${userData.previousAdvice || "なし"}
+- 前回のフェーズ数: ${userData.previousMilestones?.length || 0}
 
-以下の形式でJSONを出力してください：
+前回のプランを踏まえ、進捗に応じて調整してください。
+` : `
+## 初回の学習プラン
+ユーザーの現状に合わせたプランを作成してください。
+`}
+
+${userData.upcomingContests ? `
+## 今後のコンテスト
+${userData.upcomingContests}
+
+コンテスト日程を考慮して、効果的な学習スケジュールを組んでください。
+` : ''}
+
+## 最近のコードレビュー分析
+${userData.recentReviews.map(r => `
+- 評価: ${r.rating}
+- 改善点: ${r.improvements.join(', ') || 'なし'}
+- バグ: ${r.bugs.join(', ') || 'なし'}`).join('\n')}
+
+以下の形式でJSONを出力してください。JSON以外のテキストやマークダウンは一切含めないでください。
+
 {
   "weeklyMilestones": [
     {
-      "week": 1,
-      "title": "週のテーマ",
-      "goals": ["目標1", "目標2"],
+      "order": 1,
+      "title": "フェーズ名",
+      "description": "このフェーズの目的",
+      "goals": ["具体的な目標1", "目標2"],
       "problemCount": 10,
       "focusArea": "DP",
       "difficultyMin": 800,
       "difficultyMax": 1200
     }
   ],
-  "recommendedProblems": [
-    { "id": "abc123_a", "reason": "基礎固め" }
-  ],
+  "recommendationCriteria": {
+    "focusAreas": ["DP", "グラフ", "数学"],
+    "difficultyMin": 800,
+    "difficultyMax": 1200,
+    "excludeSolved": true,
+    "preferContest": "ABC"
+  },
   "studyAdvice": "全体的なアドバイス（2-3文）"
 }
 
 注意点：
-- ${weeksUntilGoal}週間以内で収めること
-- 各週の問題数は現実的（週5-15問）
-- 難易度は段階的に上げる
-- ${goals.focusAreas && goals.focusAreas.length > 0 ? goals.focusAreas.join(', ') : '様々なジャンル'}をカバー`
+- 期間ではなく「理解度・定着度」を基準にすること
+- 各フェーズは順番に取り組むこと
+- コードレビューでの改善点を反映させること
+- ${userData.targetZone}到達に必要なスキルを身につけること
+- 各フェーズの問題数は現実的（フェーズ全体で5-15問）`
   },
 }

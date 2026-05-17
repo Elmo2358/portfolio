@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { NotionSettingsForm } from "@/components/hub/notion-settings-form"
 import { ClaudeSettingsForm } from "@/components/hub/claude-settings-form"
+import { ClistSettingsForm } from "@/components/hub/clist-settings-form"
 import { SettingsClient } from "./settings-client"
 
 export default async function SettingsPage() {
@@ -24,6 +25,12 @@ export default async function SettingsPage() {
     enabled: false,
   }
 
+  let clistSettings = {
+    apiKey: null as string | null,
+    username: null as string | null,
+    enabled: false,
+  }
+
   // セッションのメールアドレスからユーザーを取得して設定を読み込む
   if (session?.user?.email) {
     try {
@@ -36,6 +43,8 @@ export default async function SettingsPage() {
           notionAccessToken: true,
           claudeApiKey: true,
           claudeApiEnabled: true,
+          clistApiKey: true,
+          clistApiEnabled: true,
         },
       })
 
@@ -48,6 +57,11 @@ export default async function SettingsPage() {
         claudeSettings = {
           apiKey: user.claudeApiKey,
           enabled: user.claudeApiEnabled || false,
+        }
+        clistSettings = {
+          apiKey: user.clistApiKey,
+          username: user.clistUsername,
+          enabled: user.clistApiEnabled || false,
         }
       }
     } catch (error) {
@@ -74,6 +88,13 @@ export default async function SettingsPage() {
         <ClaudeSettingsForm
           initialApiKey={claudeSettings.apiKey}
           initialEnabled={claudeSettings.enabled}
+        />
+
+        {/* CLIST API連携 */}
+        <ClistSettingsForm
+          initialApiKey={clistSettings.apiKey}
+          initialUsername={clistSettings.username}
+          initialEnabled={clistSettings.enabled}
         />
 
         {/* Notion Wiki連携 - Server Component + Server Actions */}

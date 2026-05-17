@@ -2,10 +2,15 @@ import { NextRequest, NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
-import { getUserApiKey, getDefaultApiKey, generateCompletion } from "@/lib/ai/anthropic"
-import { LEARNING_PLAN_PROMPTS } from "@/lib/ai/prompts/atcoder"
+import { getUserApiKey, getDefaultApiKey } from "@/lib/ai/anthropic"
+import {
+  generateLearningPlan,
+  saveLearningPlan,
+  getUserData,
+  ATCODER_RATING_ZONES,
+} from "@/lib/ai/learning-plan-generator"
 
-// POST: 新しい学習プランを生成
+// POST: 学習プランを手動再生成
 export async function POST(req: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
@@ -25,152 +30,28 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    const body = await req.json()
-    const { targetRating, targetDate, focusAreas } = body
+    // プランを生成（手動再生成時はレビューなし）
+    const planData = await generateLearningPlan(session.user.id, [], undefined, apiKey)
 
-    if (!targetDate) {
-      return NextResponse.json(
-        { error: "targetDate is required" },
-        { status: 400 }
-      )
-    }
+    // 保存
+    const { planId, isNew } = await saveLearningPlan(session.user.id, planData)
 
-    // ユーザーデータを取得
-    const userProblems = await prisma.atCoderUserProblem.findMany({
-      where: { userId: session.user.id },
-      include: { problem: true },
-    })
-
-    const acProblems = userProblems.filter(
-      (up) => up.status === "contest_ac" || up.status === "upsolved_ac"
-    )
-
-    const difficulties = acProblems
-      .map((up) => up.problem.difficulty)
-      .filter((d): d is number => d !== null && d !== undefined)
-
-    const avgDifficulty = difficulties.length > 0
-      ? Math.round(difficulties.reduce((a, b) => a + b, 0) / difficulties.length)
-      : undefined
-
-    // 現在のレート（推定）
-    const currentRating = avgDifficulty
-
-    // ユーザーデータを構築
-    const userData = {
-      currentRating,
-      acCount: acProblems.length,
-      avgDifficulty,
-    }
-
-    // 目標データを構築
-    const goals = {
-      targetRating,
-      targetDate,
-      focusAreas,
-    }
-
-    // AIで学習プランを生成
-    const prompt = LEARNING_PLAN_PROMPTS.generatePlan(userData, goals)
-
-    const response = await generateCompletion(apiKey, [{ role: "user", content: prompt }], {
-      maxTokens: 3000,
-      temperature: 0.7,
-      systemPrompt: LEARNING_PLAN_PROMPTS.system,
-    })
-
-    // レスポンスをパース
-    let planData: {
-      weeklyMilestones: Array<{
-        week: number
-        title: string
-        goals: string[]
-        problemCount: number
-        focusArea: string
-        difficultyMin: number
-        difficultyMax: number
-      }>
-      recommendedProblems: Array<{ id: string; reason: string }>
-      studyAdvice: string
-    }
-
-    try {
-      const jsonMatch = response.match(/\{[\s\S]*?\}/)
-      if (jsonMatch) {
-        planData = JSON.parse(jsonMatch[0])
-      } else {
-        throw new Error("No JSON found in response")
-      }
-    } catch {
-      // パース失敗時のデフォルト値
-      const weeksUntilGoal = Math.ceil(
-        (new Date(targetDate).getTime() - Date.now()) / (7 * 24 * 60 * 60 * 1000)
-      )
-
-      planData = {
-        weeklyMilestones: Array.from({ length: Math.min(weeksUntilGoal, 8) }, (_, i) => ({
-          week: i + 1,
-          title: `第${i + 1}週`,
-          goals: ["問題を解く", "復習する"],
-          problemCount: 10,
-          focusArea: "DP",
-          difficultyMin: 800,
-          difficultyMax: 1200,
-        })),
-        recommendedProblems: [],
-        studyAdvice: response.slice(0, 500),
-      }
-    }
-
-    // 学習プランを保存
-    const plan = await prisma.learningPlan.create({
-      data: {
-        userId: session.user.id,
-        targetRating,
-        targetDate: new Date(targetDate),
-        currentRating,
-        weeklyMilestones: JSON.stringify(planData.weeklyMilestones),
-        recommendedProblems: JSON.stringify(planData.recommendedProblems),
-        studyAdvice: planData.studyAdvice,
-        completedTasks: "0",
-      },
-    })
-
-    // タスクを生成
-    const tasks = []
-    for (const milestone of planData.weeklyMilestones) {
-      const dueDate = new Date(plan.targetDate)
-      dueDate.setDate(dueDate.getDate() - (planData.weeklyMilestones.length - milestone.week) * 7)
-
-      for (const goal of milestone.goals) {
-        tasks.push({
-          planId: plan.id,
-          userId: session.user.id,
-          title: goal,
-          description: `${milestone.title}: ${milestone.focusArea}`,
-          taskType: "concept",
-          dueDate,
-          status: "pending",
-        })
-      }
-    }
-
-    if (tasks.length > 0) {
-      await prisma.learningTask.createMany({
-        data: tasks,
-      })
-    }
+    // ユーザーデータを再取得
+    const userData = await getUserData(session.user.id)
 
     return NextResponse.json({
-      id: plan.id,
-      targetRating: plan.targetRating,
-      targetDate: plan.targetDate,
-      currentRating: plan.currentRating,
+      id: planId,
+      currentRating: userData.currentRating,
+      currentZone: userData.currentZone,
+      targetRating: userData.targetRating,
+      targetZone: userData.targetZone,
+      currentZoneName: ATCODER_RATING_ZONES[userData.currentZone].name,
+      targetZoneName: ATCODER_RATING_ZONES[userData.targetZone].name,
       weeklyMilestones: planData.weeklyMilestones,
-      recommendedProblems: planData.recommendedProblems,
-      studyAdvice: plan.studyAdvice,
+      recommendationCriteria: planData.recommendationCriteria,
+      studyAdvice: planData.studyAdvice,
       progress: 0,
-      taskCount: tasks.length,
+      isNew,
     })
   } catch (error) {
     console.error("Error generating learning plan:", error)
@@ -181,7 +62,7 @@ export async function POST(req: NextRequest) {
   }
 }
 
-// GET: ユーザーの学習プラン一覧を取得
+// GET: ユーザーの現在の学習プランを取得
 export async function GET(req: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
@@ -189,7 +70,8 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const plans = await prisma.learningPlan.findMany({
+    // 最新のプランを取得
+    const plan = await prisma.learningPlan.findFirst({
       where: { userId: session.user.id },
       orderBy: { createdAt: "desc" },
       include: {
@@ -200,25 +82,46 @@ export async function GET(req: NextRequest) {
       },
     })
 
+    if (!plan) {
+      return NextResponse.json({
+        plan: null,
+        message: "学習プランがありません。コードレビューを行うと自動的に作成されます。",
+      })
+    }
+
+    // ゾーン名を取得
+    const currentZoneName = plan.currentZone
+      ? ATCODER_RATING_ZONES[plan.currentZone as keyof typeof ATCODER_RATING_ZONES]?.name
+      : "不明"
+    const targetZoneName = plan.targetZone
+      ? ATCODER_RATING_ZONES[plan.targetZone as keyof typeof ATCODER_RATING_ZONES]?.name
+      : "不明"
+
     return NextResponse.json({
-      plans: plans.map((plan) => ({
+      plan: {
         id: plan.id,
-        targetRating: plan.targetRating,
-        targetDate: plan.targetDate,
         currentRating: plan.currentRating,
+        currentZone: plan.currentZone,
+        targetRating: plan.targetRating,
+        targetZone: plan.targetZone,
+        currentZoneName,
+        targetZoneName,
         progress: plan.progress,
         studyAdvice: plan.studyAdvice,
         weeklyMilestones: JSON.parse(plan.weeklyMilestones || "[]"),
-        recommendedProblems: JSON.parse(plan.recommendedProblems || "[]"),
+        recommendationCriteria: JSON.parse(plan.recommendationCriteria || "{}"),
+        lastUpdatedFromReview: plan.lastUpdatedFromReview,
+        reviewCount: plan.reviewCount,
         taskCount: plan.tasks.length,
         completedTaskCount: plan.tasks.filter((t) => t.status === "completed").length,
         createdAt: plan.createdAt,
-      })),
+        updatedAt: plan.updatedAt,
+      },
     })
   } catch (error) {
-    console.error("Error fetching learning plans:", error)
+    console.error("Error fetching learning plan:", error)
     return NextResponse.json(
-      { error: "Failed to fetch learning plans" },
+      { error: "Failed to fetch learning plan" },
       { status: 500 }
     )
   }

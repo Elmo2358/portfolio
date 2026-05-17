@@ -183,6 +183,29 @@ export function ContestSchedule({ limit = 10, sites }: ContestScheduleProps) {
     return "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200"
   }
 
+  const formatDuration = (duration: string | number) => {
+    // 文字列の場合（例: "02:00:00"）はそのまま返す
+    if (typeof duration === "string" && duration.includes(":")) {
+      return duration
+    }
+
+    // 数値または数字のみの文字列の場合（秒単位と仮定）
+    const seconds = typeof duration === "number" ? duration : parseInt(duration, 10)
+    if (isNaN(seconds)) return duration
+
+    const days = Math.floor(seconds / (24 * 3600))
+    const hours = Math.floor((seconds % (24 * 3600)) / 3600)
+    const minutes = Math.floor((seconds % 3600) / 60)
+
+    if (days > 0) {
+      return `${days}日${hours}時間`
+    } else if (hours > 0) {
+      return `${hours}時間${minutes}分`
+    } else {
+      return `${minutes}分`
+    }
+  }
+
   if (loading) {
     return (
       <Card className="border-2 border-emerald-500 bg-emerald-50 dark:bg-emerald-950 dark:border-emerald-600">
@@ -245,7 +268,7 @@ export function ContestSchedule({ limit = 10, sites }: ContestScheduleProps) {
                       </div>
                       <div className="flex items-center gap-1">
                         <Clock className="h-3 w-3" />
-                        <span>{contest.duration}</span>
+                        <span>{formatDuration(contest.duration)}</span>
                       </div>
                     </div>
                   </div>

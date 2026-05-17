@@ -424,7 +424,7 @@ export function AtCoderManager() {
       <ActivityHeatmap days={365} />
 
       {/* コンテストスケジュール */}
-      <ContestSchedule limit={10} sites={["atcoder.jp", "codeforces.com", "yukicoder.me"]} />
+      <ContestSchedule limit={10} sites={["atcoder.jp"]} />
 
       {/* AI問題推薦 */}
       <RecommendationCard onAddProblem={async () => await fetchProblems()} />

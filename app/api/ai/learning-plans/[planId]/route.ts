@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
+import { ATCODER_RATING_ZONES } from "@/lib/atcoder-rating"
 
 // GET: プラン詳細を取得
 export async function GET(
@@ -32,13 +33,20 @@ export async function GET(
 
     return NextResponse.json({
       id: plan.id,
-      targetRating: plan.targetRating,
-      targetDate: plan.targetDate,
       currentRating: plan.currentRating,
+      currentZone: plan.currentZone,
+      targetRating: plan.targetRating,
+      targetZone: plan.targetZone,
+      currentZoneName: plan.currentZone
+        ? ATCODER_RATING_ZONES[plan.currentZone as keyof typeof ATCODER_RATING_ZONES]?.name
+        : undefined,
+      targetZoneName: plan.targetZone
+        ? ATCODER_RATING_ZONES[plan.targetZone as keyof typeof ATCODER_RATING_ZONES]?.name
+        : undefined,
       progress: plan.progress,
       studyAdvice: plan.studyAdvice,
       weeklyMilestones: JSON.parse(plan.weeklyMilestones || "[]"),
-      recommendedProblems: JSON.parse(plan.recommendedProblems || "[]"),
+      recommendationCriteria: JSON.parse(plan.recommendationCriteria || "{}"),
       completedTasks: JSON.parse(plan.completedTasks || "[]"),
       tasks: plan.tasks.map((task) => ({
         id: task.id,

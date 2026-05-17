@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -10,401 +7,342 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// ユーザー情報（認証・アプリ管理用）
 model User {
-  id                    String    @id @default(cuid())
-  email                 String    @unique
+  id                    String               @id @default(cuid())
+  email                 String               @unique
   name                  String?
   image                 String?
-  role                  String    @default("user") // admin, user
-  atCoderId             String?   @unique // AtCoderユーザーID
-  googleTasksEnabled    Boolean   @default(false) // Google Tasks同期有効/無効
-  googleTasksTasklistId String?   // Google TasksのタスクリストID
-  notionWikiEnabled     Boolean   @default(false) // Notion Wiki有効/無効
-  notionWikiDatabaseId  String?   // Notion WikiデータベースID
-  // Google OAuth連携用
-  googleAccountId       String?   // GoogleアカウントID
-  googleAccessToken     String?   // Google OAuthアクセストークン
-  googleRefreshToken    String?   // Google OAuthリフレッシュトークン
-  googleTokenExpiresAt  DateTime? // トークン有効期限
-  // Notion連携用
-  notionAccessToken      String?   // Notion APIアクセストークン
-  // Claude AI連携用
-  claudeApiKey           String?   // Claude APIキー（ユーザー自身のキー）
-  claudeApiEnabled       Boolean   @default(false) // Claude API有効/無効
-  // UECポータル連携用
-  uecPortalEnabled       Boolean   @default(false) // UECポータル有効/無効
-  uecPortalDataDir       String?   // uec-portal-cliのデータディレクトリパス
-  createdAt             DateTime  @default(now())
-  updatedAt             DateTime  @updatedAt
-
-  // リレーション
-  qualifications Qualification[]
-  internships     Internship[]
-  teamExperiences TeamExperience[]
-  projects        Project[]
-  skills          Skill[]
-  // アプリケーションハブ用
-  tasks           Task[]
-  incomes         Income[]
-  expenses        Expense[]
-  jobApplications JobApplication[]
-  games           Game[]
-  books           Book[]
-  bucketListItems BucketListItem[]
-  // AtCoder関連
-  atCoderUserProblems AtCoderUserProblem[]
-  atCoderSubmissions AtCoderSubmission[]
-  // コンテストリマインダー（移行用）
-  contestReminders ContestReminder[]
-  // 汎用リマインダー
-  reminders Reminder[]
-  // 通知ログ
-  notificationLogs NotificationLog[]
-  // AI Q&A
-  qaConversations QaConversation[]
-  // Code Reviews
-  codeReviews CodeReview[]
-  // Learning Plans
-  learningPlans LearningPlan[]
-  learningTasks LearningTask[]
-  // UECポータル
-  uecNotices UecNotice[]
-  uecScheduleEntries UecScheduleEntry[]
-  uecTimetableEntries UecTimetableEntry[]
-  uecSyncLogs UecSyncLog[]
+  role                  String               @default("user")
+  atCoderId             String?              @unique
+  googleTasksEnabled    Boolean              @default(false)
+  googleTasksTasklistId String?
+  notionWikiEnabled     Boolean              @default(false)
+  notionWikiDatabaseId  String?
+  googleAccountId       String?
+  googleAccessToken     String?
+  googleRefreshToken    String?
+  googleTokenExpiresAt  DateTime?
+  notionAccessToken     String?
+  claudeApiKey          String?
+  claudeApiEnabled      Boolean              @default(false)
+  uecPortalEnabled      Boolean              @default(false)
+  uecPortalDataDir      String?
+  createdAt             DateTime             @default(now())
+  updatedAt             DateTime             @updatedAt
+  clistApiEnabled       Boolean              @default(false)
+  clistApiKey           String?
+  clistUsername         String?
+  atCoderSubmissions    AtCoderSubmission[]
+  atCoderUserProblems   AtCoderUserProblem[]
+  books                 Book[]
+  bucketListItems       BucketListItem[]
+  codeReviews           CodeReview[]
+  contestReminders      ContestReminder[]
+  expenses              Expense[]
+  games                 Game[]
+  incomes               Income[]
+  internships           Internship[]
+  jobApplications       JobApplication[]
+  learningPlans         LearningPlan[]
+  learningTasks         LearningTask[]
+  notificationLogs      NotificationLog[]
+  projects              Project[]
+  qaConversations       QaConversation[]
+  qualifications        Qualification[]
+  reminders             Reminder[]
+  skills                Skill[]
+  tasks                 Task[]
+  teamExperiences       TeamExperience[]
+  uecNotices            UecNotice[]
+  uecScheduleEntries    UecScheduleEntry[]
+  uecSyncLogs           UecSyncLog[]
+  uecTimetableEntries   UecTimetableEntry[]
 }
 
-// 資格・試験情報（ポートフォリオ表示）
 model Qualification {
-  id          String   @id @default(cuid())
-  name        String   // 資格名（例: TOEIC, 基本情報技術者試験）
-  score       String?  // スコアや結果
-  date        DateTime // 取得日/受験日
-  description String?  // 説明や詳細
-  category    String   // カテゴリ（語学, 技術, その他）
-  displayOrder Int     // 表示順序
-  isPublic    Boolean  @default(true) // 公開するか
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  userId String
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id           String   @id @default(cuid())
+  name         String
+  score        String?
+  date         DateTime
+  description  String?
+  category     String
+  displayOrder Int
+  isPublic     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
-// 実習・インターンシップ情報（ポートフォリオ表示）
 model Internship {
-  id          String   @id @default(cuid())
-  title       String   // タイトル
-  company     String?  // 企業/組織名
-  period      String   // 期間
-  description String?  // 説明
-  learned     String?  // 学んだこと
-  displayOrder Int     // 表示順序
-  isPublic    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  userId String
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id           String   @id @default(cuid())
+  title        String
+  company      String?
+  period       String
+  description  String?
+  learned      String?
+  displayOrder Int
+  isPublic     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
-// サークル活動・チーム開発経験（ポートフォリオ表示）
 model TeamExperience {
-  id          String   @id @default(cuid())
-  title       String   // 役職・活動名
-  organization String  // 団体名
-  period      String   // 活動期間
-  description String?  // 説明
-  learned     String?  // 学んだこと・成果
-  role        String?  // 役割（PM, リーダーなど）
-  displayOrder Int     // 表示順序
-  isPublic    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  userId String
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id           String   @id @default(cuid())
+  title        String
+  organization String
+  period       String
+  description  String?
+  learned      String?
+  role         String?
+  displayOrder Int
+  isPublic     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
-// プロジェクト・作品（ポートフォリオ表示）
 model Project {
-  id          String   @id @default(cuid())
-  title       String   // プロジェクト名
-  description String?  // 説明
-  technologies String   // 使用技術（JSON配列）
-  url         String?  // URL
-  githubUrl   String?  // GitHub URL
-  imageUrl    String?  // 画像URL
-  displayOrder Int     // 表示順序
-  isPublic    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  userId String
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id           String   @id @default(cuid())
+  title        String
+  description  String?
+  technologies String
+  url          String?
+  githubUrl    String?
+  imageUrl     String?
+  displayOrder Int
+  isPublic     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
-// スキル・専攻分野（ポートフォリオ表示）
 model Skill {
-  id          String   @id @default(cuid())
-  name        String   // スキル名
-  category    String   // カテゴリ（言語, フレームワーク, その他）
-  level       Int      // 熟練度（1-5）
-  description String?  // 説明
-  displayOrder Int     // 表示順序
-  isPublic    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  userId String
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id           String   @id @default(cuid())
+  name         String
+  category     String
+  level        Int
+  description  String?
+  displayOrder Int
+  isPublic     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
-// ===== アプリケーションハブ用（プライベート） =====
-
-// タスク管理アプリ用
 model Task {
-  id          String   @id @default(cuid())
-  title       String
-  description String?
-  status      String   // todo, in_progress, completed
-  priority    String   // low, medium, high
-  dueDate     DateTime?
-  completedAt DateTime?
-  googleTaskId String?  // Google TasksのタスクID
-  notionUrl   String?   // NotionページURL
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  userId String
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id           String    @id @default(cuid())
+  title        String
+  description  String?
+  status       String
+  priority     String
+  dueDate      DateTime?
+  completedAt  DateTime?
+  googleTaskId String?
+  notionUrl    String?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  userId       String
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
-// 収入管理アプリ用
 model Income {
   id          String   @id @default(cuid())
-  source      String   // 収入源
-  amount      Float    // 金額
-  date        DateTime // 日付
+  source      String
+  amount      Float
+  date        DateTime
   description String?
-  category    String   // カテゴリ（バイト, 奨学金, その他）
+  category    String
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-
-  userId String
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
-// 家計簿アプリ用
 model Expense {
   id          String   @id @default(cuid())
-  item        String   // 項目
-  amount      Float    // 金額
-  date        DateTime // 日付
-  category    String   // カテゴリ（食費, 交通費, その他）
+  item        String
+  amount      Float
+  date        DateTime
+  category    String
   description String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-
-  userId String
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
-// 就活管理アプリ用
 model JobApplication {
   id          String   @id @default(cuid())
-  type        String   @default("本選考") // 本選考, インターン
-  company     String   // 企業名
-  position    String?  // 職種
-  status      String   // ES提出, テスト面接, 最終面接, 内定, 落選
-  appliedDate DateTime // 申請日
-  notes       String?  // メモ
-  notionUrl   String?  // NotionページURL
+  type        String   @default("本選考")
+  company     String
+  position    String?
+  status      String
+  appliedDate DateTime
+  notes       String?
+  notionUrl   String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-
-  userId String
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
-// ゲーム管理アプリ用
 model Game {
-  id          String   @id @default(cuid())
+  id          String    @id @default(cuid())
   title       String
   genre       String?
   platform    String?
-  completed   Boolean  @default(false)
+  completed   Boolean   @default(false)
   completedAt DateTime?
-  rating      Int?     // 評価（1-5）
+  rating      Int?
   notes       String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  userId String
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
-// 本管理アプリ用
 model Book {
-  id          String   @id @default(cuid())
+  id          String    @id @default(cuid())
   title       String
   author      String?
   genre       String?
-  completed   Boolean  @default(false)
+  completed   Boolean   @default(false)
   completedAt DateTime?
-  rating      Int?     // 評価（1-5）
+  rating      Int?
   notes       String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  userId String
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
-// 旅行・やりたいこと管理アプリ用
 model BucketListItem {
-  id          String   @id @default(cuid())
+  id          String    @id @default(cuid())
   title       String
-  category    String   // travel, experience, goal, other
+  category    String
   description String?
-  status      String   // planning, in_progress, completed
+  status      String
   targetDate  DateTime?
   completedAt DateTime?
-  priority    Int      // 優先度（1-5）
-  notionUrl   String?  // NotionページURL
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  userId String
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  priority    Int
+  notionUrl   String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
-// ===== AtCoder関連 =====
-
-// AtCoder問題メタデータ
 model AtCoderProblem {
-  id             String   @id // 問題ID (例: abc250_a)
-  contestId      String   // コンテストID (例: abc250)
-  title          String   // 問題タイトル
-  difficulty     Int?     // 推定難易度（レーティング値）
-  tags           String?  // アルゴリズムタグ（JSON配列）
-  url            String   // AtCoder問題ページURL
-  explanationUrl String?  // 解説ページURL
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
-
-  // リレーション
-  userProblems  AtCoderUserProblem[]
-  submissions   AtCoderSubmission[]
+  id             String               @id
+  contestId      String
+  title          String
+  difficulty     Int?
+  tags           String?
+  url            String
+  explanationUrl String?
+  createdAt      DateTime             @default(now())
+  updatedAt      DateTime             @updatedAt
+  submissions    AtCoderSubmission[]
+  userProblems   AtCoderUserProblem[]
 }
 
-// ユーザーのAtCoder問題進捗管理
 model AtCoderUserProblem {
-  id             String   @id @default(cuid())
-  userId         String
-  problemId      String
-  status         String   @default("unattempted") // unattempted, in_progress, contest_ac, upsolved_ac, review
-  memo           String?  // メモ・備考
-  lastAttempted  DateTime? // 最後に挑戦した日時
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
-
-  problem    AtCoderProblem @relation(fields: [problemId], references: [id], onDelete: Cascade)
-  userRel    User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id            String         @id @default(cuid())
+  userId        String
+  problemId     String
+  status        String         @default("unattempted")
+  memo          String?
+  lastAttempted DateTime?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  problem       AtCoderProblem @relation(fields: [problemId], references: [id], onDelete: Cascade)
+  userRel       User           @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, problemId])
   @@index([userId, status])
 }
 
-// AtCoder提出履歴（APIから取得）
 model AtCoderSubmission {
-  id             String   @id // AtCoderの提出ID
-  userId         String
-  problemId      String
-  language       String   // 使用言語
-  result         String   // AC, WA, TLE, REなど
-  executionTime  Int?     // 実行時間（ミリ秒）
-  epochSecond    Int      // 提出のUNIXタイムスタンプ
-  createdAt      DateTime @default(now())
-
-  problem    AtCoderProblem @relation(fields: [problemId], references: [id], onDelete: Cascade)
-  userRel    User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id            String         @id
+  userId        String
+  problemId     String
+  language      String
+  result        String
+  executionTime Int?
+  epochSecond   Int
+  createdAt     DateTime       @default(now())
+  problem       AtCoderProblem @relation(fields: [problemId], references: [id], onDelete: Cascade)
+  userRel       User           @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, epochSecond])
   @@index([problemId])
 }
 
-// コンテストリマインダー
 model ContestReminder {
-  id            String   @id @default(cuid())
-  userId        String
-  contestId     String   // CLISTのコンテストID
-  event         String   // コンテスト名
-  resource      String   // サイト名（例: atcoder.jp）
-  start         String   // 開始時刻（ISO 8601）
-  end           String   // 終了時刻（ISO 8601）
-  href          String   // コンテストURL
-  remind24h     Boolean  @default(true)  // 24時間前に通知
-  remind1h      Boolean  @default(true)  // 1時間前に通知
-  notified24h   Boolean  @default(false) // 24時間前通知済み
-  notified1h    Boolean  @default(false) // 1時間前通知済み
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-
-  userRel    User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id          String   @id @default(cuid())
+  userId      String
+  contestId   String
+  event       String
+  resource    String
+  start       String
+  end         String
+  href        String
+  remind24h   Boolean  @default(true)
+  remind1h    Boolean  @default(true)
+  notified24h Boolean  @default(false)
+  notified1h  Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  userRel     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, contestId])
   @@index([userId, start])
   @@index([userId, resource])
 }
 
-// ===== 汎用リマインダー・通知システム =====
-
-// 汎用リマインダー（タスク、就活、バケツリスト、コンテストなど）
 model Reminder {
-  id                String   @id @default(cuid())
-  userId            String
-  targetEntityType  String   // ターゲットの種類: task, job_application, bucket_list_item, contest など
-  targetEntityId    String   // ターゲットのID
-  title             String   // リマインダータイトル
-  description       String?  // 説明
-  remindAt          DateTime // 通知日時（メイン）
-  notifyMethod      String   @default("app") // 通知方法: app, email, both
-  isNotified        Boolean  @default(false) // 通知済みフラグ
-  notifiedAt        DateTime? // 通知日時
-  calendarEventId   String?  // GoogleカレンダーのイベントID
-
-  // 事前通知オプション
-  reminder24h       Boolean  @default(false) // 24時間前に通知
-  reminder1h        Boolean  @default(false) // 1時間前に通知
-  reminderCustom    String?  // カスタム通知時刻（JSON配列: ["1日前", "1時間前"]）
-
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
-
-  userRel           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id               String    @id @default(cuid())
+  userId           String
+  targetEntityType String
+  targetEntityId   String
+  title            String
+  description      String?
+  remindAt         DateTime
+  notifyMethod     String    @default("app")
+  isNotified       Boolean   @default(false)
+  notifiedAt       DateTime?
+  calendarEventId  String?
+  reminder24h      Boolean   @default(false)
+  reminder1h       Boolean   @default(false)
+  reminderCustom   String?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  userRel          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, targetEntityType, targetEntityId])
   @@index([userId, remindAt])
   @@index([isNotified])
 }
 
-// 通知ログ（重複送信防止）
 model NotificationLog {
-  id              String   @id @default(cuid())
-  userId          String
-  reminderId      String?  // 関連するリマインダーID（任意）
-  type            String   // 通知タイプ: reminder, contest, deadline など
-  title           String   // 通知タイトル
-  message         String   // 通知メッセージ
-  method          String   // 通知方法: app, email, both
-  sentAt          DateTime @default(now()) // 送信日時
-  status          String   @default("sent") // sent, failed
-  read            Boolean  @default(false) // 既読フラグ
-  readAt          DateTime? // 既読日時
-
-  userRel         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id         String    @id @default(cuid())
+  userId     String
+  reminderId String?
+  type       String
+  title      String
+  message    String
+  method     String
+  sentAt     DateTime  @default(now())
+  status     String    @default("sent")
+  read       Boolean   @default(false)
+  readAt     DateTime?
+  userRel    User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, type])
   @@index([userId, sentAt])
@@ -412,215 +350,171 @@ model NotificationLog {
   @@index([userId, read])
 }
 
-// ===== AI Q&A機能 =====
-
-// AIとの会話履歴
 model QaConversation {
-  id              String   @id @default(cuid())
-  userId          String
-  problemId       String?  // 関連する問題ID（任意）
-  title           String   // 会話のタイトル（最初のメッセージから自動生成）
-  messages        String   // メッセージ履歴（JSON配列）
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-
-  userRel         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id        String   @id @default(cuid())
+  userId    String
+  problemId String?
+  title     String
+  messages  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  userRel   User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, problemId])
   @@index([userId, updatedAt])
 }
 
-// AtCoder解説キャッシュ
 model EditorialCache {
-  id              String   @id @default(cuid())
-  problemId       String   @unique
-  editorialText   String   // 解説テキスト
-  summary         String?  // AI生成の要約
-  keyPoints       String?  // 重要ポイント（JSON配列）
-  difficulty      String?  // 難易度の説明
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  id            String   @id @default(cuid())
+  problemId     String   @unique
+  editorialText String
+  summary       String?
+  keyPoints     String?
+  difficulty    String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
   @@index([problemId])
 }
 
-// ヒントキャッシュ
 model HintCache {
-  id              String   @id @default(cuid())
-  problemId       String
-  hintLevel       Int      // ヒントレベル（1-3）
-  hintText        String   // ヒントテキスト
-  createdAt       DateTime @default(now())
+  id        String   @id @default(cuid())
+  problemId String
+  hintLevel Int
+  hintText  String
+  createdAt DateTime @default(now())
 
   @@unique([problemId, hintLevel])
   @@index([problemId])
 }
 
-// ===== コードレビュー機能 =====
-
-// AIコードレビュー
 model CodeReview {
-  id              String   @id @default(cuid())
-  userId          String
-  submissionId    String   // AtCoderの提出ID
-
-  // ソースコード（キャッシュ用）
-  sourceCode      String   // 提出されたソースコード
-  language        String   // 使用言語
-  problemId       String   // 問題ID
-  problemTitle    String?  // 問題タイトル
-
-  // AIレビュー結果
-  overallRating   String?  // S, A, B, C, D
-  strengths       String?  // 良い点（JSON配列）
-  improvements    String?  // 改善点（JSON配列）
-  complexityScore Int?     // 複雑度スコア（1-10）
-  bugs            String?  // 潜在的なバグ（JSON配列）
-  summary         String?  // 全体的な要約
-
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-
-  userRel         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id                   String   @id @default(cuid())
+  userId               String
+  submissionId         String
+  sourceCode           String
+  language             String
+  problemId            String
+  problemTitle         String?
+  overallRating        String?
+  strengths            String?
+  improvements         String?
+  complexityScore      Int?
+  bugs                 String?
+  summary              String?
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+  influencedPlanUpdate Boolean  @default(false)
+  userRel              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, submissionId])
   @@index([userId, createdAt])
   @@index([problemId])
 }
 
-// ===== 学習プラン機能 =====
-
-// 学習プラン
 model LearningPlan {
-  id              String   @id @default(cuid())
-  userId          String
-
-  // 目標設定
-  targetRating    Int?     // 目標レーティング
-  targetDate      DateTime // 目標達成日
-  currentRating   Int?     // 現在のレーティング
-
-  // プラン内容
-  weeklyMilestones String  // 週次マイルストーン（JSON配列）
-  recommendedProblems String // 推薦問題リスト（JSON配列）
-  studyAdvice     String?  // 学習アドバイス
-
-  // 進捗
-  progress        Float    @default(0) // 進捗率（0-100）
-  completedTasks  String   // 完了したタスク（JSON配列）
-
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-
-  userRel         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  tasks           LearningTask[]
+  id                     String         @id @default(cuid())
+  userId                 String
+  targetRating           Int
+  currentRating          Int?
+  weeklyMilestones       String
+  studyAdvice            String?
+  progress               Float          @default(0)
+  completedTasks         String         @default("[]")
+  createdAt              DateTime       @default(now())
+  updatedAt              DateTime       @updatedAt
+  currentZone            String?
+  lastUpdatedFromReview  DateTime?
+  reviewCount            Int            @default(0)
+  targetZone             String
+  recommendationCriteria String         @default("{}")
+  userRel                User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tasks                  LearningTask[]
 
   @@index([userId])
 }
 
-// 学習タスク
 model LearningTask {
-  id              String   @id @default(cuid())
-  planId          String
-  userId          String
-
-  title           String   // タスク名
-  description     String?  // 説明
-  taskType        String   // problem, concept, contest, review
-  dueDate         DateTime? // 期限
-  status          String   @default("pending") // pending, in_progress, completed, skipped
-
-  // 問題関連の場合
-  problemId       String?
-
-  // リソース
-  resources       String?  // 参考資料（JSON配列）
-
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-
-  plan            LearningPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
-  userRel         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id          String       @id @default(cuid())
+  planId      String
+  userId      String
+  title       String
+  description String?
+  taskType    String
+  dueDate     DateTime?
+  status      String       @default("pending")
+  problemId   String?
+  resources   String?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  plan        LearningPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
+  userRel     User         @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([planId, dueDate])
   @@index([userId, status])
 }
 
-// ===== UECポータル関連 =====
-
-// UECお知らせキャッシュ
 model UecNotice {
-  id              String   @id @default(cuid())
-  userId          String
-  title           String
-  date            String?
-  publisher       String?
-  category        String?
-  href            String?
-  rawText         String
-  unread          Boolean  @default(false)
-  detailHtml      String?  // 詳細HTML
-  detailText      String?  // 詳細テキスト
-
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-
-  userRel         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id         String   @id @default(cuid())
+  userId     String
+  title      String
+  date       String?
+  publisher  String?
+  category   String?
+  href       String?
+  rawText    String
+  unread     Boolean  @default(false)
+  detailHtml String?
+  detailText String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  userRel    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, date])
   @@index([userId, unread])
 }
 
-// UEC予定キャッシュ
 model UecScheduleEntry {
-  id              String   @id @default(cuid())
-  userId          String
-  dateLabel       String
-  weekday         String
-  time            String?
-  title           String
-  rawText         String
-
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-
-  userRel         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id        String   @id @default(cuid())
+  userId    String
+  dateLabel String
+  weekday   String
+  time      String?
+  title     String
+  rawText   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  userRel   User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, dateLabel])
 }
 
-// UEC時間割キャッシュ
 model UecTimetableEntry {
-  id              String   @id @default(cuid())
-  userId          String
-  day             String
-  period          String
-  title           String
-  courseCode      String?
-  room            String?
-  rawText         String
-
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-
-  userRel         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id         String   @id @default(cuid())
+  userId     String
+  day        String
+  period     String
+  title      String
+  courseCode String?
+  room       String?
+  rawText    String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  userRel    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, day, period])
 }
 
-// UEC同期ログ
 model UecSyncLog {
-  id              String   @id @default(cuid())
-  userId          String
-  dataType        String   // notices, schedule, timetable, all
-  status          String   // success, error
-  itemCount       Int?     // 取得件数
-  errorMessage    String?
-  syncDuration    Int?     // 同所要害（ミリ秒）
-
-  createdAt       DateTime @default(now())
-
-  userRel         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id           String   @id @default(cuid())
+  userId       String
+  dataType     String
+  status       String
+  itemCount    Int?
+  errorMessage String?
+  syncDuration Int?
+  createdAt    DateTime @default(now())
+  userRel      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, createdAt])
 }
