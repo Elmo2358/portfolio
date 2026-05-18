@@ -1,5 +1,22 @@
 // Content Script - サイト内に通知バッジを表示
 
+// 環境設定（デフォルトは本番）
+const ENVIRONMENTS = {
+  development: 'http://localhost:3000',
+  production: 'https://elmo2358.net'
+}
+
+let baseUrl = ENVIRONMENTS.production
+
+// 環境設定を取得
+function loadEnvironment() {
+  if (typeof chrome !== 'undefined' && chrome.storage) {
+    chrome.storage.local.get(['environment'], (result) => {
+      baseUrl = ENVIRONMENTS[result.environment] || ENVIRONMENTS.production
+    })
+  }
+}
+
 // 通知バッジを作成
 function createNotificationBadge() {
   const badge = document.createElement('div')
@@ -43,7 +60,7 @@ function updateNotificationCount() {
   const badge = document.getElementById('portfolio-hub-badge')
   if (!badge) return
 
-  // TODO: APIから未読通知数を取得
+  // 相対パスでAPI呼び出し（現在のサイトのAPIを使用）
   fetch('/api/notifications/unread')
     .then(res => res.json())
     .then(data => {
@@ -99,3 +116,6 @@ history.replaceState = function(...args) {
 window.addEventListener('popstate', () => {
   setTimeout(init, 100)
 })
+
+// 環境設定を読み込む
+loadEnvironment()

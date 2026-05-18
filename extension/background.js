@@ -1,10 +1,31 @@
-// 設定
-const CONFIG = {
-  API_BASE: 'http://localhost:3000/api',
-  POLLING_INTERVAL_MINUTES: 5, // 5分ごとにチェック
-  NOTIFICATION_CHECK_INTERVAL_MINUTES: 1, // 1分ごとに通知チェック
-  HUB_URL: 'http://localhost:3000'
+// 環境設定
+const ENVIRONMENTS = {
+  development: {
+    name: '開発環境',
+    apiBase: 'http://localhost:3000/api',
+    hubUrl: 'http://localhost:3000'
+  },
+  production: {
+    name: '本番環境',
+    apiBase: 'https://elmo2358.net/api',
+    hubUrl: 'https://elmo2358.net'
+  }
 }
+
+const DEFAULT_ENV = 'production'
+
+// 現在の環境設定を取得
+async function getConfig() {
+  return new Promise((resolve) => {
+    chrome.storage.local.get(['environment'], (result) => {
+      const env = result.environment || DEFAULT_ENV
+      resolve(ENVIRONMENTS[env] || ENVIRONMENTS[DEFAULT_ENV])
+    })
+  })
+}
+
+// 設定
+const POLLING_INTERVAL_MINUTES = 5 // 5分ごとにチェック
 
 // 通知メタデータを管理（通知ID → データのマップ）
 const notificationMetadata = new Map()
@@ -25,11 +46,12 @@ chrome.runtime.onInstalled.addListener(() => {
 
   // アラームを設定
   chrome.alarms.create('pollNotifications', {
-    periodInMinutes: CONFIG.POLLING_INTERVAL_MINUTES
+    periodInMinutes: POLLING_INTERVAL_MINUTES
   })
 
   // 初期設定を保存
   chrome.storage.local.set({
+    environment: DEFAULT_ENV,
     notificationsEnabled: true,
     atCoderReminders: true,
     taskReminders: true,
@@ -47,6 +69,7 @@ chrome.alarms.onAlarm.addListener((alarm) => {
 // 通知をチェック
 async function checkNotifications() {
   try {
+    const config = await getConfig()
     const settings = await getSettings()
 
     if (!settings.notificationsEnabled) {
@@ -55,17 +78,17 @@ async function checkNotifications() {
 
     // AtCoderコンテスト通知
     if (settings.atCoderReminders) {
-      await checkAtCoderContests()
+      await checkAtCoderContests(config)
     }
 
     // タスクリマインダー
     if (settings.taskReminders) {
-      await checkTaskReminders()
+      await checkTaskReminders(config)
     }
 
     // 就活リマインダー
     if (settings.jobReminders) {
-      await checkJobReminders()
+      await checkJobReminders(config)
     }
   } catch (error) {
     console.error('Error checking notifications:', error)
@@ -73,21 +96,21 @@ async function checkNotifications() {
 }
 
 // AtCoderコンテストをチェック
-async function checkAtCoderContests() {
+async function checkAtCoderContests(config) {
   try {
-    const response = await fetch(`${CONFIG.API_BASE}/notifications/atcoder`)
+    const response = await fetch(`${config.apiBase}/notifications/atcoder`)
     if (!response.ok) return
 
     const data = await response.json()
 
     if (data.notifications && data.notifications.length > 0) {
       data.notifications.forEach(notification => {
-        showNotification({
+        showNotification(config, {
           type: 'atcoder',
           title: '🏆 AtCoderコンテスト通知',
           message: notification.message,
           iconUrl: chrome.runtime.getURL('icons/icon48.png'),
-          url: notification.url || `${CONFIG.HUB_URL}/hub/atcoder`,
+          url: notification.url || `${config.hubUrl}/hub/atcoder`,
           buttons: [
             { title: '🔗 コンテストページ' },
             { title: '📋 ハブを開く' }
@@ -101,16 +124,16 @@ async function checkAtCoderContests() {
 }
 
 // タスクリマインダーをチェック
-async function checkTaskReminders() {
+async function checkTaskReminders(config) {
   try {
-    const response = await fetch(`${CONFIG.API_BASE}/notifications/tasks`)
+    const response = await fetch(`${config.apiBase}/notifications/tasks`)
     if (!response.ok) return
 
     const data = await response.json()
 
     if (data.notifications && data.notifications.length > 0) {
       data.notifications.forEach(notification => {
-        showNotification({
+        showNotification(config, {
           type: 'task',
           title: '📋 タスクリマインダー',
           message: notification.message,
@@ -129,16 +152,16 @@ async function checkTaskReminders() {
 }
 
 // 就活リマインダーをチェック
-async function checkJobReminders() {
+async function checkJobReminders(config) {
   try {
-    const response = await fetch(`${CONFIG.API_BASE}/notifications/jobs`)
+    const response = await fetch(`${config.apiBase}/notifications/jobs`)
     if (!response.ok) return
 
     const data = await response.json()
 
     if (data.notifications && data.notifications.length > 0) {
       data.notifications.forEach(notification => {
-        showNotification({
+        showNotification(config, {
           type: 'job',
           title: '💼 就活リマインダー',
           message: notification.message,
@@ -157,7 +180,7 @@ async function checkJobReminders() {
 }
 
 // 通知を表示
-function showNotification(options) {
+function showNotification(config, options) {
   chrome.notifications.create({
     type: 'basic',
     iconUrl: options.iconUrl || chrome.runtime.getURL('icons/icon48.png'),
@@ -184,8 +207,11 @@ function showNotification(options) {
 // 新しいタブを開くか、既存のタブを更新
 async function openOrCreateTab(url) {
   try {
+    const config = await getConfig()
+    const hubUrl = config.hubUrl
+
     // 既存のタブを探す
-    const tabs = await chrome.tabs.query({ url: `${CONFIG.HUB_URL}/*` })
+    const tabs = await chrome.tabs.query({ url: `${hubUrl}/*` })
 
     if (tabs.length > 0) {
       // 既存のタブを更新してフォーカス
@@ -206,27 +232,29 @@ async function openOrCreateTab(url) {
 }
 
 // 通知クリック時のハンドラ
-chrome.notifications.onClicked.addListener((notificationId) => {
+chrome.notifications.onClicked.addListener(async (notificationId) => {
+  const config = await getConfig()
   const metadata = getNotificationMetadata(notificationId)
-  const url = metadata?.url || `${CONFIG.HUB_URL}/hub`
+  const url = metadata?.url || `${config.hubUrl}/hub`
   openOrCreateTab(url)
   chrome.notifications.clear(notificationId)
 })
 
 // 通知ボタンクリック時のハンドラ
 chrome.notifications.onButtonClicked.addListener(async (notificationId, buttonIndex) => {
+  const config = await getConfig()
   const metadata = getNotificationMetadata(notificationId)
 
-  let url = `${CONFIG.HUB_URL}/hub`
+  let url = `${config.hubUrl}/hub`
 
   switch (metadata?.type) {
     case 'atcoder':
       if (buttonIndex === 0) {
         // コンテストページ
-        url = metadata.url || `${CONFIG.HUB_URL}/hub/atcoder`
+        url = metadata.url || `${config.hubUrl}/hub/atcoder`
       } else {
         // ハブを開く
-        url = `${CONFIG.HUB_URL}/hub`
+        url = `${config.hubUrl}/hub`
       }
       break
 
@@ -234,26 +262,26 @@ chrome.notifications.onButtonClicked.addListener(async (notificationId, buttonIn
       if (buttonIndex === 0) {
         // 完了にする
         if (metadata.taskId) {
-          await completeTask(metadata.taskId)
+          await completeTask(config, metadata.taskId)
         }
       } else {
         // 詳細を見る
-        url = `${CONFIG.HUB_URL}/hub`
+        url = `${config.hubUrl}/hub`
       }
       break
 
     case 'job':
       if (buttonIndex === 0) {
         // 詳細を見る（就活セクション）
-        url = `${CONFIG.HUB_URL}/hub`
+        url = `${config.hubUrl}/hub`
       } else {
         // ハブを開く
-        url = `${CONFIG.HUB_URL}/hub`
+        url = `${config.hubUrl}/hub`
       }
       break
 
     default:
-      url = `${CONFIG.HUB_URL}/hub`
+      url = `${config.hubUrl}/hub`
   }
 
   if (metadata?.type !== 'task' || buttonIndex !== 0) {
@@ -264,9 +292,9 @@ chrome.notifications.onButtonClicked.addListener(async (notificationId, buttonIn
 })
 
 // タスクを完了にする
-async function completeTask(taskId) {
+async function completeTask(config, taskId) {
   try {
-    const response = await fetch(`${CONFIG.API_BASE}/hub/tasks/${taskId}`, {
+    const response = await fetch(`${config.apiBase}/hub/tasks/${taskId}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -310,6 +338,7 @@ async function getSettings() {
 }
 
 // 拡張機能アイコンクリックでハブを開く
-chrome.action.onClicked.addListener(() => {
-  openOrCreateTab(`${CONFIG.HUB_URL}/hub`)
+chrome.action.onClicked.addListener(async () => {
+  const config = await getConfig()
+  openOrCreateTab(`${config.hubUrl}/hub`)
 })

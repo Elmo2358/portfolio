@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Portfolio Hub",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "ポートフォリオサイトの通知を管理する拡張機能 | Manage notifications for your Portfolio Hub site",
   "permissions": [
     "notifications",
@@ -10,6 +10,7 @@
     "tabs"
   ],
   "host_permissions": [
+    "https://elmo2358.net/*",
     "http://localhost:3000/*",
     "http://localhost:3003/*"
   ],

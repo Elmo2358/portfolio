@@ -31,9 +31,14 @@ Portfolio Hubは、電気通信大学学生のポートフォリオサイトの�
 ## 使い方
 
 1. 拡張機能をインストール
-2. Portfolio Hubサイト（http://localhost:3003）にログイン
+2. Portfolio Hubサイト（https://elmo2358.net）にログイン
 3. リマインダーを設定
 4. 通知が届きます！
+
+### 環境切り替え
+- ポップアップの「接続先環境」で本番/開発環境を切り替え可能
+- 開発環境: http://localhost:3000
+- 本番環境: https://elmo2358.net
 
 ## プライバシー
 - データはブラウザ内のローカルストレージのみに保存されます
@@ -41,7 +46,7 @@ Portfolio Hubは、電気通信大学学生のポートフォリオサイトの�
 - 詳しくはプライバシーポリシーをご確認ください
 
 ## 対応サイト
-Portfolio Hub: http://localhost:3003
+Portfolio Hub: <https://elmo2358.net>
 
 ---
 
@@ -84,7 +89,7 @@ Complete tasks or open detail pages directly from notifications.
 - See privacy policy for details
 
 ## Supported Site
-Portfolio Hub: http://localhost:3003
+Portfolio Hub: <https://elmo2358.net>
 
 ---
 

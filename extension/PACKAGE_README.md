@@ -50,7 +50,7 @@
 
 1. **通知の受信**
    - タスクリマインダーの通知が表示されている画面
-   - http://localhost:3000/hub でタスクを作成
+   - 本番環境または開発環境でタスクを作成
 
 2. **アクションボタン**
    - 通知のボタンがクリックできる状態
@@ -58,10 +58,11 @@
 
 3. **設定画面**
    - chrome://extensions で拡張機能の詳細
-   - またはポップアップ画面
+   - またはポップアップ画面（環境切り替えUI含む）
 
 4. **ハブ画面**
-   - http://localhost:3000/hub のダッシュボード
+   - 本番環境: <https://elmo2358.net/hub>
+   - 開発環境: `http://localhost:3000/hub`
 
 ---
 
@@ -128,22 +129,21 @@ extension/
 
 ## 🔧 本番URL設定
 
-本番環境にデプロイする際は、以下のファイルのURLを更新：
+本番環境のURLは既に設定済みです：
 
-1. **manifest.json**
-   ```json
-   "host_permissions": [
-     "https://your-domain.com/*"
-   ]
-   ```
+- **本番環境**: <https://elmo2358.net>
+- **開発環境**: `http://localhost:3000`
 
-2. **background.js**
-   ```js
-   const CONFIG = {
-     API_BASE: 'https://your-domain.com/api',
-     HUB_URL: 'https://your-domain.com'
-   }
-   ```
+ユーザーはポップアップの「接続先環境」から本番/開発環境を切り替え可能です。
+
+manifest.json には以下の権限が既に設定されています：
+```json
+"host_permissions": [
+  "https://elmo2358.net/*",
+  "http://localhost:3000/*",
+  "http://localhost:3003/*"
+]
+```
 
 ---
 

@@ -36,6 +36,23 @@
       opacity: 0.9;
     }
 
+    .env-indicator {
+      display: inline-block;
+      padding: 2px 8px;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 10px;
+      font-size: 10px;
+      margin-top: 5px;
+    }
+
+    .env-indicator.production {
+      background: rgba(16, 185, 129, 0.3);
+    }
+
+    .env-indicator.development {
+      background: rgba(245, 158, 11, 0.3);
+    }
+
     .content {
       padding: 20px;
     }
@@ -100,6 +117,16 @@
       cursor: pointer;
     }
 
+    .setting-item select {
+      padding: 4px 8px;
+      border-radius: 4px;
+      border: none;
+      background: rgba(255, 255, 255, 0.9);
+      color: #333;
+      font-size: 12px;
+      cursor: pointer;
+    }
+
     .status {
       padding: 10px 20px;
       background: rgba(0, 0, 0, 0.1);
@@ -116,34 +143,52 @@
       font-size: 11px;
       margin-left: 5px;
     }
+
+    .url-display {
+      font-size: 10px;
+      opacity: 0.7;
+      text-align: center;
+      padding: 5px 20px;
+      word-break: break-all;
+    }
   </style>
 </head>
 <body>
   <div class="header">
     <h1>Portfolio Hub</h1>
     <p>通知・タスク管理・コンテスト</p>
+    <span class="env-indicator" id="envIndicator">本番環境</span>
   </div>
 
   <div class="content">
-    <a href="http://localhost:3003/hub" target="_blank" class="button">
+    <a href="#" class="button" data-path="/hub">
       🏠 アプリケーションハブ
     </a>
-    <a href="http://localhost:3003/atcoder" target="_blank" class="button">
+    <a href="#" class="button" data-path="/hub/atcoder">
       🏆 AtCoder管理
     </a>
-    <a href="http://localhost:3003/tasks" target="_blank" class="button">
+    <a href="#" class="button" data-path="/hub/tasks">
       📋 タスク管理
     </a>
-    <a href="http://localhost:3003/finance" target="_blank" class="button">
+    <a href="#" class="button" data-path="/hub/finance">
       💰 家計簿
     </a>
-    <a href="http://localhost:3003" target="_blank" class="button secondary">
+    <a href="#" class="button secondary" data-path="/">
       🔗 ポートフォリオサイト
     </a>
   </div>
 
   <div class="settings">
-    <h2>⚙️ 通知設定</h2>
+    <h2>⚙️ 環境設定</h2>
+    <div class="setting-item">
+      <label for="environmentSelect">接続先環境</label>
+      <select id="environmentSelect">
+        <option value="production">本番環境</option>
+        <option value="development">開発環境</option>
+      </select>
+    </div>
+
+    <h2>🔔 通知設定</h2>
     <div class="setting-item">
       <label for="notificationsEnabled">通知を有効にする</label>
       <input type="checkbox" id="notificationsEnabled" checked>
@@ -162,8 +207,10 @@
     </div>
   </div>
 
+  <div class="url-display" id="urlDisplay">https://elmo2358.net</div>
+
   <div class="status">
-    <span id="status">最終更新: 刚刚</span>
+    <span id="status">最終更新</span>
     <span class="badge" id="badge">0</span>
   </div>
 
