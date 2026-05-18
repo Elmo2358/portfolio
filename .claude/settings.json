@@ -3,5 +3,12 @@
     "docs/GUIDELINES.md",
     "docs/STATUS.md",
     "docs/ROADMAP.md"
-  ]
+  ],
+  "hooks": {
+    "pre-commit": [
+      "npm run lint",
+      "npm run type-check"
+    ],
+    "post-edit": "if [[ '$CLAUDE_EDITED_FILES' == *'api/'* ]]; then rm -rf .next/cache; fi"
+  }
 }

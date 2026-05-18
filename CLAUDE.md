@@ -1,6 +1,6 @@
 # Portfolio Hub - プロジェクト固有の指示
 
-**最終更新**: 2026-05-07
+**最終更新**: 2026-05-19
 
 ---
 
@@ -21,6 +21,47 @@
 - 機能追加完了 → `STATUS.md` の「実装済み機能」を更新
 - 設計変更 → `GUIDELINES.md` の該当セクションを更新
 - 新機能予定 → `ROADMAP.md` に追加
+
+---
+
+## 🛠️ 利用可能なリソース
+
+### グローバルスキル（全プロジェクトで使用可能）
+
+- **/deploy**: デプロイ前チェックからGitHubプッシュまでの自動デプロイワークフロー
+- **/api-debug**: 外部API統合のデバッグワークフロー
+
+### プロジェクト固有スキル
+
+- **/atcoder-test**: AtCoder関連機能のテスト・検証ワークフロー
+
+### グローバルエージェント（自律マルチエージェントシステム）
+
+`C:\Users\kerox\.claude\agents\` に配置された自律エージェントが使用可能です：
+
+- **TDD Pipeline Agent**: テスト駆動開発の自動化
+- **Refactoring Squad Agent**: アーキテクチャ分析とリファクタリング提案
+- **Enhanced Deployment Agent**: 自己修復機能付きデプロイメントシステム
+
+詳細は `C:\Users\kerox\.claude\agents\advanced-multi-agent-system.md` を参照してください。
+
+---
+
+## 📚 汎用的な開発ガイドライン
+
+以下のガイドラインは `C:\Users\kerox\.claude\templates\CLAUDE-GENERIC.md` に詳細が記載されています：
+
+- **Cache Management**: API/DB変更後のキャッシュクリア手順
+- **Pre-deployment Checklist**: 本番デプロイ前の4ステップ確認
+- **Testing**: フィルタリングロジックの検証手順
+- **Database**: PostgreSQL互換性とスキーマ変更手順
+- **TypeScript/JavaScript**: 日本語文字列のエスケープ注意点
+- **API Integration**: 外部APIデバッグの手順
+- **Next.js 14+**: Metadata APIとshadcn/uiの使用法
+
+プロジェクトをまたいだ開発規約はグローバルテンプレートを参照してください。
+
+---
 
 ---
 
@@ -53,6 +94,36 @@
 - 手順: devサーバー停止 → `.next/cache`を削除 → サーバー再起動
 - これを怠ると、古いデータが表示され続ける問題が発生します
 
+### Pre-deployment Checklist（本番デプロイ前のチェックリスト）
+
+Vercelへの本番デプロイ前に、必ず以下の手順で確認してください：
+
+1. **TypeScriptの型チェック**
+
+   ```bash
+   npm run type-check
+   ```
+
+   全ての警告を修正してから進めてください
+
+2. **キャッシュクリア**
+
+   ```bash
+   rm -rf .next
+   ```
+
+3. **ビルド検証**
+
+   ```bash
+   npm run build
+   ```
+
+   ビルドが成功することを確認してください
+
+4. **デプロイ実行**
+
+   上記全てが成功した後のみ、Vercelにデプロイしてください
+
 ---
 
 ## Testing
@@ -71,6 +142,25 @@
 
 - PostgreSQLの互換性問題を避けるため、生のSQLではなく常にPrismaクエリを使用してください
 - データベース固有の構文問題を回避できます
+
+---
+
+## TypeScript/JavaScript
+
+### 日本語文字列のエスケープ
+
+- テンプレートリテラル内で日本語を含む文字列を使用する場合、バッククォートや特殊文字のエスケープに注意してください
+- 特に、バッククォートを含む日本語文字列ではエスケープ処理が必要です
+
+```tsx
+// ❌ 問題例
+const message = ``こんにちは``; // バッククォートが競合
+
+// ✅ 正しい例
+const message = `\`こんにちは\``; // エスケープする
+// または
+const message = '`こんにちは`'; // シングルクォートを使用
+```
 
 ---
 
