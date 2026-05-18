@@ -87,7 +87,11 @@ const statusColors: Record<string, string> = {
   review: "bg-purple-600",
 }
 
-export function AtCoderManager() {
+interface AtCoderManagerProps {
+  initialProblems?: any[]
+}
+
+export function AtCoderManager({ initialProblems }: AtCoderManagerProps) {
   const [problems, setProblems] = useState<Problem[]>([])
   const [stats, setStats] = useState<Stats | null>(null)
   const [loading, setLoading] = useState(true)

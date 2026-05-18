@@ -14,7 +14,7 @@ interface Game {
   genre: string | null
   platform: string | null
   completed: boolean
-  completedAt: Date | null
+  completedAt: Date | string | null
   rating: number | null
   notes: string | null
 }
@@ -25,7 +25,7 @@ interface Book {
   author: string | null
   genre: string | null
   completed: boolean
-  completedAt: Date | null
+  completedAt: Date | string | null
   rating: number | null
   notes: string | null
 }
@@ -52,12 +52,18 @@ interface MediaStats {
 type TabType = "dashboard" | "games" | "books"
 type CompletedFilter = "all" | "true" | "false"
 
-export function MediaManager() {
+interface MediaManagerProps {
+  initialGames?: Game[]
+  initialBooks?: Book[]
+  initialStats?: MediaStats | null
+}
+
+export function MediaManager({ initialGames = [], initialBooks = [], initialStats = null }: MediaManagerProps) {
   const [activeTab, setActiveTab] = useState<TabType>("dashboard")
-  const [stats, setStats] = useState<MediaStats | null>(null)
-  const [games, setGames] = useState<Game[]>([])
-  const [books, setBooks] = useState<Book[]>([])
-  const [loading, setLoading] = useState(true)
+  const [stats, setStats] = useState<MediaStats | null>(initialStats)
+  const [games, setGames] = useState<Game[]>(initialGames)
+  const [books, setBooks] = useState<Book[]>(initialBooks)
+  const [loading, setLoading] = useState(false)
   const [showForm, setShowForm] = useState(false)
   const [editingItem, setEditingItem] = useState<Game | Book | null>(null)
   const [completedFilter, setCompletedFilter] = useState<CompletedFilter>("all")

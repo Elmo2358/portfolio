@@ -11,11 +11,11 @@ import { ReminderButton } from "@/components/hub/reminder-button"
 
 interface JobApplication {
   id: string
-  type: "本選考" | "インターン"
+  type: "本選考" | "インターン" | string
   company: string
   position: string | null
-  status: "ES提出" | "テスト面接" | "最終面接" | "内定" | "落選"
-  appliedDate: Date
+  status: "ES提出" | "テスト面接" | "最終面接" | "内定" | "落選" | string
+  appliedDate: Date | string
   notes: string | null
   notionUrl: string | null
 }
@@ -32,10 +32,14 @@ interface JobHuntStats {
 type StatusFilter = "all" | "ES提出" | "テスト面接" | "最終面接" | "内定" | "落選"
 type TypeFilter = "all" | "本選考" | "インターン"
 
-export function JobHuntManager() {
-  const [applications, setApplications] = useState<JobApplication[]>([])
+interface JobHuntManagerProps {
+  initialApplications?: JobApplication[]
+}
+
+export function JobHuntManager({ initialApplications = [] }: JobHuntManagerProps) {
+  const [applications, setApplications] = useState<JobApplication[]>(initialApplications)
   const [stats, setStats] = useState<JobHuntStats | null>(null)
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(false)
   const [showForm, setShowForm] = useState(false)
   const [editingApplication, setEditingApplication] = useState<JobApplication | null>(null)
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all")
@@ -120,14 +124,14 @@ export function JobHuntManager() {
 
   // ステータスバッジ
   const getStatusBadge = (status: JobApplication["status"]) => {
-    const statusConfig = {
+    const statusConfig: Record<string, { label: string; color: string; icon: any }> = {
       "ES提出": { label: "ES提出", color: "bg-blue-100 text-blue-700 hover:bg-blue-200 dark:bg-blue-900 dark:text-blue-200", icon: Briefcase },
       "テスト面接": { label: "テスト面接", color: "bg-purple-100 text-purple-700 hover:bg-purple-200 dark:bg-purple-900 dark:text-purple-200", icon: Briefcase },
       "最終面接": { label: "最終面接", color: "bg-orange-100 text-orange-700 hover:bg-orange-200 dark:bg-orange-900 dark:text-orange-200", icon: Briefcase },
       "内定": { label: "内定", color: "bg-emerald-100 text-emerald-700 hover:bg-emerald-200 dark:bg-emerald-900 dark:text-emerald-200", icon: Trophy },
       "落選": { label: "落選", color: "bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-200", icon: XCircle }
     }
-    const config = statusConfig[status]
+    const config = statusConfig[status] || statusConfig["ES提出"]
     const Icon = config.icon
     return (
       <Badge className={`${config.color} flex items-center gap-1`}>

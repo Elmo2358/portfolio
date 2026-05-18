@@ -1,18 +1,37 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Code2 } from "lucide-react"
-import dynamic from "next/dynamic"
-import { CardListSkeleton } from "@/components/loading/card-skeleton"
-
-// AtCoderManagerを動的インポート
-const AtCoderManager = dynamic(
-  () => import("@/components/hub/atcoder-manager").then(mod => ({ default: mod.AtCoderManager })),
-  {
-    loading: () => <CardListSkeleton count={4} />,
-    ssr: false
-  }
-)
+import { getServerSession } from "next-auth"
+import { authOptions } from "@/lib/auth"
+import { prisma } from "@/lib/prisma"
+import { AtCoderManager } from "@/components/hub/atcoder-manager"
 
 export default async function AtCoderPage() {
+  const session = await getServerSession(authOptions)
+
+  if (!session?.user?.id) {
+    return (
+      <div className="container py-8">
+        <div className="text-center py-12">
+          <p className="text-muted-foreground">ログインが必要です</p>
+        </div>
+      </div>
+    )
+  }
+
+  // サーバーサイドで初期データを取得
+  const problems = await prisma.atCoderUserProblem.findMany({
+    where: { userId: session.user.id },
+    orderBy: { lastAttempted: "desc" },
+    take: 100
+  })
+
+  // 日付をISO文字列に変換
+  const serializedProblems = problems.map(problem => ({
+    ...problem,
+    lastAttempted: problem.lastAttempted?.toISOString() || null,
+    createdAt: problem.createdAt.toISOString()
+  }))
+
   return (
     <div className="container py-8">
       <div className="mx-auto max-w-6xl">

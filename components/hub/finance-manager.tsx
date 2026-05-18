@@ -12,7 +12,7 @@ interface Income {
   id: string
   source: string
   amount: number
-  date: Date
+  date: Date | string
   description: string | null
   category: string
 }
@@ -21,7 +21,7 @@ interface Expense {
   id: string
   item: string
   amount: number
-  date: Date
+  date: Date | string
   category: string
   description: string | null
 }
@@ -41,6 +41,12 @@ interface FinanceSummary {
 
 type TabType = "dashboard" | "income" | "expense"
 
+interface FinanceManagerProps {
+  initialTab?: TabType
+  initialIncomes?: Income[]
+  initialExpenses?: Expense[]
+}
+
 // よく使う項目の定義
 const frequentItems = {
   income: [
@@ -56,12 +62,12 @@ const frequentItems = {
   ]
 }
 
-export function FinanceManager({ initialTab = "dashboard" }: { initialTab?: TabType }) {
+export function FinanceManager({ initialTab = "dashboard", initialIncomes = [], initialExpenses = [] }: FinanceManagerProps) {
   const [activeTab, setActiveTab] = useState<TabType>(initialTab)
   const [summary, setSummary] = useState<FinanceSummary | null>(null)
-  const [incomes, setIncomes] = useState<Income[]>([])
-  const [expenses, setExpenses] = useState<Expense[]>([])
-  const [loading, setLoading] = useState(true)
+  const [incomes, setIncomes] = useState<Income[]>(initialIncomes)
+  const [expenses, setExpenses] = useState<Expense[]>(initialExpenses)
+  const [loading, setLoading] = useState(false)
   const [showForm, setShowForm] = useState(false)
   const [initialFormData, setInitialFormData] = useState<any>(null)
   const [currentMonth, setCurrentMonth] = useState(new Date())
