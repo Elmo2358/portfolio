@@ -18,6 +18,28 @@ const config = {
       },
     },
     extend: {
+      fontFamily: {
+        sans: ["Euclid Circular A", "-apple-system", "BlinkMacSystemFont", "Segoe UI", "Roboto", "sans-serif"],
+        mono: ["Source Code Pro", "SF Mono", "Menlo", "Consolas", "monospace"],
+      },
+      fontSize: {
+        "hero-display": ["72px", { lineHeight: "1.10", letterSpacing: "-1.5px", fontWeight: "500" }],
+        "display-lg": ["56px", { lineHeight: "1.15", letterSpacing: "-1px", fontWeight: "500" }],
+        "heading-1": ["48px", { lineHeight: "1.20", letterSpacing: "-0.5px", fontWeight: "500" }],
+        "heading-2": ["36px", { lineHeight: "1.25", letterSpacing: "-0.5px", fontWeight: "500" }],
+        "heading-3": ["28px", { lineHeight: "1.30", fontWeight: "500" }],
+        "heading-4": ["22px", { lineHeight: "1.35", fontWeight: "500" }],
+        "heading-5": ["18px", { lineHeight: "1.40", fontWeight: "600" }],
+        "subtitle": ["18px", { lineHeight: "1.50", fontWeight: "400" }],
+        "body-md": ["16px", { lineHeight: "1.55", fontWeight: "400" }],
+        "body-md-medium": ["16px", { lineHeight: "1.55", fontWeight: "500" }],
+        "body-sm": ["14px", { lineHeight: "1.50", fontWeight: "400" }],
+        "body-sm-medium": ["14px", { lineHeight: "1.50", fontWeight: "500" }],
+        "caption": ["13px", { lineHeight: "1.40", fontWeight: "400" }],
+        "caption-bold": ["13px", { lineHeight: "1.40", fontWeight: "600" }],
+        "micro": ["12px", { lineHeight: "1.40", fontWeight: "500" }],
+        "micro-uppercase": ["11px", { lineHeight: "1.40", fontWeight: "600", letterSpacing: "1px" }],
+      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
@@ -52,37 +74,37 @@ const config = {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
-        // Starbucks-inspired green system
-        'sb-emerald': '#006241',
-        'sb-emerald-accent': '#00754A',
-        'sb-house-green': '#1E3932',
-        'sb-green-uplift': '#2b5148',
-        'sb-green-light': '#d4e9e2',
-        // Surfaces
-        'sb-neutral-warm': '#f2f0eb',
-        'sb-ceramic': '#edebe9',
-        'sb-neutral-cool': '#f9f9f9',
-        // Gold for achievements
-        'sb-gold': '#cba258',
-        // Semantic
-        'sb-error': '#c82014',
-        'sb-warning': '#fbbc05',
+        // MongoDB Brand Colors
+        mongo: {
+          green: "#00ed64",
+          "green-dark": "#00684a",
+          "green-mid": "#00a35c",
+          "green-soft": "#c3f0d2",
+          "teal-deep": "#001e2b",
+          teal: "#003d4f",
+          "teal-mid": "#00684a",
+          "accent-purple": "#7b3ff2",
+          "accent-orange": "#fa6e39",
+          "accent-pink": "#f06bb8",
+          "accent-blue": "#3d4f9f",
+          canvas: "#ffffff",
+          "canvas-dark": "#001e2b",
+        },
       },
       borderRadius: {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
-        'pill': '50px',
-        'card': '12px',
+        xs: "4px",
+        xl: "16px",
+        xxl: "24px",
       },
-      boxShadow: {
-        'card': '0 0 0.5px rgba(0,0,0,0.14), 0 1px 1px rgba(0,0,0,0.24)',
-        'card-hover': '0 4px 16px rgba(0,0,0,0.12)',
-        'nav': '0 1px 3px rgba(0,0,0,0.1), 0 2px 2px rgba(0,0,0,0.06), 0 0 2px rgba(0,0,0,0.07)',
-        'fab': '0 0 6px rgba(0,0,0,0.24), 0 8px 12px rgba(0,0,0,0.14)',
-      },
-      letterSpacing: {
-        'starbucks': '-0.01em',
+      spacing: {
+        xxs: "4px",
+        section: "64px",
+        "section-lg": "96px",
+        hero: "120px",
+        xxxl: "40px",
       },
       keyframes: {
         "accordion-down": {
