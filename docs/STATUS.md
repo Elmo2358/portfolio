@@ -1,7 +1,7 @@
 # プロジェクト現状 (STATUS)
 
-**最終更新**: 2026-05-11
-**バージョン**: v2.2.0
+**最終更新**: 2026-05-19
+**バージョン**: v2.3.0
 **開発サーバー**: http://localhost:3000
 
 ---
@@ -353,12 +353,14 @@ hp/
 
 ### 2026-05-19
 
-- ✅ デザインシステム刷新
-  - EmeraldベースからStarbucks-inspiredカラーシステムへ移行（#006241 sb-emerald）
-  - ボタン、カード、ヘッダー、フッターのデザイン更新
-  - カラーパレット拡充（sb-house-green, sb-green-uplift, sb-green-light, sb-ceramic, sb-neutral-warm等）
-  - 角丸スタイル追加（pill、card）、シャドウ追加（card、card-hover、nav、fab）
-  - レタースペーシング調整（-0.01em）
+- ✅ デザインシステム刷新（MongoDB-inspired）
+  - MongoDBカラーシステム導入（brand-green: #00ed64, teal-deep: #001e2b）
+  - ボタンをピル形状（rounded-full）に統一
+  - カードの角丸を12px（rounded-xl）に変更
+  - ヒーローセクションをダークティールバックグラウンドに変更
+  - ライト/ダークモード両対応のCSS変数を実装
+  - DESIGN.md追加（MongoDBデザイントークンリファレンス）
+  - Euclid Circular Aフォントファミリーをtailwind.config.tsに追加
 - ✅ 開発ガイドライン拡充
   - CLAUDE.mdにDevelopment Workflow、Testing、Database、Next.js Configurationセクション追加
   - キャッシュ管理、フィルタリング検証、PostgreSQL互換性、metadata APIなどのベストプラクティスを記載
