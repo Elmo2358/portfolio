@@ -10,7 +10,7 @@ export default function Home() {
       {/* Hero Section */}
       <section className="relative container flex min-h-[calc(100vh-4rem)] items-center justify-center py-24 overflow-hidden">
         {/* Background */}
-        <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-blue-950/20 dark:via-indigo-950/20 dark:to-purple-950/20 -z-10" />
+        <div className="absolute inset-0 bg-sb-neutral-warm -z-10" />
 
         {/* Decorative gradient blobs */}
         <div className="absolute top-20 left-10 w-72 h-72 bg-blue-300 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob dark:bg-blue-900" />
@@ -18,11 +18,11 @@ export default function Home() {
         <div className="absolute bottom-20 left-1/2 w-72 h-72 bg-indigo-300 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-4000 dark:bg-indigo-900" />
 
         <div className="mx-auto max-w-3xl text-center">
-          <div className="mb-8 inline-flex items-center rounded-full border-2 border-emerald-500 bg-emerald-100 px-4 py-1.5 text-sm dark:border-emerald-600 dark:bg-emerald-900 animate-fadeIn">
-            <span className="mr-2 flex h-2 w-2 rounded-full bg-emerald-600 animate-pulse dark:bg-emerald-500"></span>
+          <div className="mb-8 inline-flex items-center rounded-full border-2 border-sb-emerald bg-sb-green-light px-4 py-1.5 text-sm animate-fadeIn">
+            <span className="mr-2 flex h-2 w-2 rounded-full bg-sb-emerald animate-pulse"></span>
             2024年入学 | 情報理工学域Ⅱ類 3年
           </div>
-          <h1 className="mb-6 text-5xl font-bold tracking-tight sm:text-6xl md:text-7xl text-emerald-600 dark:text-emerald-400 animate-fadeIn delay-100">
+          <h1 className="mb-6 text-5xl font-bold tracking-tight sm:text-6xl md:text-7xl text-sb-emerald animate-fadeIn delay-100">
             Elmo
           </h1>
           <p className="mb-8 text-xl text-muted-foreground md:text-2xl animate-fadeIn delay-200">
@@ -32,10 +32,10 @@ export default function Home() {
             通信技術の未来を創造したい。情報通信工学を学んでいます。
           </p>
           <div className="flex flex-col gap-4 sm:flex-row sm:justify-center animate-fadeIn delay-400">
-            <Button size="lg" className="bg-emerald-600 hover:bg-emerald-700 text-white" asChild>
+            <Button size="lg" className="bg-sb-emerald hover:bg-sb-emerald-accent text-white" asChild>
               <Link href="/about">自己紹介を見る</Link>
             </Button>
-            <Button size="lg" variant="outline" className="border-2 border-emerald-600 text-emerald-600 hover:bg-emerald-600 hover:text-white dark:border-emerald-500 dark:text-emerald-400 dark:hover:bg-emerald-500" asChild>
+            <Button size="lg" variant="outline" className="border-2 border-sb-emerald text-sb-emerald hover:bg-sb-emerald hover:text-white" asChild>
               <Link href="/projects">プロジェクトを見る</Link>
             </Button>
           </div>
@@ -43,9 +43,9 @@ export default function Home() {
       </section>
 
       {/* Skills Overview */}
-      <section className="border-t bg-gradient-to-b from-muted/50 to-background py-24">
+      <section className="border-t border-sb-ceramic bg-gradient-to-b from-sb-ceramic to-background py-24">
         <div className="container">
-          <h2 className="mb-12 text-center text-3xl font-bold text-emerald-600 dark:text-emerald-400 animate-fadeIn">
+          <h2 className="mb-12 text-center text-3xl font-bold text-sb-emerald animate-fadeIn">
             専攻分野
           </h2>
           <div className="grid gap-6 md:grid-cols-3 stagger-300">
@@ -133,7 +133,7 @@ export default function Home() {
       {/* Quick Links */}
       <section className="py-24">
         <div className="container">
-          <h2 className="mb-12 text-center text-3xl font-bold text-emerald-600 dark:text-emerald-400">
+          <h2 className="mb-12 text-center text-3xl font-bold text-sb-emerald">
             コンテンツ
           </h2>
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">

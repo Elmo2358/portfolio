@@ -52,11 +52,37 @@ const config = {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        // Starbucks-inspired green system
+        'sb-emerald': '#006241',
+        'sb-emerald-accent': '#00754A',
+        'sb-house-green': '#1E3932',
+        'sb-green-uplift': '#2b5148',
+        'sb-green-light': '#d4e9e2',
+        // Surfaces
+        'sb-neutral-warm': '#f2f0eb',
+        'sb-ceramic': '#edebe9',
+        'sb-neutral-cool': '#f9f9f9',
+        // Gold for achievements
+        'sb-gold': '#cba258',
+        // Semantic
+        'sb-error': '#c82014',
+        'sb-warning': '#fbbc05',
       },
       borderRadius: {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
+        'pill': '50px',
+        'card': '12px',
+      },
+      boxShadow: {
+        'card': '0 0 0.5px rgba(0,0,0,0.14), 0 1px 1px rgba(0,0,0,0.24)',
+        'card-hover': '0 4px 16px rgba(0,0,0,0.12)',
+        'nav': '0 1px 3px rgba(0,0,0,0.1), 0 2px 2px rgba(0,0,0,0.06), 0 0 2px rgba(0,0,0,0.07)',
+        'fab': '0 0 6px rgba(0,0,0,0.24), 0 8px 12px rgba(0,0,0,0.14)',
+      },
+      letterSpacing: {
+        'starbucks': '-0.01em',
       },
       keyframes: {
         "accordion-down": {

@@ -42,3 +42,45 @@
 ### Server/Client Component
 - データ取得はServer Component
 - インタラクションはClient Component（`"use client"`）
+
+---
+
+## Development Workflow
+
+### Cache Management（重要）
+
+- APIルートやデータベーススキーマを変更した後は、必ず`.next`キャッシュをクリアし、devサーバーを再起動してください
+- 手順: devサーバー停止 → `.next/cache`を削除 → サーバー再起動
+- これを怠ると、古いデータが表示され続ける問題が発生します
+
+---
+
+## Testing
+
+### Filtering Logicの検証
+
+- フィルタリングロジックを実装時は、API → component props → client-side rendering の全データフローを確認してください
+- 必ず実際のデータでテストし、フィルターが期待通り動作することを確認してください
+- コンポーネントがどこから呼び出されているか、どのpropsが渡されているかをトレースしてください
+
+---
+
+## Database
+
+### PostgreSQL互換性
+
+- PostgreSQLの互換性問題を避けるため、生のSQLではなく常にPrismaクエリを使用してください
+- データベース固有の構文問題を回避できます
+
+---
+
+## Next.js Configuration
+
+### Metadata API
+
+- Next.js 14+では、非推奨のmetaタグではなくモダンなmetadata APIを使用してください
+
+### shadcn/uiコンポーネント
+
+- shadcn/uiコンポーネントとその依存関係（`@radix-ui/react-dialog`など）が正しくインストールされていることを確認してください
+- UI機能実装前に、必要なコンポーネントと依存関係をリストアップし、不足している場合は先にインストールしてください
