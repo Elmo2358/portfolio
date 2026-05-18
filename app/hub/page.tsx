@@ -1,20 +1,8 @@
-"use client"
-
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { CheckCircle2, DollarSign, Briefcase, Gamepad2, Sparkles, Code2, Settings, BarChart3, Search, BookOpen, ArrowRight } from "lucide-react"
-import { CardListSkeleton } from "@/components/loading/card-skeleton"
-import dynamic from "next/dynamic"
-
-// ダッシュボードカードを遅延読み込み
-const DashboardCards = dynamic(() =>
-  import("@/components/dashboard/dashboard-cards").then(mod => ({ default: mod.DashboardCards })),
-{
-  loading: () => <CardListSkeleton count={6} />,
-  ssr: false
-}
-)
+import { DashboardCards } from "@/components/dashboard/dashboard-cards"
 
 export default function HubPage() {
   return (

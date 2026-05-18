@@ -283,14 +283,17 @@ export default function DashboardPage() {
                   data={Object.entries(stats.tasks.byStatus).map(([name, value]) => ({ name, value }))}
                   cx="50%"
                   cy="50%"
-                  labelLine={false}
+                  outerRadius={70}
+                  labelLine={true}
                   label={({ name, percent }) => `${name}: ${((percent || 0) * 100).toFixed(0)}%`}
+                  fontSize={11}
                 >
                   <Cell fill="#10b981" name="未着手" />
                   <Cell fill="#3b82f6" name="進行中" />
                   <Cell fill="#22c55e" name="完了" />
                 </Pie>
                 <Tooltip />
+                <Legend />
               </PieChart>
             </ResponsiveContainer>
           </CardContent>
@@ -308,8 +311,10 @@ export default function DashboardPage() {
                   data={Object.entries(stats.jobHunt.byStatus).map(([name, value]) => ({ name, value }))}
                   cx="50%"
                   cy="50%"
-                  labelLine={false}
+                  outerRadius={70}
+                  labelLine={true}
                   label={({ name, percent }) => `${name}: ${((percent || 0) * 100).toFixed(0)}%`}
+                  fontSize={11}
                 >
                   <Cell fill="#3b82f6" name="ES提出" />
                   <Cell fill="#a855f7" name="テスト面接" />
@@ -318,6 +323,7 @@ export default function DashboardPage() {
                   <Cell fill="#6b7280" name="落選" />
                 </Pie>
                 <Tooltip />
+                <Legend />
               </PieChart>
             </ResponsiveContainer>
           </CardContent>
@@ -335,8 +341,10 @@ export default function DashboardPage() {
                   data={Object.entries(stats.bucket.byCategory).map(([name, value]) => ({ name, value }))}
                   cx="50%"
                   cy="50%"
-                  labelLine={false}
+                  outerRadius={70}
+                  labelLine={true}
                   label={({ name, percent }) => `${name}: ${((percent || 0) * 100).toFixed(0)}%`}
+                  fontSize={11}
                 >
                   <Cell fill="#3b82f6" name="travel" />
                   <Cell fill="#a855f7" name="experience" />
@@ -344,6 +352,7 @@ export default function DashboardPage() {
                   <Cell fill="#6b7280" name="other" />
                 </Pie>
                 <Tooltip />
+                <Legend />
               </PieChart>
             </ResponsiveContainer>
           </CardContent>
