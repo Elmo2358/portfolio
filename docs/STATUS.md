@@ -351,6 +351,20 @@ hp/
 
 ## 📝 最近の変更
 
+### 2026-05-19
+
+- ✅ デザインシステム刷新
+  - EmeraldベースからStarbucks-inspiredカラーシステムへ移行（#006241 sb-emerald）
+  - ボタン、カード、ヘッダー、フッターのデザイン更新
+  - カラーパレット拡充（sb-house-green, sb-green-uplift, sb-green-light, sb-ceramic, sb-neutral-warm等）
+  - 角丸スタイル追加（pill、card）、シャドウ追加（card、card-hover、nav、fab）
+  - レタースペーシング調整（-0.01em）
+- ✅ 開発ガイドライン拡充
+  - CLAUDE.mdにDevelopment Workflow、Testing、Database、Next.js Configurationセクション追加
+  - キャッシュ管理、フィルタリング検証、PostgreSQL互換性、metadata APIなどのベストプラクティスを記載
+- ✅ カスタムスキル追加
+  - `.claude/skills/deploy/SKILL.md` - デプロイワークフロー（/deploy）スキル作成
+
 ### 2026-05-18
 
 - ✅ 第5フェーズ：AI学習プラン再設計
