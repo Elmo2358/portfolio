@@ -57,12 +57,12 @@ export async function PUT(
       where: { id: params.id },
       data: {
         ...(title !== undefined && { title: title.trim() }),
-        ...(description !== undefined && { description: description.trim() || null }),
+        ...(description !== undefined && { description: description ? description.trim() : null }),
         ...(status && { status }),
         ...(priority && { priority }),
         ...(dueDate !== undefined && { dueDate: dueDate ? new Date(dueDate) : null }),
         ...(completedAt !== undefined && { completedAt: completedAt ? new Date(completedAt) : null }),
-        ...(notionUrl !== undefined && { notionUrl: notionUrl.trim() || null })
+        ...(notionUrl !== undefined && { notionUrl: notionUrl ? notionUrl.trim() : null })
       }
     })
 

@@ -449,8 +449,8 @@ export function AtCoderManager({ initialProblems }: AtCoderManagerProps) {
         </CardHeader>
         <CardContent>
           <div className="flex flex-col gap-4">
-            <div className="flex gap-2">
-              <div className="relative flex-1 min-w-[300px]">
+            <div className="flex flex-col sm:flex-row gap-2">
+              <div className="relative flex-1 min-w-[200px] sm:min-w-[300px]">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
                   placeholder="問題名またはIDで検索..."
@@ -461,31 +461,32 @@ export function AtCoderManager({ initialProblems }: AtCoderManagerProps) {
                   className="pl-10 h-12 text-base w-full"
                 />
               </div>
-              <select
-                value={statusFilter}
-                onChange={(e) => {
-                  setStatusFilter(e.target.value)
-                  setPage(1)
-                }}
-                className="flex h-12 w-[140px] items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
-              >
-                <option value="">すべて</option>
-                <option value="unattempted">未着手</option>
-                <option value="in_progress">途中</option>
-                <option value="contest_ac">コンテスト内AC</option>
-                <option value="upsolved_ac">コンテスト後AC</option>
-                <option value="review">復習中</option>
-              </select>
-              <Dialog open={isAddDialogOpen} onOpenChange={handleCloseDialog}>
-                <DialogTrigger asChild>
-                  <Button
-                    className="bg-emerald-600 hover:bg-emerald-700 h-12 whitespace-nowrap"
-                    onClick={handleOpenDialog}
-                  >
-                    <Plus className="h-4 w-4 mr-2" />
-                    問題を追加
-                  </Button>
-                </DialogTrigger>
+              <div className="flex gap-2 w-full sm:w-auto">
+                <select
+                  value={statusFilter}
+                  onChange={(e) => {
+                    setStatusFilter(e.target.value)
+                    setPage(1)
+                  }}
+                  className="flex h-12 flex-1 sm:flex-none sm:w-[140px] items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+                >
+                  <option value="">すべて</option>
+                  <option value="unattempted">未着手</option>
+                  <option value="in_progress">途中</option>
+                  <option value="contest_ac">コンテスト内AC</option>
+                  <option value="upsolved_ac">コンテスト後AC</option>
+                  <option value="review">復習中</option>
+                </select>
+                <Dialog open={isAddDialogOpen} onOpenChange={(open) => !open && handleCloseDialog()}>
+                  <DialogTrigger asChild>
+                    <Button
+                      className="bg-emerald-600 hover:bg-emerald-700 h-12 flex-1 sm:flex-none sm:w-auto px-3 sm:px-4"
+                      onClick={handleOpenDialog}
+                    >
+                      <Plus className="h-4 w-4 mr-1 sm:mr-2 shrink-0" />
+                      <span className="text-sm sm:text-base">問題を追加</span>
+                    </Button>
+                  </DialogTrigger>
                 <DialogContent>
                   <DialogHeader>
                     <DialogTitle>問題を追加</DialogTitle>
@@ -578,6 +579,7 @@ export function AtCoderManager({ initialProblems }: AtCoderManagerProps) {
                   </DialogFooter>
                 </DialogContent>
               </Dialog>
+              </div>
             </div>
           </div>
         </CardContent>

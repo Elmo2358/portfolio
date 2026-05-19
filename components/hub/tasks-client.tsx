@@ -45,6 +45,13 @@ export function TasksClient({ initialTasks }: TasksClientProps) {
     return true
   })
 
+  // 完了タスクを最後にソート
+  const sortedTasks = [...filteredTasks].sort((a, b) => {
+    if (a.status === "completed" && b.status !== "completed") return 1
+    if (a.status !== "completed" && b.status === "completed") return -1
+    return 0
+  })
+
   // データを再取得
   const refreshTasks = async () => {
     const params = new URLSearchParams()
@@ -170,10 +177,10 @@ export function TasksClient({ initialTasks }: TasksClientProps) {
             setEditingTask(null)
             setShowForm(true)
           }}
-          className="bg-emerald-600 hover:bg-emerald-700 text-white dark:bg-emerald-500 dark:hover:bg-emerald-400"
+          className="bg-emerald-600 hover:bg-emerald-700 text-white dark:bg-emerald-500 dark:hover:bg-emerald-400 h-10 px-4 sm:px-6"
         >
-          <Plus className="h-4 w-4 mr-2" />
-          新規タスク
+          <Plus className="h-4 w-4 mr-1.5 sm:mr-2" />
+          <span className="text-sm sm:text-base">新規タスク</span>
         </Button>
       </div>
 
@@ -190,13 +197,13 @@ export function TasksClient({ initialTasks }: TasksClientProps) {
         </div>
       )}
 
-      <div className="flex flex-wrap gap-2">
-        <div className="flex gap-1 rounded-lg border border-emerald-500 bg-emerald-50 p-1 dark:bg-emerald-950 dark:border-emerald-600">
+      <div className="flex flex-col sm:flex-row sm:flex-wrap gap-2">
+        <div className="flex gap-1.5 rounded-lg border border-emerald-500 bg-emerald-50 p-1.5 dark:bg-emerald-950 dark:border-emerald-600 overflow-x-auto">
           {(["all", "todo", "in_progress", "completed"] as StatusFilter[]).map((filter) => (
             <button
               key={filter}
               onClick={() => setStatusFilter(filter)}
-              className={`rounded-md px-3 py-1 text-sm transition-colors ${
+              className={`rounded-md px-2.5 sm:px-3 py-1.5 text-xs sm:text-sm transition-colors whitespace-nowrap flex items-center justify-center ${
                 statusFilter === filter
                   ? "bg-emerald-600 text-white dark:bg-emerald-500"
                   : "text-emerald-700 hover:bg-emerald-100 dark:text-emerald-300 dark:hover:bg-emerald-900"
@@ -207,12 +214,12 @@ export function TasksClient({ initialTasks }: TasksClientProps) {
           ))}
         </div>
 
-        <div className="flex gap-1 rounded-lg border border-emerald-500 bg-emerald-50 p-1 dark:bg-emerald-950 dark:border-emerald-600">
+        <div className="flex gap-1.5 rounded-lg border border-emerald-500 bg-emerald-50 p-1.5 dark:bg-emerald-950 dark:border-emerald-600 overflow-x-auto">
           {(["all", "high", "medium", "low"] as PriorityFilter[]).map((filter) => (
             <button
               key={filter}
               onClick={() => setPriorityFilter(filter)}
-              className={`rounded-md px-3 py-1 text-sm transition-colors ${
+              className={`rounded-md px-2.5 sm:px-3 py-1.5 text-xs sm:text-sm transition-colors whitespace-nowrap flex items-center justify-center ${
                 priorityFilter === filter
                   ? "bg-emerald-600 text-white dark:bg-emerald-500"
                   : "text-emerald-700 hover:bg-emerald-100 dark:text-emerald-300 dark:hover:bg-emerald-900"
@@ -225,7 +232,7 @@ export function TasksClient({ initialTasks }: TasksClientProps) {
       </div>
 
       {/* タスク一覧 */}
-      {filteredTasks.length === 0 ? (
+      {sortedTasks.length === 0 ? (
         <Card className="border-2 border-emerald-500 bg-emerald-50 dark:bg-emerald-950 dark:border-emerald-600">
           <CardContent className="py-12 text-center">
             <p className="text-muted-foreground">タスクがありません</p>
@@ -240,7 +247,7 @@ export function TasksClient({ initialTasks }: TasksClientProps) {
         </Card>
       ) : (
         <div className="grid gap-4">
-          {filteredTasks.map((task) => (
+          {sortedTasks.map((task) => (
             <Card
               key={task.id}
               className={`hover:shadow-xl transition-all hover:-translate-y-1 border-2 ${
@@ -251,40 +258,43 @@ export function TasksClient({ initialTasks }: TasksClientProps) {
                   : "border-emerald-500 bg-emerald-50 dark:bg-emerald-950 dark:border-emerald-600"
               }`}
             >
-              <CardContent className="p-6">
-                <div className="flex items-start gap-4">
+              <CardContent className="p-4 sm:p-6">
+                <div className="flex flex-col sm:flex-row sm:items-start gap-3 sm:gap-4">
                   {/* ステータス変更ボタン */}
-                  <div className="flex gap-1">
+                  <div className="flex gap-1.5 sm:gap-1 shrink-0">
                     <button
                       onClick={() => handleStatusChange(task, "todo")}
-                      className={`p-2 rounded-lg transition-colors ${
+                      className={`p-2 sm:p-2 rounded-lg transition-colors flex items-center justify-center ${
                         task.status === "todo"
                           ? "bg-slate-200 text-slate-700 dark:bg-slate-700 dark:text-slate-200"
                           : "text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
                       }`}
                       title="未着手"
+                      aria-label="未着手"
                     >
                       <Clock className="h-4 w-4" />
                     </button>
                     <button
                       onClick={() => handleStatusChange(task, "in_progress")}
-                      className={`p-2 rounded-lg transition-colors ${
+                      className={`p-2 sm:p-2 rounded-lg transition-colors flex items-center justify-center ${
                         task.status === "in_progress"
                           ? "bg-blue-200 text-blue-700 dark:bg-blue-900 dark:text-blue-200"
                           : "text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
                       }`}
                       title="進行中"
+                      aria-label="進行中"
                     >
                       <AlertCircle className="h-4 w-4" />
                     </button>
                     <button
                       onClick={() => handleStatusChange(task, "completed")}
-                      className={`p-2 rounded-lg transition-colors ${
+                      className={`p-2 sm:p-2 rounded-lg transition-colors flex items-center justify-center ${
                         task.status === "completed"
                           ? "bg-emerald-200 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-200"
                           : "text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
                       }`}
                       title="完了"
+                      aria-label="完了"
                     >
                       <CheckCircle2 className="h-4 w-4" />
                     </button>
@@ -292,21 +302,21 @@ export function TasksClient({ initialTasks }: TasksClientProps) {
 
                   {/* タスク内容 */}
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-start justify-between gap-2 mb-2">
-                      <h3 className={`font-semibold ${task.status === "completed" ? "line-through" : ""}`}>
-                        {task.title}
+                    <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-1 sm:gap-2 mb-2">
+                      <h3 className={`font-semibold text-sm sm:text-base leading-tight ${task.status === "completed" ? "line-through" : ""}`}>
+                        <span className="line-clamp-2">{task.title}</span>
                       </h3>
-                      <div className="flex gap-1">
+                      <div className="flex gap-1 sm:shrink-0">
                         {getStatusBadge(task.status)}
                         {getPriorityBadge(task.priority)}
                       </div>
                     </div>
 
                     {task.description && (
-                      <p className="text-sm text-muted-foreground mb-2">{task.description}</p>
+                      <p className="text-sm text-muted-foreground mb-2 line-clamp-2">{task.description}</p>
                     )}
 
-                    <div className="flex items-center gap-4 text-xs text-muted-foreground flex-wrap">
+                    <div className="flex flex-wrap items-center gap-3 sm:gap-4 text-xs text-muted-foreground">
                       {task.dueDate && (
                         <div className={`flex items-center gap-1 ${isOverdue(task) ? "text-red-600 dark:text-red-400" : ""}`}>
                           <Calendar className="h-3 w-3" />
@@ -332,7 +342,7 @@ export function TasksClient({ initialTasks }: TasksClientProps) {
                   </div>
 
                   {/* アクションボタン */}
-                  <div className="flex gap-2">
+                  <div className="flex gap-2 sm:flex-col sm:gap-1.5 shrink-0">
                     <ReminderButton
                       entityType="task"
                       entityId={task.id}
@@ -347,7 +357,7 @@ export function TasksClient({ initialTasks }: TasksClientProps) {
                         setEditingTask(task)
                         setShowForm(true)
                       }}
-                      className="border-emerald-600 text-emerald-600 hover:bg-emerald-600 hover:text-white dark:border-emerald-500 dark:text-emerald-400 dark:hover:bg-emerald-500"
+                      className="border-emerald-600 text-emerald-600 hover:bg-emerald-600 hover:text-white dark:border-emerald-500 dark:text-emerald-400 dark:hover:bg-emerald-500 h-9 w-9 sm:w-auto sm:px-3 flex items-center justify-center p-0"
                     >
                       <Edit2 className="h-4 w-4" />
                     </Button>
@@ -355,7 +365,7 @@ export function TasksClient({ initialTasks }: TasksClientProps) {
                       size="sm"
                       variant="outline"
                       onClick={() => handleDeleteTask(task.id)}
-                      className="border-red-600 text-red-600 hover:bg-red-600 hover:text-white dark:border-red-500 dark:text-red-400 dark:hover:bg-red-500"
+                      className="border-red-600 text-red-600 hover:bg-red-600 hover:text-white dark:border-red-500 dark:text-red-400 dark:hover:bg-red-500 h-9 w-9 sm:w-auto sm:px-3 flex items-center justify-center p-0"
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
@@ -405,7 +415,7 @@ function TaskForm({
       : "medium"
   )
   const [dueDate, setDueDate] = useState(
-    task?.dueDate ? new Date(task.dueDate).toISOString().split("T")[0] : ""
+    task?.dueDate ? format(new Date(task.dueDate), "yyyy-MM-dd") : ""
   )
   const [notionUrl, setNotionUrl] = useState(task?.notionUrl || "")
 
@@ -422,15 +432,15 @@ function TaskForm({
   }
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-      <Card className="w-full max-w-md border-2 border-emerald-500 bg-emerald-50 dark:bg-emerald-950 dark:border-emerald-600">
-        <CardHeader>
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-2 sm:p-4 z-50">
+      <Card className="w-full max-w-md max-h-[90vh] overflow-y-auto border-2 border-emerald-500 bg-emerald-50 dark:bg-emerald-950 dark:border-emerald-600 sm:max-h-auto">
+        <CardHeader className="pb-4">
           <h3 className="text-lg font-bold text-emerald-700 dark:text-emerald-300">
             {task ? "タスク編集" : "新規タスク"}
           </h3>
           <p className="text-sm text-muted-foreground">タスクの情報を入力してください</p>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-4">
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label className="mb-2 block text-sm font-medium">タイトル *</label>
@@ -438,7 +448,7 @@ function TaskForm({
                 type="text"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                className="w-full rounded-md border border-input bg-background px-3 py-2.5 text-sm"
                 required
               />
             </div>
@@ -448,7 +458,7 @@ function TaskForm({
               <textarea
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                className="w-full rounded-md border border-input bg-background px-3 py-2.5 text-sm resize-y"
                 rows={3}
               />
             </div>
@@ -458,7 +468,7 @@ function TaskForm({
               <select
                 value={status}
                 onChange={(e) => setStatus(e.target.value as "todo" | "in_progress" | "completed")}
-                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                className="w-full rounded-md border border-input bg-background px-3 py-2.5 text-sm"
               >
                 <option value="todo">未着手</option>
                 <option value="in_progress">進行中</option>
@@ -471,7 +481,7 @@ function TaskForm({
               <select
                 value={priority}
                 onChange={(e) => setPriority(e.target.value as "low" | "medium" | "high")}
-                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                className="w-full rounded-md border border-input bg-background px-3 py-2.5 text-sm"
               >
                 <option value="low">低</option>
                 <option value="medium">中</option>
@@ -485,7 +495,7 @@ function TaskForm({
                 type="date"
                 value={dueDate}
                 onChange={(e) => setDueDate(e.target.value)}
-                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                className="w-full rounded-md border border-input bg-background px-3 py-2.5 text-sm"
               />
             </div>
 
@@ -496,17 +506,17 @@ function TaskForm({
                 placeholder="https://www.notion.so/..."
                 value={notionUrl}
                 onChange={(e) => setNotionUrl(e.target.value)}
-                className="w-full rounded-md border border-input bg-background px-3 py-2 text-xs font-mono"
+                className="w-full rounded-md border border-input bg-background px-3 py-2.5 text-xs font-mono"
               />
               <p className="text-xs text-muted-foreground mt-1">
                 関連するNotionページのURLを入力してください
               </p>
             </div>
 
-            <div className="flex gap-2">
+            <div className="flex gap-2 pt-2">
               <Button
                 type="submit"
-                className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white dark:bg-emerald-500 dark:hover:bg-emerald-400"
+                className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white dark:bg-emerald-500 dark:hover:bg-emerald-400 h-10"
               >
                 {task ? "更新" : "作成"}
               </Button>
@@ -514,7 +524,7 @@ function TaskForm({
                 type="button"
                 variant="outline"
                 onClick={onClose}
-                className="border-emerald-600 text-emerald-600 hover:bg-emerald-600 hover:text-white dark:border-emerald-500 dark:text-emerald-400 dark:hover:bg-emerald-500"
+                className="border-emerald-600 text-emerald-600 hover:bg-emerald-600 hover:text-white dark:border-emerald-500 dark:text-emerald-400 dark:hover:bg-emerald-500 h-10 px-6"
               >
                 キャンセル
               </Button>
