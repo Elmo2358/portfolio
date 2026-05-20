@@ -183,10 +183,10 @@
 
 ```bash
 # 同期（ブラウザが起動します）
-npm run uec:sync
+pnpm uec:sync
 
 # ログアウト
-npm run uec:logout
+pnpm uec:logout
 ```
 
 **技術スタック**:

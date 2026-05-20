@@ -6,8 +6,8 @@
   ],
   "hooks": {
     "pre-commit": [
-      "npm run lint",
-      "npm run type-check"
+      "pnpm lint",
+      "pnpm type-check"
     ],
     "post-edit": "if [[ '$CLAUDE_EDITED_FILES' == *'api/'* ]]; then rm -rf .next/cache; fi"
   }

@@ -101,7 +101,7 @@ Vercelへの本番デプロイ前に、必ず以下の手順で確認してく�
 1. **TypeScriptの型チェック**
 
    ```bash
-   npm run type-check
+   pnpm type-check
    ```
 
    全ての警告を修正してから進めてください
@@ -115,7 +115,7 @@ Vercelへの本番デプロイ前に、必ず以下の手順で確認してく�
 3. **ビルド検証**
 
    ```bash
-   npm run build
+   pnpm build
    ```
 
    ビルドが成功することを確認してください

@@ -18,9 +18,9 @@ resource "vercel_project" "portfolio" {
   }
 
   # ビルド設定
-  build_command = "npm run build"
-  dev_command   = "npm run dev"
-  install_command = "npm install"
+  build_command = "pnpm build"
+  dev_command   = "pnpm dev"
+  install_command = "pnpm install"
 
   # 環境変数（共通）
   environment = [

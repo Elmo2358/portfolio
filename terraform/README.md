@@ -89,10 +89,10 @@ terraform apply
 terraform output -raw prisma_connection_string
 
 # 環境変数に設定して実行
-DATABASE_URL="$(terraform output -raw prisma_connection_string)" npx prisma db push
+DATABASE_URL="$(terraform output -raw prisma_connection_string)" pnpm prisma db push
 
 # シードデータを投入（オプション）
-DATABASE_URL="$(terraform output -raw prisma_connection_string)" npm run seed
+DATABASE_URL="$(terraform output -raw prisma_connection_string)" pnpm seed
 ```
 
 ---

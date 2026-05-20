@@ -137,7 +137,9 @@
       "Bash(cp -r \"c:/Users/kerox/hp/.claude/skills/deploy\" \"C:/Users/kerox/.claude/skills/\")",
       "Bash(cp \"c:/Users/kerox/hp/.claude/agents\"/*.ts \"C:/Users/kerox/.claude/agents/\")",
       "Bash(cp \"c:/Users/kerox/hp/.claude/agents\"/*.md \"C:/Users/kerox/.claude/agents/\")",
-      "Bash(git diff *)"
+      "Bash(git diff *)",
+      "Bash(pnpm type-check *)",
+      "Bash(pnpm build *)"
     ],
     "additionalDirectories": [
       "c:\\Users\\kerox\\hp\\app\\api\\hub\\tasks\\[id]",

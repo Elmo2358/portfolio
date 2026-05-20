@@ -56,10 +56,10 @@ terraform apply
 vercel env pull .env.production
 
 # データベースを初期化
-npx prisma db push
+pnpm prisma db push
 
 # シードデータを投入
-npm run seed
+pnpm seed
 ```
 
 ### 4. デプロイ

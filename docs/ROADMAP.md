@@ -52,8 +52,8 @@
 
 #### ステップ1: Playwright環境セットアップ ✅
 ```bash
-npm install playwright
-npx playwright install chromium
+pnpm add playwright
+pnpm exec playwright install chromium
 ```
 
 #### ステップ2: モックデータでUI実装 ✅

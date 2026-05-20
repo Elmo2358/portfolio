@@ -215,7 +215,7 @@ await new Promise(resolve => setTimeout(resolve, 1000))
 
 ### デバッグ手順
 1. `.next` キャッシュ削除：`rm -rf .next`
-2. サーバー再起動：`npm run dev`
+2. サーバー再起動：`pnpm dev`
 3. ブラウザDevToolsで確認
 
 ---
