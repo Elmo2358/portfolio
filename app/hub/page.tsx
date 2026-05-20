@@ -82,8 +82,8 @@ export default function HubPage() {
           <Card className="border-2 border-emerald-500 bg-emerald-50 dark:bg-emerald-950 dark:border-emerald-600">
             <CardHeader>
               <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-emerald-600 dark:bg-emerald-500">
-                  <BarChart3 className="h-5 w-5 text-white" />
+                <div className="flex aspect-square h-12 w-12 items-center justify-center rounded-lg bg-emerald-600 dark:bg-emerald-500 text-white">
+                  <BarChart3 className="h-6 w-6" />
                 </div>
                 <CardTitle className="text-emerald-700 dark:text-emerald-300">統計ダッシュボード</CardTitle>
               </div>
@@ -108,8 +108,8 @@ export default function HubPage() {
           <Card className="border-2 border-emerald-500 bg-emerald-50 dark:bg-emerald-950 dark:border-emerald-600">
             <CardHeader>
               <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-emerald-600 dark:bg-emerald-500">
-                  <Settings className="h-5 w-5 text-white" />
+                <div className="flex aspect-square h-12 w-12 items-center justify-center rounded-lg bg-emerald-600 dark:bg-emerald-500 text-white">
+                  <Settings className="h-6 w-6" />
                 </div>
                 <CardTitle className="text-emerald-700 dark:text-emerald-300">設定</CardTitle>
               </div>

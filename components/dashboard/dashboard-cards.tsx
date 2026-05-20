@@ -88,7 +88,7 @@ export function DashboardCards() {
         >
           <CardHeader className="flex-shrink-0">
             <div className="flex items-center gap-4">
-              <div className={`flex h-12 w-12 items-center justify-center rounded-lg ${app.color} text-white`}>
+              <div className={`flex aspect-square h-12 w-12 items-center justify-center rounded-lg ${app.color} text-white`}>
                 <app.icon className="h-6 w-6" />
               </div>
               <div>
