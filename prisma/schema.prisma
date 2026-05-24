@@ -57,6 +57,7 @@ model User {
   uecScheduleEntries    UecScheduleEntry[]
   uecSyncLogs           UecSyncLog[]
   uecTimetableEntries   UecTimetableEntry[]
+  timerSessions         TimerSession[]
 }
 
 model Qualification {
@@ -517,4 +518,21 @@ model UecSyncLog {
   userRel      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, createdAt])
+}
+
+model TimerSession {
+  id                  String    @id @default(cuid())
+  userId              String
+  title               String?
+  durationMinutes     Int
+  actualDurationSeconds Int?
+  category            String    @default("custom")
+  completed           Boolean   @default(false)
+  completedAt         DateTime?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+  userRel             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([userId, category])
 }

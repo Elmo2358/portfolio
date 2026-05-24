@@ -139,7 +139,9 @@
       "Bash(cp \"c:/Users/kerox/hp/.claude/agents\"/*.md \"C:/Users/kerox/.claude/agents/\")",
       "Bash(git diff *)",
       "Bash(pnpm type-check *)",
-      "Bash(pnpm build *)"
+      "Bash(pnpm build *)",
+      "Bash(pnpm add *)",
+      "Bash(pnpm dev *)"
     ],
     "additionalDirectories": [
       "c:\\Users\\kerox\\hp\\app\\api\\hub\\tasks\\[id]",

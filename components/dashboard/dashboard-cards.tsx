@@ -1,11 +1,20 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
-import { CheckCircle2, DollarSign, Briefcase, Gamepad2, Sparkles, Code2, Settings, BarChart3, BookOpen, GraduationCap } from "lucide-react"
+import { CheckCircle2, DollarSign, Briefcase, Gamepad2, Sparkles, Code2, Settings, BarChart3, BookOpen, GraduationCap, Timer } from "lucide-react"
 
 const apps = [
   {
     id: 1,
+    title: "タイマー",
+    description: "学習時間の計測・管理ができるアプリケーション",
+    icon: Timer,
+    path: "/hub/timer",
+    color: "bg-emerald-600 dark:bg-emerald-500",
+    status: "available"
+  },
+  {
+    id: 2,
     title: "タスク管理",
     description: "日々のタスクを管理するアプリケーション",
     icon: CheckCircle2,
@@ -14,7 +23,7 @@ const apps = [
     status: "available"
   },
   {
-    id: 2,
+    id: 3,
     title: "AtCoder問題管理",
     description: "競技プログラミングの学習進捗を管理するアプリケーション",
     icon: Code2,
@@ -23,7 +32,7 @@ const apps = [
     status: "available"
   },
   {
-    id: 3,
+    id: 4,
     title: "家計簿",
     description: "収入と支出を管理するアプリケーション",
     icon: DollarSign,
@@ -32,7 +41,7 @@ const apps = [
     status: "available"
   },
   {
-    id: 4,
+    id: 5,
     title: "就活管理",
     description: "就職活動の情報を管理するアプリケーション",
     icon: Briefcase,
@@ -41,7 +50,7 @@ const apps = [
     status: "available"
   },
   {
-    id: 5,
+    id: 6,
     title: "Wiki",
     description: "Notionで作成したWiki・ドキュメントを管理",
     icon: BookOpen,
@@ -50,7 +59,7 @@ const apps = [
     status: "available"
   },
   {
-    id: 6,
+    id: 7,
     title: "メディア管理",
     description: "ゲームと読書の履歴を管理するアプリケーション",
     icon: Gamepad2,
@@ -59,7 +68,7 @@ const apps = [
     status: "available"
   },
   {
-    id: 7,
+    id: 8,
     title: "やりたいことリスト",
     description: "旅行ややりたいことを計画するアプリケーション",
     icon: Sparkles,
@@ -68,7 +77,7 @@ const apps = [
     status: "available"
   },
   {
-    id: 8,
+    id: 9,
     title: "UECポータル",
     description: "大学からのお知らせ・予定・時間割を確認",
     icon: GraduationCap,
@@ -101,7 +110,7 @@ export function DashboardCards() {
           </CardHeader>
           <CardContent className="flex-grow flex items-end">
             {app.status === "available" ? (
-              app.id === 3 ? (
+              app.id === 4 ? (
                 // 家計簿アプリのみ2つのボタン
                 <div className="flex gap-2 w-full">
                   <Button
