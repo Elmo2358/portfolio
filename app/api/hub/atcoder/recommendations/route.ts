@@ -42,11 +42,13 @@ export async function GET(req: NextRequest) {
  * 初回ユーザー向けの入門問題を取得
  */
 async function getBeginnerProblems(): Promise<Array<{ id: string; title: string; difficulty?: number; reason: string }>> {
-  // AtCoderの典型的な入門問題（difficultyが低い順）
+  console.log("[getBeginnerProblems] Fetching beginner problems...")
+
+  // まずはdifficultyがある問題を取得
   const beginnerProblems = await prisma.atCoderProblem.findMany({
     where: {
       difficulty: {
-        lte: 300,  // 簡単な問題（条件を緩和）
+        lte: 400,  // 簡単な問題
       },
       id: {
         endsWith: "_a",  // A問題のみ
@@ -58,24 +60,9 @@ async function getBeginnerProblems(): Promise<Array<{ id: string; title: string;
     take: 8,
   })
 
-  // もし問題が見つからない場合は、ABCのA問題を取得（difficulty条件なし）
-  if (beginnerProblems.length === 0) {
-    console.log("No beginner problems found, fetching ABC A problems...")
-    const abcAProblems = await prisma.atCoderProblem.findMany({
-      where: {
-        id: {
-          startsWith: "abc",
-          endsWith: "_a",
-        },
-      },
-      orderBy: {
-        id: "asc",
-      },
-      take: 8,
-    })
-
-    console.log(`Found ${abcAProblems.length} ABC A problems`)
-    return abcAProblems.map((p, index) => ({
+  if (beginnerProblems.length > 0) {
+    console.log(`[getBeginnerProblems] Found ${beginnerProblems.length} beginner problems with difficulty`)
+    return beginnerProblems.map((p, index) => ({
       id: p.id,
       title: p.title,
       difficulty: p.difficulty || undefined,
@@ -85,8 +72,23 @@ async function getBeginnerProblems(): Promise<Array<{ id: string; title: string;
     }))
   }
 
-  console.log(`Found ${beginnerProblems.length} beginner problems`)
-  return beginnerProblems.map((p, index) => ({
+  // difficultyがない場合は、ABCのA問題を取得
+  console.log("[getBeginnerProblems] No problems with difficulty, fetching ABC A problems...")
+  const abcAProblems = await prisma.atCoderProblem.findMany({
+    where: {
+      id: {
+        startsWith: "abc",
+        endsWith: "_a",
+      },
+    },
+    orderBy: {
+      id: "asc",
+    },
+    take: 8,
+  })
+
+  console.log(`[getBeginnerProblems] Found ${abcAProblems.length} ABC A problems`)
+  return abcAProblems.map((p, index) => ({
     id: p.id,
     title: p.title,
     difficulty: p.difficulty || undefined,
@@ -94,6 +96,18 @@ async function getBeginnerProblems(): Promise<Array<{ id: string; title: string;
       ? "復帰後の最初の問題！ウォーミングアップとして取り組みましょう。"
       : "復帰用問題：基本的な構文や考え方を思い出しましょう。",
   }))
+}
+
+/**
+ * コンテストプレフィックスで問題をフィルタリング
+ * AtCoderの問題IDは "abc043_a" 形式で、プレフィックスは "abc" のような3文字
+ */
+function filterByContestPrefix(problems: any[], prefix: string): any[] {
+  const lowerPrefix = prefix.toLowerCase()
+  return problems.filter(p => {
+    const contestPrefix = p.id.substring(0, 3).toLowerCase()
+    return contestPrefix === lowerPrefix
+  })
 }
 
 /**
@@ -167,92 +181,128 @@ async function getNextLevelRecommendations(userId: string) {
     preferContest: criteria.preferContest || defaultCriteria.preferContest,
   }
 
-  // 基準に基づいて問題を検索
-  const whereClause: any = {
-    difficulty: {
-      gte: effectiveCriteria.difficultyMin,
-      lte: effectiveCriteria.difficultyMax,
-    },
-  }
+  console.log("[getNextLevelRecommendations] Using criteria:", effectiveCriteria)
 
-  // 既に解いた問題を除外
-  if (effectiveCriteria.excludeSolved && solvedProblemIds.size > 0) {
-    whereClause.id = { notIn: Array.from(solvedProblemIds) }
-  }
+  /**
+   * 問題検索のメインロジック
+   *
+   * 優先順位:
+   * 1. preferContest + 基本範囲
+   * 2. preferContest + 拡大範囲
+   * 3. 全コンテスト + 基本範囲
+   * 4. 全コンテスト + 拡大範囲
+   * 5. 全コンテスト + difficultyMax以上（フォールバック）
+   */
+  let problems: any[] = []
+  let usedFallback = false
 
-  // 特定のコンテストを優先
+  const excludeIds: Set<string> = effectiveCriteria.excludeSolved ? solvedProblemIds : new Set<string>()
+
+  // ステップ1: preferContest + 基本範囲
   if (effectiveCriteria.preferContest) {
-    const prefix = effectiveCriteria.preferContest.toLowerCase()
-    // AtCoderの問題IDは "abc043_a" 形式なので、接頭辞だけでフィルタ
-    if (solvedProblemIds.size > 0 && effectiveCriteria.excludeSolved) {
-      // notInとstartsWithを組み合わせる場合
-      whereClause.AND = [
-        { id: { notIn: Array.from(solvedProblemIds) } },
-        { id: { startsWith: prefix } }
-      ]
-      delete whereClause.id
-    } else {
-      whereClause.id = { startsWith: prefix }
-    }
+    const baseProblems = await searchProblems(
+      effectiveCriteria.difficultyMin,
+      effectiveCriteria.difficultyMax,
+      excludeIds,
+      50
+    )
+    const contestFiltered = filterByContestPrefix(baseProblems, effectiveCriteria.preferContest)
+    problems = contestFiltered.slice(0, 5)
+    console.log(`[getNextLevelRecommendations] Step 1 (contest + base): ${problems.length} problems`)
   }
 
-  const problems = await prisma.atCoderProblem.findMany({
-    where: whereClause,
-    orderBy: { difficulty: "asc" },
-    take: 10,
-  })
+  // ステップ2: preferContest + 拡大範囲
+  if (problems.length < 5 && effectiveCriteria.preferContest) {
+    const expandedMin = Math.max(0, effectiveCriteria.difficultyMin - 200)
+    const expandedMax = effectiveCriteria.difficultyMax + 400
+    const expandedProblems = await searchProblems(expandedMin, expandedMax, excludeIds, 50)
+    const contestFiltered = filterByContestPrefix(expandedProblems, effectiveCriteria.preferContest)
 
-  console.log("[getNextLevelRecommendations] Found problems:", problems.length, "with criteria:", effectiveCriteria)
-
-  // 候補が足りない場合は範囲を広げる
-  if (problems.length < 10) {
-    console.log("[getNextLevelRecommendations] Expanding search criteria...")
-    const expandedProblems = await prisma.atCoderProblem.findMany({
-      where: {
-        difficulty: {
-          gte: Math.max(0, effectiveCriteria.difficultyMin - 200),
-          lte: effectiveCriteria.difficultyMax + 400,
-        },
-        ...(effectiveCriteria.excludeSolved && solvedProblemIds.size > 0 ? {
-          id: { notIn: Array.from(solvedProblemIds) },
-        } : {}),
-      },
-      orderBy: { difficulty: "asc" },
-      take: 10,
-    })
-    const filteredExpanded = expandedProblems.filter(p => !problems.some(existing => existing.id === p.id))
-    problems.push(...filteredExpanded)
+    // 重複を除外して追加
+    const existingIds = new Set(problems.map(p => p.id))
+    const newProblems = contestFiltered.filter(p => !existingIds.has(p.id))
+    problems.push(...newProblems.slice(0, 5 - problems.length))
+    console.log(`[getNextLevelRecommendations] Step 2 (contest + expanded): ${problems.length} problems`)
   }
 
-  // それでも問題が足りない場合は、difficultyMax以上の問題を取得（フォールバック）
+  // ステップ3: 全コンテスト + 基本範囲
   if (problems.length < 5) {
-    console.log("[getNextLevelRecommendations] No problems found in range, fetching problems above difficultyMax...")
-    const fallbackProblems = await prisma.atCoderProblem.findMany({
-      where: {
-        difficulty: {
-          gte: effectiveCriteria.difficultyMax,
-        },
-        ...(effectiveCriteria.excludeSolved && solvedProblemIds.size > 0 ? {
-          id: { notIn: Array.from(solvedProblemIds) },
-        } : {}),
-      },
-      orderBy: { difficulty: "asc" },
-      take: 5,
-    })
+    const baseAll = await searchProblems(
+      effectiveCriteria.difficultyMin,
+      effectiveCriteria.difficultyMax,
+      excludeIds,
+      50
+    )
 
-    const filteredFallback = fallbackProblems.filter(p => !problems.some(existing => existing.id === p.id))
-    problems.push(...filteredFallback)
-    console.log("[getNextLevelRecommendations] Found", filteredFallback.length, "fallback problems")
+    // 重複を除外して追加
+    const existingIds = new Set(problems.map(p => p.id))
+    const newProblems = baseAll.filter(p => !existingIds.has(p.id))
+    problems.push(...newProblems.slice(0, 5 - problems.length))
+    console.log(`[getNextLevelRecommendations] Step 3 (all + base): ${problems.length} problems`)
   }
 
-  // 理由を生成
+  // ステップ4: 全コンテスト + 拡大範囲
+  if (problems.length < 5) {
+    const expandedMin = Math.max(0, effectiveCriteria.difficultyMin - 200)
+    const expandedMax = effectiveCriteria.difficultyMax + 400
+    const expandedAll = await searchProblems(expandedMin, expandedMax, excludeIds, 50)
+
+    // 重複を除外して追加
+    const existingIds = new Set(problems.map(p => p.id))
+    const newProblems = expandedAll.filter(p => !existingIds.has(p.id))
+    problems.push(...newProblems.slice(0, 5 - problems.length))
+    console.log(`[getNextLevelRecommendations] Step 4 (all + expanded): ${problems.length} problems`)
+  }
+
+  // ステップ5: フォールバック（difficultyMax以上）
+  if (problems.length < 5) {
+    const fallbackProblems = await searchProblems(
+      effectiveCriteria.difficultyMax,
+      9999,
+      excludeIds,
+      50
+    )
+
+    // 重複を除外して追加
+    const existingIds = new Set(problems.map(p => p.id))
+    const newProblems = fallbackProblems.filter(p => !existingIds.has(p.id))
+    problems.push(...newProblems.slice(0, 5 - problems.length))
+    usedFallback = newProblems.length > 0
+    console.log(`[getNextLevelRecommendations] Step 5 (fallback): ${problems.length} problems, usedFallback=${usedFallback}`)
+  }
+
+  // 最終手段：まだ足りない場合は、既解決問題も含めて検索
+  if (problems.length < 5) {
+    console.log("[getNextLevelRecommendations] Still not enough, including solved problems...")
+    const anyProblems = await searchProblems(
+      effectiveCriteria.difficultyMin,
+      effectiveCriteria.difficultyMax + 500,
+      new Set(), // 既解決問題も含める
+      50
+    )
+
+    // 重複を除外して追加
+    const existingIds = new Set(problems.map(p => p.id))
+    const newProblems = anyProblems.filter(p => !existingIds.has(p.id))
+    problems.push(...newProblems.slice(0, 5 - problems.length))
+    usedFallback = true
+    console.log(`[getNextLevelRecommendations] Step 6 (include solved): ${problems.length} problems`)
+  }
+
+  /**
+   * 理由を生成
+   */
   const focusAreasText = effectiveCriteria.focusAreas.join("、")
-  const isFallbackUsed = problems.some((p, i) => i >= 10 && (p.difficulty || 0) > effectiveCriteria.difficultyMax)
-  const reasonText = isFallbackUsed
-    ? `設定範囲内の問題が見つかりませんでした。難易度${effectiveCriteria.difficultyMax}以上の問題から推薦します`
-    : plan
-      ? `学習プランに基づく推薦：${focusAreasText}分野でdifficulty ${effectiveCriteria.difficultyMin}-${effectiveCriteria.difficultyMax} の問題に取り組みましょう`
-      : `次のレベル向け：difficulty ${effectiveCriteria.difficultyMin}-${effectiveCriteria.difficultyMax} の問題に挑戦しましょう`
+  const hasHighDifficultyProblems = usedFallback || problems.some(p => (p.difficulty || 0) > effectiveCriteria.difficultyMax)
+
+  let reasonText: string
+  if (usedFallback) {
+    reasonText = `設定範囲内の問題が見つかりませんでした。難易度${effectiveCriteria.difficultyMax}以上の問題や、既に解いた問題も含めて推薦します`
+  } else if (plan) {
+    reasonText = `学習プランに基づく推薦：${focusAreasText}分野でdifficulty ${effectiveCriteria.difficultyMin}-${effectiveCriteria.difficultyMax} の問題に取り組みましょう`
+  } else {
+    reasonText = `次のレベル向け：difficulty ${effectiveCriteria.difficultyMin}-${effectiveCriteria.difficultyMax} の問題に挑戦しましょう`
+  }
 
   const result = problems.slice(0, 10).map((p) => ({
     id: p.id,
@@ -263,6 +313,33 @@ async function getNextLevelRecommendations(userId: string) {
 
   console.log("[getNextLevelRecommendations] Returning", result.length, "recommendations")
   return result
+}
+
+/**
+ * 問題を検索するヘルパー関数
+ */
+async function searchProblems(
+  difficultyMin: number,
+  difficultyMax: number,
+  excludeIds: Set<string>,
+  take: number
+): Promise<Array<{ id: string; title: string; difficulty: number | null }>> {
+  const whereClause: any = {
+    difficulty: {
+      gte: difficultyMin,
+      lte: difficultyMax,
+    },
+  }
+
+  if (excludeIds.size > 0) {
+    whereClause.id = { notIn: Array.from(excludeIds) }
+  }
+
+  return await prisma.atCoderProblem.findMany({
+    where: whereClause,
+    orderBy: { difficulty: "asc" },
+    take,
+  })
 }
 
 /**
