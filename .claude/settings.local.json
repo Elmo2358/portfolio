@@ -163,7 +163,8 @@
       "Bash(cp .claude/worktrees/agent-a28f4201c2bc9c25b/app/api/hub/tasks/[id]/route.ts app/api/hub/tasks/[id]/route.ts)",
       "Bash(cp .claude/worktrees/agent-a28f4201c2bc9c25b/app/api/portfolio/projects/[id]/route.ts app/api/portfolio/projects/[id]/route.ts)",
       "Bash(curl -s \"http://localhost:3000/api/hub/atcoder/recommendations?type=next\")",
-      "Bash(pnpm test:run)"
+      "Bash(pnpm test:run)",
+      "Bash(git rm *)"
     ],
     "additionalDirectories": [
       "c:\\Users\\kerox\\hp\\app\\api\\hub\\tasks\\[id]",

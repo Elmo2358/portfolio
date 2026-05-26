@@ -22,9 +22,6 @@ const nextConfig = {
 
   // 圧縮を有効化
   compress: true,
-
-  // Turbopackの設定（Next.js 16でデフォルト）
-  turbopack: {},
 }
 
 module.exports = nextConfig
