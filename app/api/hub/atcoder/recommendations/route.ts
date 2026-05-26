@@ -224,11 +224,35 @@ async function getNextLevelRecommendations(userId: string) {
     problems.push(...filteredExpanded)
   }
 
+  // それでも問題が足りない場合は、difficultyMax以上の問題を取得（フォールバック）
+  if (problems.length < 5) {
+    console.log("[getNextLevelRecommendations] No problems found in range, fetching problems above difficultyMax...")
+    const fallbackProblems = await prisma.atCoderProblem.findMany({
+      where: {
+        difficulty: {
+          gte: effectiveCriteria.difficultyMax,
+        },
+        ...(effectiveCriteria.excludeSolved && solvedProblemIds.size > 0 ? {
+          id: { notIn: Array.from(solvedProblemIds) },
+        } : {}),
+      },
+      orderBy: { difficulty: "asc" },
+      take: 5,
+    })
+
+    const filteredFallback = fallbackProblems.filter(p => !problems.some(existing => existing.id === p.id))
+    problems.push(...filteredFallback)
+    console.log("[getNextLevelRecommendations] Found", filteredFallback.length, "fallback problems")
+  }
+
   // 理由を生成
   const focusAreasText = effectiveCriteria.focusAreas.join("、")
-  const reasonText = plan
-    ? `学習プランに基づく推薦：${focusAreasText}分野でdifficulty ${effectiveCriteria.difficultyMin}-${effectiveCriteria.difficultyMax} の問題に取り組みましょう`
-    : `次のレベル向け：difficulty ${effectiveCriteria.difficultyMin}-${effectiveCriteria.difficultyMax} の問題に挑戦しましょう`
+  const isFallbackUsed = problems.some((p, i) => i >= 10 && (p.difficulty || 0) > effectiveCriteria.difficultyMax)
+  const reasonText = isFallbackUsed
+    ? `設定範囲内の問題が見つかりませんでした。難易度${effectiveCriteria.difficultyMax}以上の問題から推薦します`
+    : plan
+      ? `学習プランに基づく推薦：${focusAreasText}分野でdifficulty ${effectiveCriteria.difficultyMin}-${effectiveCriteria.difficultyMax} の問題に取り組みましょう`
+      : `次のレベル向け：difficulty ${effectiveCriteria.difficultyMin}-${effectiveCriteria.difficultyMax} の問題に挑戦しましょう`
 
   const result = problems.slice(0, 10).map((p) => ({
     id: p.id,

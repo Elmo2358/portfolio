@@ -6,7 +6,7 @@ import { prisma } from "@/lib/prisma"
 // DELETE: 通知を削除
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions)
@@ -14,9 +14,10 @@ export async function DELETE(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
+    const { id } = await params
     await prisma.notificationLog.delete({
       where: {
-        id: params.id,
+        id,
         userId: session.user.id,
       },
     })

@@ -6,7 +6,7 @@ import { prisma } from "@/lib/prisma"
 // PUT /api/hub/jobhunt/applications/[id] - 企業情報更新
 export async function PUT(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions)
@@ -23,8 +23,9 @@ export async function PUT(
       return NextResponse.json({ error: "User not found" }, { status: 404 })
     }
 
+    const { id } = await params
     const existingApplication = await prisma.jobApplication.findUnique({
-      where: { id: params.id }
+      where: { id }
     })
 
     if (!existingApplication) {
@@ -52,7 +53,7 @@ export async function PUT(
     }
 
     const application = await prisma.jobApplication.update({
-      where: { id: params.id },
+      where: { id },
       data: {
         ...(type !== undefined && { type }),
         ...(company !== undefined && { company: company.trim() }),
@@ -74,7 +75,7 @@ export async function PUT(
 // DELETE /api/hub/jobhunt/applications/[id] - 企業削除
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions)
@@ -91,8 +92,9 @@ export async function DELETE(
       return NextResponse.json({ error: "User not found" }, { status: 404 })
     }
 
+    const { id } = await params
     const existingApplication = await prisma.jobApplication.findUnique({
-      where: { id: params.id }
+      where: { id }
     })
 
     if (!existingApplication) {
@@ -104,7 +106,7 @@ export async function DELETE(
     }
 
     await prisma.jobApplication.delete({
-      where: { id: params.id }
+      where: { id }
     })
 
     return NextResponse.json({ message: "Application deleted successfully" })

@@ -6,7 +6,7 @@ import { prisma } from "@/lib/prisma"
 // PUT: 通知を既読にする
 export async function PUT(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions)
@@ -14,9 +14,10 @@ export async function PUT(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
+    const { id } = await params
     await prisma.notificationLog.update({
       where: {
-        id: params.id,
+        id,
         userId: session.user.id,
       },
       data: {

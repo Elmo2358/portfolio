@@ -1,3 +1,5 @@
+"use client"
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { GraduationCap } from "lucide-react"
 import dynamic from "next/dynamic"
@@ -12,7 +14,7 @@ const UecPortalManager = dynamic(
   }
 )
 
-export default async function UecPortalPage() {
+export default function UecPortalPage() {
   return (
     <div className="container py-8">
       <div className="mx-auto max-w-6xl">

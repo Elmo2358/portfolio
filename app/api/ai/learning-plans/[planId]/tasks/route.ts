@@ -6,7 +6,7 @@ import { prisma } from "@/lib/prisma"
 // GET: プランのタスク一覧を取得
 export async function GET(
   req: NextRequest,
-  { params }: { params: { planId: string } }
+  { params }: { params: Promise<{ planId: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions)
@@ -14,9 +14,10 @@ export async function GET(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
+    const { planId } = await params
     // プランがユーザーのものか確認
     const plan = await prisma.learningPlan.findUnique({
-      where: { id: params.planId },
+      where: { id: planId },
     })
 
     if (!plan || plan.userId !== session.user.id) {
@@ -28,7 +29,7 @@ export async function GET(
 
     const tasks = await prisma.learningTask.findMany({
       where: {
-        planId: params.planId,
+        planId,
       },
       orderBy: { dueDate: "asc" },
     })
@@ -57,7 +58,7 @@ export async function GET(
 // POST: 新しいタスクを追加
 export async function POST(
   req: NextRequest,
-  { params }: { params: { planId: string } }
+  { params }: { params: Promise<{ planId: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions)
@@ -65,9 +66,10 @@ export async function POST(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
+    const { planId } = await params
     // プランがユーザーのものか確認
     const plan = await prisma.learningPlan.findUnique({
-      where: { id: params.planId },
+      where: { id: planId },
     })
 
     if (!plan || plan.userId !== session.user.id) {
@@ -89,7 +91,7 @@ export async function POST(
 
     const task = await prisma.learningTask.create({
       data: {
-        planId: params.planId,
+        planId,
         userId: session.user.id,
         title,
         description,

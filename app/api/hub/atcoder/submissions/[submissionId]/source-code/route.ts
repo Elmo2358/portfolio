@@ -7,7 +7,7 @@ import { fetchSubmissionWithCode } from "@/lib/atcoder-scraper"
 // GET: 提出のソースコードを取得
 export async function GET(
   req: NextRequest,
-  { params }: { params: { submissionId: string } }
+  { params }: { params: Promise<{ submissionId: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions)
@@ -15,7 +15,7 @@ export async function GET(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const submissionId = params.submissionId
+    const { submissionId } = await params
 
     // 既にキャッシュがあるか確認
     const cachedReview = await prisma.codeReview.findUnique({

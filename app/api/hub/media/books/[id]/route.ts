@@ -6,7 +6,7 @@ import { prisma } from "@/lib/prisma"
 // PUT /api/hub/media/books/[id] - 本更新
 export async function PUT(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions)
@@ -23,8 +23,9 @@ export async function PUT(
       return NextResponse.json({ error: "User not found" }, { status: 404 })
     }
 
+    const { id } = await params
     const existingBook = await prisma.book.findUnique({
-      where: { id: params.id }
+      where: { id }
     })
 
     if (!existingBook) {
@@ -56,7 +57,7 @@ export async function PUT(
     }
 
     const book = await prisma.book.update({
-      where: { id: params.id },
+      where: { id },
       data: {
         ...(title !== undefined && { title: title.trim() }),
         ...(author !== undefined && { author: author.trim() || null }),
@@ -78,7 +79,7 @@ export async function PUT(
 // DELETE /api/hub/media/books/[id] - 本削除
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions)
@@ -95,8 +96,9 @@ export async function DELETE(
       return NextResponse.json({ error: "User not found" }, { status: 404 })
     }
 
+    const { id } = await params
     const existingBook = await prisma.book.findUnique({
-      where: { id: params.id }
+      where: { id }
     })
 
     if (!existingBook) {
@@ -108,7 +110,7 @@ export async function DELETE(
     }
 
     await prisma.book.delete({
-      where: { id: params.id }
+      where: { id }
     })
 
     return NextResponse.json({ message: "Book deleted successfully" })

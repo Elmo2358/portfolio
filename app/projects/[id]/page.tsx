@@ -5,6 +5,8 @@ import Link from "next/link"
 import { ArrowLeft, FolderOpen, Github, ExternalLink } from "lucide-react"
 import { notFound } from "next/navigation"
 
+export const dynamic = 'force-dynamic'
+
 async function getProject(id: string) {
   const res = await fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/portfolio/projects/${id}`, {
     cache: 'no-store',
@@ -33,9 +35,10 @@ const techColors: { [key: string]: string } = {
 export default async function ProjectDetailPage({
   params,
 }: {
-  params: { id: string }
+  params: Promise<{ id: string }>
 }) {
-  const project = await getProject(params.id)
+  const { id } = await params
+  const project = await getProject(id)
 
   if (!project) {
     notFound()

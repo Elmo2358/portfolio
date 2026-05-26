@@ -6,7 +6,7 @@ import { prisma } from "@/lib/prisma"
 // PATCH: タスクのステータスを更新
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { planId: string; taskId: string } }
+  { params }: { params: Promise<{ planId: string; taskId: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions)
@@ -24,13 +24,14 @@ export async function PATCH(
       )
     }
 
+    const { planId, taskId } = await params
     // タスクがユーザーのものか確認
     const task = await prisma.learningTask.findUnique({
-      where: { id: params.taskId },
+      where: { id: taskId },
       include: { plan: true },
     })
 
-    if (!task || task.userId !== session.user.id || task.planId !== params.planId) {
+    if (!task || task.userId !== session.user.id || task.planId !== planId) {
       return NextResponse.json(
         { error: "Task not found or access denied" },
         { status: 404 }
@@ -39,20 +40,20 @@ export async function PATCH(
 
     // タスクを更新
     const updatedTask = await prisma.learningTask.update({
-      where: { id: params.taskId },
+      where: { id: taskId },
       data: { status },
     })
 
     // プランの進捗を再計算
     const allTasks = await prisma.learningTask.findMany({
-      where: { planId: params.planId },
+      where: { planId },
     })
 
     const completedCount = allTasks.filter((t) => t.status === "completed").length
     const progress = allTasks.length > 0 ? (completedCount / allTasks.length) * 100 : 0
 
     await prisma.learningPlan.update({
-      where: { id: params.planId },
+      where: { id: planId },
       data: {
         progress,
         completedTasks: JSON.stringify(
@@ -79,7 +80,7 @@ export async function PATCH(
 // DELETE: タスクを削除
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { planId: string; taskId: string } }
+  { params }: { params: Promise<{ planId: string; taskId: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions)
@@ -87,12 +88,13 @@ export async function DELETE(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
+    const { planId, taskId } = await params
     // タスクがユーザーのものか確認
     const task = await prisma.learningTask.findUnique({
-      where: { id: params.taskId },
+      where: { id: taskId },
     })
 
-    if (!task || task.userId !== session.user.id || task.planId !== params.planId) {
+    if (!task || task.userId !== session.user.id || task.planId !== planId) {
       return NextResponse.json(
         { error: "Task not found or access denied" },
         { status: 404 }
@@ -100,7 +102,7 @@ export async function DELETE(
     }
 
     await prisma.learningTask.delete({
-      where: { id: params.taskId },
+      where: { id: taskId },
     })
 
     return NextResponse.json({ success: true })

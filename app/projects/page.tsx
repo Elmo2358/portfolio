@@ -4,6 +4,8 @@ import { prisma } from "@/lib/prisma"
 import { ProjectCard } from "@/components/projects/project-card"
 import { PageHeader } from "@/components/layout/page-header"
 
+export const dynamic = 'force-dynamic'
+
 export default async function ProjectsPage() {
   const projects = await prisma.project.findMany({
     where: { isPublic: true },

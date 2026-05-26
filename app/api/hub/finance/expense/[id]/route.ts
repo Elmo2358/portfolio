@@ -6,7 +6,7 @@ import { prisma } from "@/lib/prisma"
 // DELETE /api/hub/finance/expense/[id] - 支出削除
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions)
@@ -23,8 +23,9 @@ export async function DELETE(
       return NextResponse.json({ error: "User not found" }, { status: 404 })
     }
 
+    const { id } = await params
     const existingExpense = await prisma.expense.findUnique({
-      where: { id: params.id }
+      where: { id }
     })
 
     if (!existingExpense) {
@@ -36,7 +37,7 @@ export async function DELETE(
     }
 
     await prisma.expense.delete({
-      where: { id: params.id }
+      where: { id }
     })
 
     return NextResponse.json({ message: "Expense deleted successfully" })

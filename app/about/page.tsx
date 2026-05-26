@@ -4,6 +4,8 @@ import { prisma } from "@/lib/prisma"
 import { User, Brain, Heart, Users, Briefcase } from "lucide-react"
 import { PageHeader } from "@/components/layout/page-header"
 
+export const dynamic = 'force-dynamic'
+
 export default async function AboutPage() {
   // サークル活動・チーム開発経験を取得
   const teamExperiences = await prisma.teamExperience.findMany({

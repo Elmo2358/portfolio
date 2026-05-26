@@ -9,7 +9,7 @@ import { getAtCoderProblem } from "@/lib/atcoder"
 // GET: キャッシュされたヒントを取得、または生成
 export async function GET(
   req: NextRequest,
-  { params }: { params: { problemId: string } }
+  { params }: { params: Promise<{ problemId: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions)
@@ -34,7 +34,7 @@ export async function GET(
       )
     }
 
-    const { problemId } = params
+    const { problemId } = await params
     const searchParams = req.nextUrl.searchParams
     const level = parseInt(searchParams.get("level") || "1", 10)
 
@@ -108,7 +108,7 @@ export async function GET(
 // DELETE: キャッシュを削除して再生成を促す
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { problemId: string } }
+  { params }: { params: Promise<{ problemId: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions)
@@ -116,7 +116,7 @@ export async function DELETE(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const { problemId } = params
+    const { problemId } = await params
     const searchParams = req.nextUrl.searchParams
     const level = parseInt(searchParams.get("level") || "1", 10)
 

@@ -4,6 +4,8 @@ import { Code } from "lucide-react"
 import { SkillCategoryCard } from "@/components/skills/skill-category-card"
 import { PageHeader } from "@/components/layout/page-header"
 
+export const dynamic = 'force-dynamic'
+
 async function getSkills() {
   const skills = await prisma.skill.findMany({
     where: { isPublic: true },

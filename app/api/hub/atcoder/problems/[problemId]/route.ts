@@ -6,7 +6,7 @@ import { prisma } from "@/lib/prisma"
 // PUT: 問題のステータス・メモを更新
 export async function PUT(
   req: NextRequest,
-  { params }: { params: { problemId: string } }
+  { params }: { params: Promise<{ problemId: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions)
@@ -14,7 +14,7 @@ export async function PUT(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const { problemId } = params
+    const { problemId } = await params
     const body = await req.json()
     const { status, memo } = body
 
@@ -68,7 +68,7 @@ export async function PUT(
 // DELETE: 問題を削除
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { problemId: string } }
+  { params }: { params: Promise<{ problemId: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions)
@@ -76,7 +76,7 @@ export async function DELETE(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const { problemId } = params
+    const { problemId } = await params
 
     // ユーザー進捗のみ削除（問題メタデータは残す）
     await prisma.atCoderUserProblem.deleteMany({

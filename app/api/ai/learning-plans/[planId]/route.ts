@@ -7,7 +7,7 @@ import { ATCODER_RATING_ZONES } from "@/lib/atcoder-rating"
 // GET: プラン詳細を取得
 export async function GET(
   req: NextRequest,
-  { params }: { params: { planId: string } }
+  { params }: { params: Promise<{ planId: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions)
@@ -15,8 +15,9 @@ export async function GET(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
+    const { planId } = await params
     const plan = await prisma.learningPlan.findUnique({
-      where: { id: params.planId },
+      where: { id: planId },
       include: {
         tasks: {
           orderBy: { dueDate: "asc" },
@@ -72,7 +73,7 @@ export async function GET(
 // DELETE: プランを削除
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { planId: string } }
+  { params }: { params: Promise<{ planId: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions)
@@ -80,8 +81,9 @@ export async function DELETE(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
+    const { planId } = await params
     const plan = await prisma.learningPlan.findUnique({
-      where: { id: params.planId },
+      where: { id: planId },
     })
 
     if (!plan || plan.userId !== session.user.id) {
@@ -92,7 +94,7 @@ export async function DELETE(
     }
 
     await prisma.learningPlan.delete({
-      where: { id: params.planId },
+      where: { id: planId },
     })
 
     return NextResponse.json({ success: true })

@@ -6,7 +6,7 @@ import { prisma } from "@/lib/prisma"
 // PUT /api/hub/tasks/[id] - タスク更新
 export async function PUT(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions)
@@ -23,12 +23,13 @@ export async function PUT(
       return NextResponse.json({ error: "User not found" }, { status: 404 })
     }
 
+    const { id } = await params
     const body = await req.json()
     const { title, description, status, priority, dueDate, completedAt, notionUrl } = body
 
     // タスクの存在確認と権限チェック
     const existingTask = await prisma.task.findUnique({
-      where: { id: params.id }
+      where: { id }
     })
 
     if (!existingTask) {
@@ -54,7 +55,7 @@ export async function PUT(
 
     // タスクを更新
     const task = await prisma.task.update({
-      where: { id: params.id },
+      where: { id },
       data: {
         ...(title !== undefined && { title: title.trim() }),
         ...(description !== undefined && { description: description ? description.trim() : null }),
@@ -76,7 +77,7 @@ export async function PUT(
 // DELETE /api/hub/tasks/[id] - タスク削除
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions)
@@ -93,9 +94,10 @@ export async function DELETE(
       return NextResponse.json({ error: "User not found" }, { status: 404 })
     }
 
+    const { id } = await params
     // タスクの存在確認と権限チェック
     const existingTask = await prisma.task.findUnique({
-      where: { id: params.id }
+      where: { id }
     })
 
     if (!existingTask) {
@@ -108,7 +110,7 @@ export async function DELETE(
 
     // タスクを削除
     await prisma.task.delete({
-      where: { id: params.id }
+      where: { id }
     })
 
     return NextResponse.json({ message: "Task deleted successfully" })

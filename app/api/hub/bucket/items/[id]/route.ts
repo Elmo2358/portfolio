@@ -6,7 +6,7 @@ import { prisma } from "@/lib/prisma"
 // PUT /api/hub/bucket/items/[id] - バケツリスト項目更新
 export async function PUT(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions)
@@ -23,8 +23,9 @@ export async function PUT(
       return NextResponse.json({ error: "User not found" }, { status: 404 })
     }
 
+    const { id } = await params
     const existingItem = await prisma.bucketListItem.findUnique({
-      where: { id: params.id }
+      where: { id }
     })
 
     if (!existingItem) {
@@ -64,7 +65,7 @@ export async function PUT(
     }
 
     const item = await prisma.bucketListItem.update({
-      where: { id: params.id },
+      where: { id },
       data: {
         ...(title !== undefined && { title: title.trim() }),
         ...(category && { category }),
@@ -87,7 +88,7 @@ export async function PUT(
 // DELETE /api/hub/bucket/items/[id] - バケツリスト項目削除
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions)
@@ -104,8 +105,9 @@ export async function DELETE(
       return NextResponse.json({ error: "User not found" }, { status: 404 })
     }
 
+    const { id } = await params
     const existingItem = await prisma.bucketListItem.findUnique({
-      where: { id: params.id }
+      where: { id }
     })
 
     if (!existingItem) {
@@ -117,7 +119,7 @@ export async function DELETE(
     }
 
     await prisma.bucketListItem.delete({
-      where: { id: params.id }
+      where: { id }
     })
 
     return NextResponse.json({ message: "Item deleted successfully" })

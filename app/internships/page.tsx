@@ -4,6 +4,8 @@ import { prisma } from "@/lib/prisma"
 import { InternshipCard } from "@/components/internships/internship-card"
 import { PageHeader } from "@/components/layout/page-header"
 
+export const dynamic = 'force-dynamic'
+
 export default async function InternshipsPage() {
   const internships = await prisma.internship.findMany({
     where: { isPublic: true },

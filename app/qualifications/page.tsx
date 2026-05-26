@@ -4,6 +4,8 @@ import { prisma } from "@/lib/prisma"
 import { QualificationCard } from "@/components/qualifications/qualification-card"
 import { PageHeader } from "@/components/layout/page-header"
 
+export const dynamic = 'force-dynamic'
+
 export default async function QualificationsPage() {
   const qualifications = await prisma.qualification.findMany({
     where: { isPublic: true },

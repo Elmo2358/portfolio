@@ -6,7 +6,7 @@ import { prisma } from "@/lib/prisma"
 // PUT: 問題の解説URLを更新
 export async function PUT(
   req: NextRequest,
-  { params }: { params: { problemId: string } }
+  { params }: { params: Promise<{ problemId: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions)
@@ -14,7 +14,7 @@ export async function PUT(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const { problemId } = params
+    const { problemId } = await params
     const body = await req.json()
     const { explanationUrl } = body
 
