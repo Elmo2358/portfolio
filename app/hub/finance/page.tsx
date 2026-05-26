@@ -6,7 +6,7 @@ import { FinanceManager } from "@/components/hub/finance-manager"
 export default async function FinancePage({
   searchParams
 }: {
-  searchParams: { type?: string }
+  searchParams: Promise<{ type?: string }>
 }) {
   const session = await getServerSession(authOptions)
 
@@ -20,7 +20,8 @@ export default async function FinancePage({
     )
   }
 
-  const initialTab = searchParams.type === "income" ? "income" : searchParams.type === "expense" ? "expense" : "dashboard"
+  const params = await searchParams
+  const initialTab = params.type === "income" ? "income" : params.type === "expense" ? "expense" : "dashboard"
 
   // 現在の月のデータを取得
   const now = new Date()
