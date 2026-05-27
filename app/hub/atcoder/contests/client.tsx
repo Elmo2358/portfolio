@@ -87,7 +87,7 @@ export function AtCoderContestsClient({ solvedProblemIds }: AtCoderContestsClien
             <TabsList className="grid w-full grid-cols-4">
               <TabsTrigger value="abs">ABS</TabsTrigger>
               <TabsTrigger value="typical90">典型90</TabsTrigger>
-              <TabsTrigger value="math">数学</TabsTrigger>
+              <TabsTrigger value="math-and-algorithm">数学</TabsTrigger>
               <TabsTrigger value="tessoku">鉄則</TabsTrigger>
             </TabsList>
 

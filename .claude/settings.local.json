@@ -164,7 +164,13 @@
       "Bash(cp .claude/worktrees/agent-a28f4201c2bc9c25b/app/api/portfolio/projects/[id]/route.ts app/api/portfolio/projects/[id]/route.ts)",
       "Bash(curl -s \"http://localhost:3000/api/hub/atcoder/recommendations?type=next\")",
       "Bash(pnpm test:run)",
-      "Bash(git rm *)"
+      "Bash(git rm *)",
+      "Bash(pnpm approve-builds *)",
+      "Bash(taskkill /PID 18496 /F)",
+      "Bash(taskkill /PID 31540 /F)",
+      "Bash(taskkill /F /PID 31540)",
+      "Bash(cmd.exe /c \"taskkill /F /PID 31540\")",
+      "Bash(npx shadcn@latest add collapsible)"
     ],
     "additionalDirectories": [
       "c:\\Users\\kerox\\hp\\app\\api\\hub\\tasks\\[id]",
