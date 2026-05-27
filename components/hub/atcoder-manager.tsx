@@ -15,6 +15,8 @@ import { HintRevealer } from "@/components/hub/atcoder/ai/qa/hint-revealer"
 import { RecommendationCard } from "@/components/hub/atcoder/recommendation-card"
 import { CodeReviewCard } from "@/components/hub/atcoder/code-review-card"
 import { LearningPlanCard } from "@/components/hub/atcoder/learning-plan-card"
+import { Apg4bLearningCard } from "@/components/hub/atcoder/apg4b/apg4b-learning-card"
+import { UnifiedAnalysisCard } from "@/components/hub/atcoder/unified-analysis-card"
 import {
   Dialog,
   DialogContent,
@@ -34,6 +36,8 @@ import {
   Save,
   BookOpen,
   Sparkles,
+  RefreshCw,
+  Loader2,
 } from "lucide-react"
 
 interface Problem {
@@ -100,6 +104,19 @@ export function AtCoderManager({ initialProblems }: AtCoderManagerProps) {
   const [statusFilter, setStatusFilter] = useState("")
   const [page, setPage] = useState(1)
 
+  // 同期状態
+  const [syncStatus, setSyncStatus] = useState<{
+    hasAtCoderId: boolean
+    lastSync: string | null
+    submissionCount: number
+    syncing: boolean
+  }>({
+    hasAtCoderId: false,
+    lastSync: null,
+    submissionCount: 0,
+    syncing: false,
+  })
+
   // 新規問題追加
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
   const [newProblem, setNewProblem] = useState({
@@ -122,6 +139,7 @@ export function AtCoderManager({ initialProblems }: AtCoderManagerProps) {
   useEffect(() => {
     fetchStats()
     fetchProblemsInternal()
+    fetchSyncStatus()
   }, [])
 
   // 検索・フィルタ変更時のデバウンス処理
@@ -190,6 +208,53 @@ export function AtCoderManager({ initialProblems }: AtCoderManagerProps) {
       setError("統計の取得に失敗しました")
     } finally {
       setLoading(false)
+    }
+  }
+
+  const fetchSyncStatus = async () => {
+    try {
+      const res = await fetch("/api/hub/atcoder/sync/status")
+      if (res.ok) {
+        const data = await res.json()
+        setSyncStatus({
+          hasAtCoderId: data.hasAtCoderId,
+          lastSync: data.lastSync,
+          submissionCount: data.submissionCount,
+          syncing: false,
+        })
+      }
+    } catch (error) {
+      console.error("Error fetching sync status:", error)
+    }
+  }
+
+  const handleSync = async () => {
+    if (!syncStatus.hasAtCoderId) {
+      setError("AtCoder IDが設定されていません。設定ページから設定してください。")
+      return
+    }
+
+    setSyncStatus((prev) => ({ ...prev, syncing: true }))
+    try {
+      const res = await fetch("/api/hub/atcoder/sync", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      })
+
+      if (res.ok) {
+        const data = await res.json()
+        await fetchStats()
+        await fetchProblemsInternal()
+        await fetchSyncStatus()
+      } else {
+        const data = await res.json()
+        setError(data.error || "同期に失敗しました")
+      }
+    } catch (error) {
+      console.error("Error syncing:", error)
+      setError("同期に失敗しました")
+    } finally {
+      setSyncStatus((prev) => ({ ...prev, syncing: false }))
     }
   }
 
@@ -421,14 +486,66 @@ export function AtCoderManager({ initialProblems }: AtCoderManagerProps) {
             longestStreak={0}
             forgivenessUsed={0}
           />
+
+          {/* 同期ステータス */}
+          <Card className="border-2 border-indigo-200 dark:border-indigo-900 bg-indigo-50 dark:bg-indigo-950">
+            <CardHeader className="pb-2">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-sm font-medium text-indigo-700 dark:text-indigo-300">
+                  AtCoder同期
+                </CardTitle>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleSync}
+                  disabled={syncStatus.syncing || !syncStatus.hasAtCoderId}
+                  className="h-8"
+                >
+                  {syncStatus.syncing ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <RefreshCw className="h-4 w-4" />
+                  )}
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {syncStatus.hasAtCoderId ? (
+                <div>
+                  <p className="text-xs text-muted-foreground">
+                    提出数: {syncStatus.submissionCount}件
+                  </p>
+                  {syncStatus.lastSync && (
+                    <p className="text-xs text-muted-foreground">
+                      最終同期: {new Date(syncStatus.lastSync).toLocaleString("ja-JP")}
+                    </p>
+                  )}
+                </div>
+              ) : (
+                <p className="text-xs text-muted-foreground">
+                  設定ページでAtCoder IDを設定してください
+                </p>
+              )}
+            </CardContent>
+          </Card>
         </>
       )}
 
       {/* 学習履歴ヒートマップ */}
-      <ActivityHeatmap days={365} />
+      <ActivityHeatmap days={150} />
 
       {/* コンテストスケジュール */}
       <ContestSchedule limit={10} sites={["atcoder.jp"]} />
+
+      {/* 統合同期・分析 */}
+      <UnifiedAnalysisCard
+        syncStatus={syncStatus}
+        onAnalysisComplete={async () => {
+          await fetchStats()
+          await fetchProblemsInternal()
+          await fetchSyncStatus()
+        }}
+      />
 
       {/* AI問題推薦 */}
       <RecommendationCard onAddProblem={async () => await fetchProblems()} />
@@ -687,6 +804,9 @@ export function AtCoderManager({ initialProblems }: AtCoderManagerProps) {
           <ChatInterface className="h-[500px]" />
         </CardContent>
       </Card>
+
+      {/* APG4b学習プラン */}
+      <Apg4bLearningCard />
 
       {/* 問題編集ダイアログ */}
       {editingProblem && (

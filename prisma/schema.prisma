@@ -58,6 +58,7 @@ model User {
   uecSyncLogs           UecSyncLog[]
   uecTimetableEntries   UecTimetableEntry[]
   timerSessions         TimerSession[]
+  apg4bProgress         Apg4bUserProgress[]
 }
 
 model Qualification {
@@ -535,4 +536,58 @@ model TimerSession {
 
   @@index([userId, createdAt])
   @@index([userId, category])
+}
+
+model Apg4bChapter {
+  id          String   @id @default(cuid())
+  chapterId   String   @unique
+  title       String
+  section     String
+  order       Int
+  description String?
+  problemId   String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  lessons      Apg4bLesson[]
+  userProgress Apg4bUserProgress[]
+}
+
+model Apg4bLesson {
+  id          String   @id @default(cuid())
+  chapterId   String
+  lessonId    String
+  title       String
+  problemId   String   @unique
+  order       Int
+  difficulty  Int?
+  concepts    String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  chapter      Apg4bChapter @relation(fields: [chapterId], references: [id], onDelete: Cascade)
+  userProgress Apg4bUserProgress[]
+
+  @@index([chapterId])
+}
+
+model Apg4bUserProgress {
+  id          String    @id @default(cuid())
+  userId      String
+  chapterId   String?
+  lessonId    String?
+  status      String    @default("not_started")
+  startedAt   DateTime?
+  completedAt DateTime?
+  memo        String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  chapter Apg4bChapter? @relation(fields: [chapterId], references: [id], onDelete: Cascade)
+  lesson  Apg4bLesson?   @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  userRel User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, chapterId])
+  @@unique([userId, lessonId])
+  @@index([userId, status])
 }

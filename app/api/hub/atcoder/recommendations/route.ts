@@ -24,6 +24,9 @@ export async function GET(req: NextRequest) {
       case "review":
         recommendations = await getReviewRecommendations(session.user.id)
         break
+      case "apg4b":
+        recommendations = await getApg4bRecommendations(session.user.id)
+        break
       default:
         return NextResponse.json({ error: "Invalid recommendation type" }, { status: 400 })
     }
@@ -402,4 +405,113 @@ async function getReviewRecommendations(userId: string) {
     difficulty: p.difficulty || undefined,
     reason: "前回のレビューで評価が低かった問題。再挑戦して理解を深めましょう。",
   }))
+}
+
+/**
+ * APG4b推薦：進捗に基づいて次のレッスンを推薦
+ */
+async function getApg4bRecommendations(userId: string) {
+  // APG4bの全章とレッスンを取得
+  const chapters = await prisma.apg4bChapter.findMany({
+    orderBy: { order: "asc" },
+    include: {
+      lessons: {
+        orderBy: { order: "asc" },
+      },
+      userProgress: {
+        where: { userId },
+      },
+    },
+  })
+
+  if (chapters.length === 0) {
+    // APG4bデータが同期されていない
+    return [{
+      id: "APG4b_sync",
+      title: "APG4bデータを同期してください",
+      reason: "APG4bのデータがまだ同期されていません。AtCoderページの「データ同期」ボタンを押してください。",
+    }]
+  }
+
+  // ユーザーのレッスン進捗を取得
+  const lessonProgress = await prisma.apg4bUserProgress.findMany({
+    where: {
+      userId,
+      lessonId: { not: null },
+    },
+  })
+
+  const completedLessonIds = new Set(
+    lessonProgress
+      .filter((p) => p.status === "completed")
+      .map((p) => p.lessonId)
+  )
+
+  const inProgressLessonIds = new Set(
+    lessonProgress
+      .filter((p) => p.status === "in_progress")
+      .map((p) => p.lessonId)
+  )
+
+  const recommendations: Array<{ id: string; title: string; reason: string; chapterTitle?: string; lessonId?: string }> = []
+
+  // 1. まず学習中のレッスンを推薦
+  for (const chapter of chapters) {
+    for (const lesson of chapter.lessons) {
+      if (inProgressLessonIds.has(lesson.id)) {
+        recommendations.push({
+          id: lesson.problemId,
+          title: lesson.title,
+          chapterTitle: chapter.title,
+          lessonId: lesson.lessonId,
+          reason: `APG4b「${chapter.title}」の学習中です。続きから取り組みましょう。`,
+        })
+      }
+    }
+  }
+
+  // 2. 学習中のレッスンがない場合、次の未着手レッスンを推薦
+  if (recommendations.length === 0) {
+    for (const chapter of chapters) {
+      for (const lesson of chapter.lessons) {
+        if (!completedLessonIds.has(lesson.id) && !inProgressLessonIds.has(lesson.id)) {
+          recommendations.push({
+            id: lesson.problemId,
+            title: lesson.title,
+            chapterTitle: chapter.title,
+            lessonId: lesson.lessonId,
+            reason: `APG4b「${chapter.title}」の次のレッスンです。`,
+          })
+          break // 1章から1つのみ推薦
+        }
+      }
+      if (recommendations.length > 0) break
+    }
+  }
+
+  // 3. まだ推薦がない場合、最初のレッスンを推薦
+  if (recommendations.length === 0 && chapters.length > 0) {
+    const firstChapter = chapters[0]
+    if (firstChapter.lessons.length > 0) {
+      const firstLesson = firstChapter.lessons[0]
+      recommendations.push({
+        id: firstLesson.problemId,
+        title: firstLesson.title,
+        chapterTitle: firstChapter.title,
+        lessonId: firstLesson.lessonId,
+        reason: "APG4bの最初のレッスンから始めましょう。",
+      })
+    }
+  }
+
+  // 4. 全レッスン完了の場合
+  if (recommendations.length === 0) {
+    recommendations.push({
+      id: "APG4b_completed",
+      title: "おめでとうございます！",
+      reason: "APG4bの全レッスンが完了しました。次はABCの問題に挑戦しましょう。",
+    })
+  }
+
+  return recommendations.slice(0, 5)
 }

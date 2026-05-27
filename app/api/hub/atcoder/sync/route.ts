@@ -17,12 +17,29 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const body = await req.json()
-    const { atCoderId } = body
+    // ユーザーのAtCoder IDを取得
+    const user = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { atCoderId: true },
+    })
+
+    let atCoderId = user?.atCoderId
+
+    console.log("[Sync] User's AtCoder ID:", atCoderId)
+
+    // リクエストボディにatCoderIdがあれば優先（初期設定時）
+    try {
+      const body = await req.json()
+      if (body.atCoderId) {
+        atCoderId = body.atCoderId
+      }
+    } catch {
+      // ボディがない場合は無視（同期ボタンからの呼び出し）
+    }
 
     if (!atCoderId) {
       return NextResponse.json(
-        { error: "AtCoder ID is required" },
+        { error: "AtCoder ID not set. Please set it in settings." },
         { status: 400 }
       )
     }
@@ -72,6 +89,8 @@ export async function POST(req: NextRequest) {
     }
 
     // 各提出履歴を処理
+    const acProblemIds: string[] = []
+
     for (const submission of submissions) {
       // 1. 提出履歴を保存
       await prisma.atCoderSubmission.upsert({
@@ -90,6 +109,7 @@ export async function POST(req: NextRequest) {
 
       // 2. AC提出ならステータスを更新
       if (submission.result === "AC") {
+        acProblemIds.push(submission.problem_id)
         const existing = await prisma.atCoderUserProblem.findUnique({
           where: {
             userId_problemId: {
@@ -136,6 +156,72 @@ export async function POST(req: NextRequest) {
       await sleep(1000)
     }
 
+    // APG4b進捗を更新（AC提出から）
+    let apg4bLessonsCompleted = 0
+    let apg4bChaptersCompleted = 0
+
+    // デバッグログ
+    console.log("[APG4b Sync] AC problem IDs:", acProblemIds)
+
+    if (acProblemIds.length > 0) {
+      // APG4bの全レッスンと章を取得
+      const apg4bLessons = await prisma.apg4bLesson.findMany()
+      const apg4bChapters = await prisma.apg4bChapter.findMany()
+
+      console.log("[APG4b Sync] Lessons in DB:", apg4bLessons.map(l => ({ id: l.lessonId, problemId: l.problemId })))
+      console.log("[APG4b Sync] Chapters in DB:", apg4bChapters.map(c => ({ id: c.chapterId, problemId: c.problemId })))
+
+      // レッスンの進捗を更新
+      for (const lesson of apg4bLessons) {
+        if (acProblemIds.includes(lesson.problemId)) {
+          await prisma.apg4bUserProgress.upsert({
+            where: {
+              userId_lessonId: {
+                userId: session.user.id,
+                lessonId: lesson.id,
+              },
+            },
+            update: {
+              status: "completed",
+              completedAt: new Date(),
+            },
+            create: {
+              userId: session.user.id,
+              lessonId: lesson.id,
+              status: "completed",
+              completedAt: new Date(),
+            },
+          })
+          apg4bLessonsCompleted++
+        }
+      }
+
+      // 章の進捗を更新（説明課題のACをチェック）
+      for (const chapter of apg4bChapters) {
+        if (chapter.problemId && acProblemIds.includes(chapter.problemId)) {
+          await prisma.apg4bUserProgress.upsert({
+            where: {
+              userId_chapterId: {
+                userId: session.user.id,
+                chapterId: chapter.id,
+              },
+            },
+            update: {
+              status: "completed",
+              completedAt: new Date(),
+            },
+            create: {
+              userId: session.user.id,
+              chapterId: chapter.id,
+              status: "completed",
+              completedAt: new Date(),
+            },
+          })
+          apg4bChaptersCompleted++
+        }
+      }
+    }
+
     return NextResponse.json({
       success: true,
       message: "AtCoder連携が完了しました",
@@ -143,6 +229,8 @@ export async function POST(req: NextRequest) {
         submissionsCount: submissions.length,
         problemsCreated,
         userProblemsUpdated,
+        apg4bLessonsCompleted,
+        apg4bChaptersCompleted,
       },
     })
   } catch (error) {

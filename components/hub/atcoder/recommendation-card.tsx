@@ -12,6 +12,9 @@ interface Recommendation {
   title: string
   difficulty?: number
   reason: string
+  chapterTitle?: string
+  lessonId?: string
+  url?: string
 }
 
 interface RecommendationsResponse {
@@ -27,11 +30,13 @@ interface RecommendationCardProps {
 const typeLabels: Record<string, string> = {
   review: "復習",
   next: "次のレベル",
+  apg4b: "APG4b",
 }
 
 const typeDescriptions: Record<string, string> = {
   review: "前回のレビューで評価が低かった問題を再挑戦",
   next: "学習プランに基づいた次のレベルを目指す問題",
+  apg4b: "APG4b（C++入門）の次のレッスン",
 }
 
 export function RecommendationCard({ onAddProblem, className }: RecommendationCardProps) {
@@ -112,7 +117,11 @@ export function RecommendationCard({ onAddProblem, className }: RecommendationCa
   }
 
   // 問題URLを生成
-  const getProblemUrl = (problemId: string) => {
+  const getProblemUrl = (problemId: string, rec?: Recommendation) => {
+    // APG4bの問題の場合
+    if (problemId.startsWith("APG4b_") || rec?.chapterTitle) {
+      return `https://atcoder.jp/contests/APG4b/tasks/${problemId}`
+    }
     const parts = problemId.split("_")
     return `https://atcoder.jp/contests/${parts[0]}/tasks/${problemId}`
   }
@@ -164,8 +173,9 @@ export function RecommendationCard({ onAddProblem, className }: RecommendationCa
         )}
 
         <Tabs value={activeType} onValueChange={handleTypeChange} className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="next">次のレベル</TabsTrigger>
+            <TabsTrigger value="apg4b">APG4b</TabsTrigger>
             <TabsTrigger value="review">復習</TabsTrigger>
           </TabsList>
 
@@ -225,6 +235,11 @@ export function RecommendationCard({ onAddProblem, className }: RecommendationCa
                                   ウォームアップ
                                 </Badge>
                               )}
+                              {activeType === "apg4b" && rec.chapterTitle && (
+                                <Badge variant="outline" className="text-xs">
+                                  {rec.chapterTitle}
+                                </Badge>
+                              )}
                               <span className="text-sm text-muted-foreground">{rec.id}</span>
                               {rec.difficulty !== undefined && (
                                 <Badge variant="outline" className="text-xs">
@@ -241,7 +256,7 @@ export function RecommendationCard({ onAddProblem, className }: RecommendationCa
                           </div>
                           <div className="flex gap-2">
                             <a
-                              href={getProblemUrl(rec.id)}
+                              href={getProblemUrl(rec.id, rec)}
                               target="_blank"
                               rel="noopener noreferrer"
                               title="問題ページを開く"

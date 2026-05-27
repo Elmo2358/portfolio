@@ -382,6 +382,21 @@ function CodeReviewDialogContent({ review }: CodeReviewDialogContentProps) {
           </ul>
         </div>
       )}
+
+      {/* 提出コード */}
+      {displayReview.sourceCode && (
+        <div>
+          <h3 className="text-lg font-semibold mb-2">提出コード</h3>
+          <div className="bg-gray-100 dark:bg-gray-800 rounded-lg p-4 overflow-x-auto">
+            <pre className="text-xs whitespace-pre-wrap">{displayReview.sourceCode}</pre>
+          </div>
+          {displayReview.language && (
+            <p className="text-xs text-muted-foreground mt-1">
+              言語: {displayReview.language}
+            </p>
+          )}
+        </div>
+      )}
     </div>
   )
 }
