@@ -115,21 +115,24 @@ export default async function AtCoderReviewsPage() {
 
   // レビューがない場合はモックデータを使用
   const displayReviews = reviews.length > 0
-    ? reviews.map((review) => ({
-        id: review.id,
-        submissionId: review.submissionId,
-        problemId: review.problemId,
-        problemTitle: review.problemTitle || "",
-        overallRating: review.overallRating || "C",
-        summary: review.summary || "",
-        strengths: review.strengths ? JSON.parse(review.strengths) : [],
-        improvements: review.improvements ? JSON.parse(review.improvements) : [],
-        complexityScore: review.complexityScore || 5,
-        bugs: review.bugs ? JSON.parse(review.bugs) : [],
-        sourceCode: review.sourceCode || "",
-        language: review.language || "",
-        createdAt: review.createdAt.toISOString(),
-      }))
+    ? [
+        ...reviews.map((review) => ({
+          id: review.id,
+          submissionId: review.submissionId,
+          problemId: review.problemId,
+          problemTitle: review.problemTitle || "",
+          overallRating: review.overallRating || "C",
+          summary: review.summary || "",
+          strengths: review.strengths ? JSON.parse(review.strengths) : [],
+          improvements: review.improvements ? JSON.parse(review.improvements) : [],
+          complexityScore: review.complexityScore || 5,
+          bugs: review.bugs ? JSON.parse(review.bugs) : [],
+          sourceCode: review.sourceCode || "",
+          language: review.language || "",
+          createdAt: review.createdAt.toISOString(),
+        })),
+        ...mockReviews,
+      ]
     : mockReviews
 
   return (
