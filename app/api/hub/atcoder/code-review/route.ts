@@ -238,7 +238,7 @@ export async function POST(req: NextRequest) {
   }
 }
 
-// GET: ユーザーのコードレビュー一覧を取得
+// GET: ユーザーのコードレビュー一覧を取得（ページネーション対応）
 export async function GET(req: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
@@ -248,11 +248,28 @@ export async function GET(req: NextRequest) {
 
     const searchParams = req.nextUrl.searchParams
     const limit = parseInt(searchParams.get("limit") || "10", 10)
+    const offset = parseInt(searchParams.get("offset") || "0", 10)
+    const submissionId = searchParams.get("submissionId")
+    const rating = searchParams.get("rating")
+
+    const where: any = { userId: session.user.id }
+
+    if (submissionId) {
+      where.submissionId = submissionId
+    }
+
+    if (rating && rating !== "all") {
+      where.overallRating = rating
+    }
+
+    // 総数を取得
+    const total = await prisma.codeReview.count({ where })
 
     const reviews = await prisma.codeReview.findMany({
-      where: { userId: session.user.id },
+      where,
       orderBy: { createdAt: "desc" },
       take: limit,
+      skip: offset,
     })
 
     return NextResponse.json({
@@ -263,8 +280,15 @@ export async function GET(req: NextRequest) {
         problemTitle: review.problemTitle,
         overallRating: review.overallRating,
         summary: review.summary,
+        strengths: review.strengths ? JSON.parse(review.strengths) : [],
+        improvements: review.improvements ? JSON.parse(review.improvements) : [],
+        complexityScore: review.complexityScore,
+        bugs: review.bugs ? JSON.parse(review.bugs) : [],
+        sourceCode: review.sourceCode,
+        language: review.language,
         createdAt: review.createdAt,
       })),
+      total,
     })
   } catch (error) {
     console.error("Error fetching code reviews:", error)
