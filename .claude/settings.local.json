@@ -170,13 +170,45 @@
       "Bash(taskkill /PID 31540 /F)",
       "Bash(taskkill /F /PID 31540)",
       "Bash(cmd.exe /c \"taskkill /F /PID 31540\")",
-      "Bash(npx shadcn@latest add collapsible)"
+      "Bash(npx shadcn@latest add collapsible)",
+      "Bash(mkdir -p \"c:/Users/kerox/hp/.claude/skills/atcoder-feature\")",
+      "Edit(/.claude/skills/atcoder-feature/**)",
+      "Bash(mkdir -p \"c:/Users/kerox/hp/.claude/skills/ci-check\")",
+      "Edit(/.claude/skills/ci-check/**)",
+      "Bash(mkdir -p \"c:/Users/kerox/hp/.claude/skills/mcp-setup\")",
+      "Edit(/.claude/skills/mcp-setup/**)",
+      "Bash(mkdir -p \"c:/Users/kerox/hp/.claude/skills/verify-propagation\")",
+      "Edit(/.claude/skills/verify-propagation/**)",
+      "Bash(mkdir -p \"c:/Users/kerox/hp/.claude/skills/prod-verify\")",
+      "Edit(/.claude/skills/prod-verify/**)",
+      "Bash(mkdir -p \"c:/Users/kerox/hp/.claude/skills/db-verify\")",
+      "Edit(/.claude/skills/db-verify/**)",
+      "Bash(mkdir -p \"c:/Users/kerox/hp/.claude/skills/ui-integration\")",
+      "Edit(/.claude/skills/ui-integration/**)",
+      "Bash(mkdir -p \"c:/Users/kerox/hp/.claude/skills/tdd-agent\")",
+      "Edit(/.claude/skills/tdd-agent/**)",
+      "Bash(mkdir -p \"c:/Users/kerox/hp/.claude/skills/multi-agent\")",
+      "Edit(/.claude/skills/multi-agent/**)",
+      "Bash(mkdir -p \"c:/Users/kerox/hp/.claude/skills/self-heal\")",
+      "Edit(/.claude/skills/self-heal/**)",
+      "Bash(mkdir -p \"c:/Users/kerox/.claude/skills/deploy\" \"c:/Users/kerox/.claude/skills/ci-check\" \"c:/Users/kerox/.claude/skills/mcp-setup\" \"c:/Users/kerox/.claude/skills/verify-propagation\" \"c:/Users/kerox/.claude/skills/prod-verify\" \"c:/Users/kerox/.claude/skills/db-verify\" \"c:/Users/kerox/.claude/skills/ui-integration\" \"c:/Users/kerox/.claude/skills/tdd-agent\" \"c:/Users/kerox/.claude/skills/multi-agent\" \"c:/Users/kerox/.claude/skills/self-heal\")",
+      "Bash(cp \"c:/Users/kerox/hp/.claude/skills/deploy/SKILL.md\" \"c:/Users/kerox/.claude/skills/deploy/SKILL.md\")",
+      "Bash(cp \"c:/Users/kerox/hp/.claude/skills/ci-check/SKILL.md\" \"c:/Users/kerox/.claude/skills/ci-check/SKILL.md\")",
+      "Bash(cp \"c:/Users/kerox/hp/.claude/skills/mcp-setup/SKILL.md\" \"c:/Users/kerox/.claude/skills/mcp-setup/SKILL.md\")",
+      "Bash(cp \"c:/Users/kerox/hp/.claude/skills/verify-propagation/SKILL.md\" \"c:/Users/kerox/.claude/skills/verify-propagation/SKILL.md\")",
+      "Bash(cp \"c:/Users/kerox/hp/.claude/skills/prod-verify/SKILL.md\" \"c:/Users/kerox/.claude/skills/prod-verify/SKILL.md\")",
+      "Bash(cp \"c:/Users/kerox/hp/.claude/skills/db-verify/SKILL.md\" \"c:/Users/kerox/.claude/skills/db-verify/SKILL.md\")",
+      "Bash(cp \"c:/Users/kerox/hp/.claude/skills/ui-integration/SKILL.md\" \"c:/Users/kerox/.claude/skills/ui-integration/SKILL.md\")",
+      "Bash(cp \"c:/Users/kerox/hp/.claude/skills/tdd-agent/SKILL.md\" \"c:/Users/kerox/.claude/skills/tdd-agent/SKILL.md\")",
+      "Bash(cp \"c:/Users/kerox/hp/.claude/skills/multi-agent/SKILL.md\" \"c:/Users/kerox/.claude/skills/multi-agent/SKILL.md\")",
+      "Bash(cp \"c:/Users/kerox/hp/.claude/skills/self-heal/SKILL.md\" \"c:/Users/kerox/.claude/skills/self-heal/SKILL.md\")"
     ],
     "additionalDirectories": [
       "c:\\Users\\kerox\\hp\\app\\api\\hub\\tasks\\[id]",
       "c:\\Users\\kerox\\hp\\app\\api\\ai\\learning-plans\\[planId]",
       "c:\\Users\\kerox\\hp\\.claude\\skills",
-      "C:\\Users\\kerox\\.claude"
+      "C:\\Users\\kerox\\.claude",
+      "c:\\Users\\kerox\\.claude\\skills\\deploy"
     ]
   }
 }

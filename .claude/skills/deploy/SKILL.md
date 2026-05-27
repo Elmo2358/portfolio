@@ -1,32 +1,21 @@
 ---
 name: deploy
-description: デプロイ前チェックからGitHubプッシュまでの自動デプロイワークフロー
+description: Deploy to production with type checks, build verification, and testing
 ---
 
-# デプロイワークフロー
+# Deploy to Production
 
-このスキルは以下の手順でデプロイを実行します：
+Follow these steps to deploy to production:
 
-1. **モックデータのチェックと削除**
-   - コードベース内のモックデータを検索し、本番環境に残すべきでないモックを削除します
-
-2. **ビルド実行とエラー修正**
-   - `pnpm build` を実行し、エラーがあれば修正します
-
-3. **テスト実行**
-   - テストが存在する場合、実行します
-
-4. **コミット**
-   - 変更をデスクリプティブなメッセージでコミットします
-
-5. **GitHubにプッシュ**
-   - 変更をリモートリポジトリにプッシュします
-
-6. **ドキュメント更新**
-   - 関連するドキュメント（STATUS.mdなど）を更新します
+1. **Type checks**: Run `pnpm tsc --noEmit` and fix any type errors
+2. **Build the application**: Run `pnpm build`
+3. **Check for build errors or warnings**: Review the build output carefully
+4. **If successful, run deployment command**: Proceed with deployment only if steps 1-3 pass
+5. **Verify production functionality**: Test the deployed application in production
+6. **Commit changes**: Create a commit with message 'chore: deploy to production'
 
 ---
 
-## 実行手順
+## Execution
 
-まず現在の変更を確認し、上記の手順でデプロイを進めます。
+Begin by checking the current git status, then proceed through each step sequentially. Stop and report any errors before proceeding to deployment.

@@ -5,6 +5,16 @@
     "docs/ROADMAP.md"
   ],
   "hooks": {
+    "prePrompt": [
+      "pnpm tsc --noEmit || echo '⚠️ TypeScript errors detected'",
+      "pnpm prisma generate || echo '⚠️ Prisma client may be stale'"
+    ],
+    "preResponse": [
+      "pnpm format --check 2>/dev/null || echo 'ℹ️ Some files may need formatting'"
+    ],
+    "postEdit": [
+      "pnpm eslint --fix [FILE] 2>/dev/null || true"
+    ],
     "pre-commit": [
       "pnpm lint",
       "pnpm type-check"
