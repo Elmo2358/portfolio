@@ -39,14 +39,20 @@ export function ReviewHistory({ initialReviews = [] }: ReviewHistoryProps) {
   const [reviews, setReviews] = useState<CodeReview[]>(initialReviews)
   const [loading, setLoading] = useState(false)
   const [page, setPage] = useState(1)
-  const [totalCount, setTotalCount] = useState(0)
+  const [totalCount, setTotalCount] = useState(initialReviews.length)
   const [ratingFilter, setRatingFilter] = useState<string>("all")
   const [expandedReview, setExpandedReview] = useState<string | null>(null)
+  const [initialized, setInitialized] = useState(false)
 
   const itemsPerPage = 10
   const totalPages = Math.ceil(totalCount / itemsPerPage)
 
   useEffect(() => {
+    // 初期データがある場合は、最初のAPI呼び出しをスキップ
+    if (!initialized && initialReviews.length > 0) {
+      setInitialized(true)
+      return
+    }
     fetchReviews()
   }, [page, ratingFilter])
 
