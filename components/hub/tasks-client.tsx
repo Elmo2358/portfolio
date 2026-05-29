@@ -159,7 +159,27 @@ export function TasksClient({ initialTasks }: TasksClientProps) {
   // 期限日の表示
   const isOverdue = (task: Task) => {
     if (!task.dueDate || task.status === "completed") return false
-    return new Date(task.dueDate) < new Date()
+    const dueDateTime = new Date(task.dueDate)
+    // 時間が00:00:00の場合、日付のみとみなして終了日の23:59までとする
+    const hours = dueDateTime.getHours()
+    const minutes = dueDateTime.getMinutes()
+    const seconds = dueDateTime.getSeconds()
+    if (hours === 0 && minutes === 0 && seconds === 0) {
+      dueDateTime.setHours(23, 59, 59, 999)
+    }
+    return dueDateTime < new Date()
+  }
+
+  // 日時のフォーマット（時間がある場合は日時を表示）
+  const formatDateTime = (date: Date) => {
+    const hours = date.getHours()
+    const minutes = date.getMinutes()
+    const seconds = date.getSeconds()
+    // 時間が00:00:00の場合は日付のみ表示
+    if (hours === 0 && minutes === 0 && seconds === 0) {
+      return format(date, "yyyy/MM/dd", { locale: ja })
+    }
+    return format(date, "yyyy/MM/dd HH:mm", { locale: ja })
   }
 
   return (
@@ -320,7 +340,7 @@ export function TasksClient({ initialTasks }: TasksClientProps) {
                       {task.dueDate && (
                         <div className={`flex items-center gap-1 ${isOverdue(task) ? "text-red-600 dark:text-red-400" : ""}`}>
                           <Calendar className="h-3 w-3" />
-                          {format(new Date(task.dueDate), "yyyy/MM/dd", { locale: ja })}
+                          {formatDateTime(new Date(task.dueDate))}
                           {isOverdue(task) && " (期限超過)"}
                         </div>
                       )}
@@ -417,16 +437,26 @@ function TaskForm({
   const [dueDate, setDueDate] = useState(
     task?.dueDate ? format(new Date(task.dueDate), "yyyy-MM-dd") : ""
   )
+  const [dueTime, setDueTime] = useState(
+    task?.dueDate ? format(new Date(task.dueDate), "HH:mm") : ""
+  )
   const [notionUrl, setNotionUrl] = useState(task?.notionUrl || "")
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
+    // 日付と時間を結合
+    const combinedDueDate = dueDate && dueTime
+      ? new Date(`${dueDate}T${dueTime}`).toISOString()
+      : dueDate
+        ? new Date(dueDate).toISOString()
+        : null
+
     onSave({
       title,
       description,
       status,
       priority,
-      dueDate: dueDate || null,
+      dueDate: combinedDueDate,
       notionUrl: notionUrl || null
     })
   }
@@ -498,6 +528,18 @@ function TaskForm({
                 className="w-full rounded-md border border-input bg-background px-3 py-2.5 text-sm"
               />
             </div>
+
+            {dueDate && (
+              <div>
+                <label className="mb-2 block text-sm font-medium">期限時刻（任意）</label>
+                <input
+                  type="time"
+                  value={dueTime}
+                  onChange={(e) => setDueTime(e.target.value)}
+                  className="w-full rounded-md border border-input bg-background px-3 py-2.5 text-sm"
+                />
+              </div>
+            )}
 
             <div>
               <label className="mb-2 block text-sm font-medium">Notion URL（任意）</label>
