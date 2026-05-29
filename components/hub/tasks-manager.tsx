@@ -431,6 +431,7 @@ function TaskForm({
   const [isDragging, setIsDragging] = useState(false)
   const [dragStartY, setDragStartY] = useState(0)
   const [dragStartTime, setDragStartTime] = useState("")
+  const [dragButton, setDragButton] = useState(0 | 2) // 0: 左クリック（時間）, 2: 右クリック（分）
 
   // 時間を増減する関数（分単位で調整）
   const adjustTime = (current: string, deltaMinutes: number) => {
@@ -442,18 +443,24 @@ function TaskForm({
   }
 
   const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+    // 左クリック（0）または右クリック（2）のみ許可
+    if (e.button !== 0 && e.button !== 2) return
+
     setIsDragging(true)
     setDragStartY(e.clientY)
     setDragStartTime(dueTime)
+    setDragButton(e.button)
     e.preventDefault()
   }
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!isDragging) return
 
-    const deltaY = dragStartY - e.clientY // 上に動かすとプラス（時間増）、下に動かすとマイナス
-    const minutesPerPx = 0.5 // 1pxあたり0.5分（感度調整）
-    const deltaMinutes = Math.round(deltaY * minutesPerPx)
+    const deltaY = dragStartY - e.clientY // 上に動かすとプラス、下に動かすとマイナス
+
+    // 左クリック: 時間単位（60分単位）、右クリック: 分単位
+    const unitPerPx = dragButton === 0 ? 5 : 1 // 左: 1pxあたり5分（時間調整用）、右: 1pxあたり1分
+    const deltaMinutes = Math.round(deltaY * unitPerPx)
 
     if (deltaMinutes !== 0) {
       setDueTime((prev) => adjustTime(dragStartTime, deltaMinutes))
@@ -462,6 +469,10 @@ function TaskForm({
 
   const handleMouseUp = () => {
     setIsDragging(false)
+  }
+
+  const handleContextMenu = (e: React.MouseEvent<HTMLDivElement>) => {
+    e.preventDefault() // 右クリックメニューを無効化
   }
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -562,6 +573,7 @@ function TaskForm({
                   onMouseMove={handleMouseMove}
                   onMouseUp={handleMouseUp}
                   onMouseLeave={handleMouseUp}
+                  onContextMenu={handleContextMenu}
                   style={{ cursor: isDragging ? "grabbing" : "grab" }}
                 >
                   <input
@@ -581,7 +593,7 @@ function TaskForm({
                   </div>
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">
-                  ドラッグで時間調整（上下に動かす）
+                  ドラッグで時間調整（左: 時間・右: 分）
                 </p>
               </div>
             )}
