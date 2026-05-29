@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Plus, CheckCircle2, Clock, AlertCircle, Trash2, Edit2, Calendar, ExternalLink } from "lucide-react"
+import { Plus, CheckCircle2, Clock, AlertCircle, Trash2, Edit2, Calendar, ExternalLink, ChevronUp, ChevronDown } from "lucide-react"
 import { format } from "date-fns"
 import { ja } from "date-fns/locale"
 import { ReminderButton } from "@/components/hub/reminder-button"
@@ -441,14 +441,14 @@ function TaskForm({
     return format(date, "HH:mm")
   }
 
-  const handleMouseDown = (e: React.MouseEvent<HTMLInputElement>) => {
+  const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
     setIsDragging(true)
     setDragStartY(e.clientY)
     setDragStartTime(dueTime)
     e.preventDefault()
   }
 
-  const handleMouseMove = (e: React.MouseEvent<HTMLInputElement>) => {
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!isDragging) return
 
     const deltaY = dragStartY - e.clientY // 上に動かすとプラス（時間増）、下に動かすとマイナス
@@ -554,19 +554,34 @@ function TaskForm({
             {dueDate && (
               <div>
                 <label className="mb-2 block text-sm font-medium">期限時刻（任意）</label>
-                <input
-                  type="time"
-                  value={dueTime}
-                  onChange={(e) => setDueTime(e.target.value)}
+                <div
+                  className={`flex gap-2 rounded-md border border-input bg-background p-1 select-none ${
+                    isDragging ? "cursor-grabbing" : ""
+                  }`}
                   onMouseDown={handleMouseDown}
                   onMouseMove={handleMouseMove}
                   onMouseUp={handleMouseUp}
                   onMouseLeave={handleMouseUp}
-                  className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                  style={{ cursor: "ns-resize" }}
-                />
+                  style={{ cursor: isDragging ? "grabbing" : "grab" }}
+                >
+                  <input
+                    type="time"
+                    value={dueTime}
+                    onChange={(e) => setDueTime(e.target.value)}
+                    className="flex-1 bg-transparent border-0 px-2 py-1.5 text-sm pointer-events-none"
+                    style={{ cursor: "inherit" }}
+                  />
+                  <div className="flex flex-col gap-1 pointer-events-none">
+                    <div className="w-4 h-4 flex items-center justify-center text-muted-foreground">
+                      <ChevronUp className="h-4 w-4" />
+                    </div>
+                    <div className="w-4 h-4 flex items-center justify-center text-muted-foreground">
+                      <ChevronDown className="h-4 w-4" />
+                    </div>
+                  </div>
+                </div>
                 <p className="text-xs text-muted-foreground mt-1">
-                  左クリックドラッグで時間調整（上下に動かす）
+                  ドラッグで時間調整（上下に動かす）
                 </p>
               </div>
             )}
