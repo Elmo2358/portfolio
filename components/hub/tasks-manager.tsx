@@ -428,22 +428,40 @@ function TaskForm({
     task?.dueDate ? format(new Date(task.dueDate), "HH:mm") : ""
   )
   const [notionUrl, setNotionUrl] = useState(task?.notionUrl || "")
-  const [isMouseDown, setIsMouseDown] = useState(false)
+  const [isDragging, setIsDragging] = useState(false)
+  const [dragStartY, setDragStartY] = useState(0)
+  const [dragStartTime, setDragStartTime] = useState("")
 
   // 時間を増減する関数（分単位で調整）
-  const adjustTime = (current: string, delta: number) => {
+  const adjustTime = (current: string, deltaMinutes: number) => {
     if (!current) return current
     const [hours, minutes] = current.split(":").map(Number)
     const date = new Date()
-    date.setHours(hours, minutes + delta, 0, 0)
+    date.setHours(hours, minutes + deltaMinutes, 0, 0)
     return format(date, "HH:mm")
   }
 
-  const handleWheel = (e: React.WheelEvent<HTMLInputElement>) => {
-    if (!isMouseDown) return
+  const handleMouseDown = (e: React.MouseEvent<HTMLInputElement>) => {
+    setIsDragging(true)
+    setDragStartY(e.clientY)
+    setDragStartTime(dueTime)
     e.preventDefault()
-    const delta = e.deltaY > 0 ? 5 : -5 // ホイール感度を下げる（5分単位）
-    setDueTime((prev) => adjustTime(prev, delta))
+  }
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLInputElement>) => {
+    if (!isDragging) return
+
+    const deltaY = dragStartY - e.clientY // 上に動かすとプラス（時間増）、下に動かすとマイナス
+    const minutesPerPx = 0.5 // 1pxあたり0.5分（感度調整）
+    const deltaMinutes = Math.round(deltaY * minutesPerPx)
+
+    if (deltaMinutes !== 0) {
+      setDueTime((prev) => adjustTime(dragStartTime, deltaMinutes))
+    }
+  }
+
+  const handleMouseUp = () => {
+    setIsDragging(false)
   }
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -540,14 +558,15 @@ function TaskForm({
                   type="time"
                   value={dueTime}
                   onChange={(e) => setDueTime(e.target.value)}
-                  onMouseDown={() => setIsMouseDown(true)}
-                  onMouseUp={() => setIsMouseDown(false)}
-                  onMouseLeave={() => setIsMouseDown(false)}
-                  onWheel={handleWheel}
+                  onMouseDown={handleMouseDown}
+                  onMouseMove={handleMouseMove}
+                  onMouseUp={handleMouseUp}
+                  onMouseLeave={handleMouseUp}
                   className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                  style={{ cursor: "ns-resize" }}
                 />
                 <p className="text-xs text-muted-foreground mt-1">
-                  左クリックホールド+ホイールで時間調整（5分単位）
+                  左クリックドラッグで時間調整（上下に動かす）
                 </p>
               </div>
             )}
