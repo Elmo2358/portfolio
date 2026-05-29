@@ -445,7 +445,9 @@ function TaskForm({
   const [dragStartY, setDragStartY] = useState(0)
   const [dragStartTime, setDragStartTime] = useState("")
   const [dragButton, setDragButton] = useState(0 | 2) // 0: 左クリック（時間）, 2: 右クリック（分）
-  const [timeEditMode, setTimeEditMode] = useState<"hours" | "minutes">("hours") // スマホ用: 時間/分モード
+  const [timePickerOpen, setTimePickerOpen] = useState(false) // スマホ用時間ピッカー
+  const [selectedHour, setSelectedHour] = useState(0)
+  const [selectedMinute, setSelectedMinute] = useState(0)
 
   // 時間を増減する関数（分単位で調整）
   const adjustTime = (current: string, deltaMinutes: number) => {
@@ -489,30 +491,24 @@ function TaskForm({
     e.preventDefault() // 右クリックメニューを無効化
   }
 
-  // タッチ操作（スマホ用）
-  const handleTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
-    setIsDragging(true)
-    setDragStartY(e.touches[0].clientY)
-    setDragStartTime(dueTime)
-  }
-
-  const handleTouchMove = (e: React.TouchEvent<HTMLDivElement>) => {
-    if (!isDragging) return
-    e.preventDefault() // スクロールを防止
-
-    const deltaY = dragStartY - e.touches[0].clientY
-
-    // 時間モード: 3pxあたり1時間、分モード: 3pxあたり1分
-    const unitPerPx = timeEditMode === "hours" ? 20 : 1/3
-    const deltaMinutes = Math.round(deltaY * unitPerPx)
-
-    if (deltaMinutes !== 0) {
-      setDueTime((prev) => adjustTime(dragStartTime, deltaMinutes))
+  // スマホ用時間ピッカー
+  const openTimePicker = () => {
+    if (dueTime) {
+      const [h, m] = dueTime.split(":").map(Number)
+      setSelectedHour(h)
+      setSelectedMinute(m)
+    } else {
+      setSelectedHour(0)
+      setSelectedMinute(0)
     }
+    setTimePickerOpen(true)
   }
 
-  const handleTouchEnd = () => {
-    setIsDragging(false)
+  const confirmTimePicker = () => {
+    const hours = selectedHour.toString().padStart(2, "0")
+    const minutes = selectedMinute.toString().padStart(2, "0")
+    setDueTime(`${hours}:${minutes}`)
+    setTimePickerOpen(false)
   }
 
   // クリックで±5分調整
@@ -644,56 +640,16 @@ function TaskForm({
                   </div>
                 </div>
 
-                {/* スマホ: タブ + スワイプ操作 */}
+                {/* スマホ: ドラムロールピッカー */}
                 <div className="md:hidden">
-                  {/* モード切り替えタブ */}
-                  <div className="flex gap-1 mb-2">
-                    <button
-                      type="button"
-                      onClick={() => setTimeEditMode("hours")}
-                      className={`flex-1 py-1.5 text-sm rounded-md transition-colors ${
-                        timeEditMode === "hours"
-                          ? "bg-emerald-600 text-white dark:bg-emerald-500"
-                          : "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300"
-                      }`}
-                    >
-                      時間
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setTimeEditMode("minutes")}
-                      className={`flex-1 py-1.5 text-sm rounded-md transition-colors ${
-                        timeEditMode === "minutes"
-                          ? "bg-emerald-600 text-white dark:bg-emerald-500"
-                          : "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300"
-                      }`}
-                    >
-                      分
-                    </button>
-                  </div>
-
-                  {/* スワイプエリア */}
-                  <div
-                    className={`relative h-24 rounded-md border-2 border-dashed border-emerald-300 dark:border-emerald-700 bg-emerald-50 dark:bg-emerald-950 flex items-center justify-center select-none ${
-                      isDragging ? "border-emerald-500" : ""
-                    }`}
-                    onTouchStart={handleTouchStart}
-                    onTouchMove={handleTouchMove}
-                    onTouchEnd={handleTouchEnd}
+                  <button
+                    type="button"
+                    onClick={openTimePicker}
+                    className="w-full rounded-md border border-input bg-background px-3 py-2.5 text-sm text-left flex items-center justify-between"
                   >
-                    <div className="text-center">
-                      <div className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">
-                        {dueTime || "--:--"}
-                      </div>
-                      <div className="text-xs text-muted-foreground mt-1">
-                        {timeEditMode === "hours" ? "上下スワイプで時間調整" : "上下スワイプで分調整"}
-                      </div>
-                      <div className="flex justify-center gap-4 mt-2 text-emerald-500 dark:text-emerald-400">
-                        <ChevronUp className="h-5 w-5" />
-                        <ChevronDown className="h-5 w-5" />
-                      </div>
-                    </div>
-                  </div>
+                    <span>{dueTime || "時刻を選択"}</span>
+                    <Clock className="h-4 w-4 text-muted-foreground" />
+                  </button>
                 </div>
 
                 <p className="text-xs text-muted-foreground mt-1 hidden md:block">
@@ -735,6 +691,95 @@ function TaskForm({
           </form>
         </CardContent>
       </Card>
+
+      {/* ドラムロール時間ピッカー */}
+      {timePickerOpen && (
+        <div className="fixed inset-0 bg-black/50 flex items-end justify-center z-50">
+          <div className="w-full max-w-md bg-white dark:bg-gray-900 rounded-t-2xl p-4">
+            <div className="flex items-center justify-between mb-4">
+              <button
+                type="button"
+                onClick={() => setTimePickerOpen(false)}
+                className="px-4 py-2 text-sm text-emerald-600 dark:text-emerald-400"
+              >
+                キャンセル
+              </button>
+              <h3 className="text-lg font-semibold">時刻を選択</h3>
+              <button
+                type="button"
+                onClick={confirmTimePicker}
+                className="px-4 py-2 text-sm font-semibold text-emerald-600 dark:text-emerald-400"
+              >
+                完了
+              </button>
+            </div>
+
+            <div className="flex gap-4 justify-center">
+              {/* 時間のドラムロール */}
+              <div className="flex-1">
+                <div className="text-center text-sm text-muted-foreground mb-2">時間</div>
+                <div className="relative h-48 overflow-hidden bg-gray-100 dark:bg-gray-800 rounded-lg">
+                  <div className="absolute inset-0 flex flex-col">
+                    <button
+                      type="button"
+                      onClick={() => setSelectedHour((h) => (h === 0 ? 23 : h - 1))}
+                      className="flex-1 flex items-center justify-center text-2xl text-emerald-600 dark:text-emerald-400 active:bg-emerald-100 dark:active:bg-emerald-900"
+                    >
+                      <ChevronUp className="h-8 w-8" />
+                    </button>
+                    <div className="h-16 flex items-center justify-center bg-white dark:bg-gray-700 border-y-2 border-emerald-500">
+                      <span className="text-3xl font-bold text-emerald-600 dark:text-emerald-400">
+                        {selectedHour.toString().padStart(2, "0")}
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setSelectedHour((h) => (h === 23 ? 0 : h + 1))}
+                      className="flex-1 flex items-center justify-center text-2xl text-emerald-600 dark:text-emerald-400 active:bg-emerald-100 dark:active:bg-emerald-900"
+                    >
+                      <ChevronDown className="h-8 w-8" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* 分のドラムロール */}
+              <div className="flex-1">
+                <div className="text-center text-sm text-muted-foreground mb-2">分</div>
+                <div className="relative h-48 overflow-hidden bg-gray-100 dark:bg-gray-800 rounded-lg">
+                  <div className="absolute inset-0 flex flex-col">
+                    <button
+                      type="button"
+                      onClick={() => setSelectedMinute((m) => (m === 0 ? 59 : m - 1))}
+                      className="flex-1 flex items-center justify-center text-2xl text-emerald-600 dark:text-emerald-400 active:bg-emerald-100 dark:active:bg-emerald-900"
+                    >
+                      <ChevronUp className="h-8 w-8" />
+                    </button>
+                    <div className="h-16 flex items-center justify-center bg-white dark:bg-gray-700 border-y-2 border-emerald-500">
+                      <span className="text-3xl font-bold text-emerald-600 dark:text-emerald-400">
+                        {selectedMinute.toString().padStart(2, "0")}
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setSelectedMinute((m) => (m === 59 ? 0 : m + 1))}
+                      className="flex-1 flex items-center justify-center text-2xl text-emerald-600 dark:text-emerald-400 active:bg-emerald-100 dark:active:bg-emerald-900"
+                    >
+                      <ChevronDown className="h-8 w-8" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-4 text-center">
+              <div className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">
+                {selectedHour.toString().padStart(2, "0")}:{selectedMinute.toString().padStart(2, "0")}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
