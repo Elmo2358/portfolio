@@ -445,6 +445,7 @@ function TaskForm({
   const [dragStartY, setDragStartY] = useState(0)
   const [dragStartTime, setDragStartTime] = useState("")
   const [dragButton, setDragButton] = useState(0 | 2) // 0: 左クリック（時間）, 2: 右クリック（分）
+  const [timeEditMode, setTimeEditMode] = useState<"hours" | "minutes">("hours") // スマホ用: 時間/分モード
 
   // 時間を増減する関数（分単位で調整）
   const adjustTime = (current: string, deltaMinutes: number) => {
@@ -486,6 +487,32 @@ function TaskForm({
 
   const handleContextMenu = (e: React.MouseEvent<HTMLDivElement>) => {
     e.preventDefault() // 右クリックメニューを無効化
+  }
+
+  // タッチ操作（スマホ用）
+  const handleTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
+    setIsDragging(true)
+    setDragStartY(e.touches[0].clientY)
+    setDragStartTime(dueTime)
+  }
+
+  const handleTouchMove = (e: React.TouchEvent<HTMLDivElement>) => {
+    if (!isDragging) return
+    e.preventDefault() // スクロールを防止
+
+    const deltaY = dragStartY - e.touches[0].clientY
+
+    // 時間モード: 3pxあたり1時間、分モード: 3pxあたり1分
+    const unitPerPx = timeEditMode === "hours" ? 20 : 1/3
+    const deltaMinutes = Math.round(deltaY * unitPerPx)
+
+    if (deltaMinutes !== 0) {
+      setDueTime((prev) => adjustTime(dragStartTime, deltaMinutes))
+    }
+  }
+
+  const handleTouchEnd = () => {
+    setIsDragging(false)
   }
 
   // クリックで±5分調整
@@ -587,8 +614,10 @@ function TaskForm({
             {dueDate && (
               <div>
                 <label className="mb-2 block text-sm font-medium">期限時刻（任意）</label>
+
+                {/* PC: ドラッグ操作 */}
                 <div
-                  className={`flex gap-2 rounded-md border border-input bg-background p-1 select-none ${
+                  className={`hidden md:flex gap-2 rounded-md border border-input bg-background p-1 select-none ${
                     isDragging ? "cursor-grabbing" : ""
                   }`}
                   onMouseDown={handleMouseDown}
@@ -614,7 +643,60 @@ function TaskForm({
                     </div>
                   </div>
                 </div>
-                <p className="text-xs text-muted-foreground mt-1">
+
+                {/* スマホ: タブ + スワイプ操作 */}
+                <div className="md:hidden">
+                  {/* モード切り替えタブ */}
+                  <div className="flex gap-1 mb-2">
+                    <button
+                      type="button"
+                      onClick={() => setTimeEditMode("hours")}
+                      className={`flex-1 py-1.5 text-sm rounded-md transition-colors ${
+                        timeEditMode === "hours"
+                          ? "bg-emerald-600 text-white dark:bg-emerald-500"
+                          : "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300"
+                      }`}
+                    >
+                      時間
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setTimeEditMode("minutes")}
+                      className={`flex-1 py-1.5 text-sm rounded-md transition-colors ${
+                        timeEditMode === "minutes"
+                          ? "bg-emerald-600 text-white dark:bg-emerald-500"
+                          : "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300"
+                      }`}
+                    >
+                      分
+                    </button>
+                  </div>
+
+                  {/* スワイプエリア */}
+                  <div
+                    className={`relative h-24 rounded-md border-2 border-dashed border-emerald-300 dark:border-emerald-700 bg-emerald-50 dark:bg-emerald-950 flex items-center justify-center select-none ${
+                      isDragging ? "border-emerald-500" : ""
+                    }`}
+                    onTouchStart={handleTouchStart}
+                    onTouchMove={handleTouchMove}
+                    onTouchEnd={handleTouchEnd}
+                  >
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">
+                        {dueTime || "--:--"}
+                      </div>
+                      <div className="text-xs text-muted-foreground mt-1">
+                        {timeEditMode === "hours" ? "上下スワイプで時間調整" : "上下スワイプで分調整"}
+                      </div>
+                      <div className="flex justify-center gap-4 mt-2 text-emerald-500 dark:text-emerald-400">
+                        <ChevronUp className="h-5 w-5" />
+                        <ChevronDown className="h-5 w-5" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <p className="text-xs text-muted-foreground mt-1 hidden md:block">
                   ドラッグで時間調整（左: 時間・右: 分）
                 </p>
               </div>
