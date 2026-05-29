@@ -536,6 +536,7 @@ function TaskForm({
                   type="time"
                   value={dueTime}
                   onChange={(e) => setDueTime(e.target.value)}
+                  onWheel={(e) => e.currentTarget.blur()}
                   className="w-full rounded-md border border-input bg-background px-3 py-2.5 text-sm"
                 />
               </div>
