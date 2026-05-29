@@ -428,6 +428,23 @@ function TaskForm({
     task?.dueDate ? format(new Date(task.dueDate), "HH:mm") : ""
   )
   const [notionUrl, setNotionUrl] = useState(task?.notionUrl || "")
+  const [isMouseDown, setIsMouseDown] = useState(false)
+
+  // 時間を増減する関数（分単位で調整）
+  const adjustTime = (current: string, delta: number) => {
+    if (!current) return current
+    const [hours, minutes] = current.split(":").map(Number)
+    const date = new Date()
+    date.setHours(hours, minutes + delta, 0, 0)
+    return format(date, "HH:mm")
+  }
+
+  const handleWheel = (e: React.WheelEvent<HTMLInputElement>) => {
+    if (!isMouseDown) return
+    e.preventDefault()
+    const delta = e.deltaY > 0 ? 5 : -5 // ホイール感度を下げる（5分単位）
+    setDueTime((prev) => adjustTime(prev, delta))
+  }
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -523,9 +540,15 @@ function TaskForm({
                   type="time"
                   value={dueTime}
                   onChange={(e) => setDueTime(e.target.value)}
-                  onWheel={(e) => e.currentTarget.blur()}
+                  onMouseDown={() => setIsMouseDown(true)}
+                  onMouseUp={() => setIsMouseDown(false)}
+                  onMouseLeave={() => setIsMouseDown(false)}
+                  onWheel={handleWheel}
                   className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
                 />
+                <p className="text-xs text-muted-foreground mt-1">
+                  左クリックホールド+ホイールで時間調整（5分単位）
+                </p>
               </div>
             )}
 
