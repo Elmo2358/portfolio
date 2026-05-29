@@ -4,7 +4,7 @@ import { useEffect, useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Calendar, Clock, ExternalLink, Loader2, Bell, BellOff } from "lucide-react"
+import { Calendar, Clock, ExternalLink, Loader2, Bell, BellOff, PlusCircle, CheckCircle2 } from "lucide-react"
 
 interface Contest {
   id: string
@@ -24,6 +24,7 @@ interface ContestScheduleProps {
 export function ContestSchedule({ limit = 10, sites }: ContestScheduleProps) {
   const [contests, setContests] = useState<Contest[]>([])
   const [reminders, setReminders] = useState<Set<string>>(new Set())
+  const [taskAdded, setTaskAdded] = useState<Set<string>>(new Set())
   const [loading, setLoading] = useState(true)
   const [isMock, setIsMock] = useState(false)
   const [calendarAdded, setCalendarAdded] = useState<Set<string>>(new Set())
@@ -146,6 +147,37 @@ export function ContestSchedule({ limit = 10, sites }: ContestScheduleProps) {
     } catch (error) {
       console.error("Error toggling reminder:", error)
       alert("リマインダーの設定に失敗しました")
+    }
+  }
+
+  const addToTasks = async (contest: Contest) => {
+    try {
+      const startDate = new Date(contest.start)
+      const dueDate = startDate.toISOString()
+
+      const res = await fetch("/api/hub/tasks", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: contest.event,
+          description: `${contest.resource} - ${formatDuration(contest.duration)}`,
+          status: "todo",
+          priority: "medium",
+          dueDate: dueDate,
+          notionUrl: contest.href
+        }),
+      })
+
+      if (res.ok) {
+        setTaskAdded((prev) => new Set(prev).add(contest.id))
+        alert("タスクに追加しました！")
+      } else {
+        const data = await res.json()
+        alert("タスクの追加に失敗しました: " + (data.error || "不明なエラー"))
+      }
+    } catch (error) {
+      console.error("Error adding to tasks:", error)
+      alert("タスクの追加に失敗しました")
     }
   }
 
@@ -273,6 +305,24 @@ export function ContestSchedule({ limit = 10, sites }: ContestScheduleProps) {
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
+                    <Button
+                      size="sm"
+                      variant={taskAdded.has(contest.id) ? "default" : "outline"}
+                      className={`h-8 px-2 text-xs ${
+                        taskAdded.has(contest.id)
+                          ? "bg-blue-600 text-white hover:bg-blue-700"
+                          : "border-blue-600 text-blue-600 hover:bg-blue-50 dark:border-blue-500 dark:text-blue-400"
+                      }`}
+                      onClick={() => addToTasks(contest)}
+                      title={taskAdded.has(contest.id) ? "タスクに追加済み" : "タスクに追加"}
+                      disabled={taskAdded.has(contest.id)}
+                    >
+                      {taskAdded.has(contest.id) ? (
+                        <CheckCircle2 className="h-3 w-3" />
+                      ) : (
+                        <PlusCircle className="h-3 w-3" />
+                      )}
+                    </Button>
                     <Button
                       size="sm"
                       variant={reminders.has(contest.id) ? "default" : "outline"}
