@@ -471,8 +471,8 @@ function TaskForm({
 
     const deltaY = dragStartY - e.clientY // 上に動かすとプラス、下に動かすとマイナス
 
-    // 左クリック: 時間単位（60分単位）、右クリック: 分単位
-    const unitPerPx = dragButton === 0 ? 5 : 1 // 左: 1pxあたり5分（時間調整用）、右: 1pxあたり1分
+    // 左クリック: 3pxあたり1時間（60分）、右クリック: 3pxあたり1分
+    const unitPerPx = dragButton === 0 ? 20 : 1/3
     const deltaMinutes = Math.round(deltaY * unitPerPx)
 
     if (deltaMinutes !== 0) {
