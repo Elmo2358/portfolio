@@ -42,7 +42,7 @@ const mockReviews: Array<{
     sourceCode: `a, b = map(int, input().split())
 print(a * b)`,
     language: "Python",
-    createdAt: new Date(Date.now() - 86400000).toISOString(),
+    createdAt: "2026-05-29T10:00:00.000Z",
   },
   {
     id: "mock-2",
@@ -66,7 +66,7 @@ for t in ["dream", "dreamer", "erase", "eraser"]:
     s = s.replace(t, "")
 print("YES" if s == "" else "NO")`,
     language: "Python",
-    createdAt: new Date(Date.now() - 172800000).toISOString(),
+    createdAt: "2026-05-28T10:00:00.000Z",
   },
   {
     id: "mock-3",
@@ -95,7 +95,7 @@ while all(x % 2 == 0 for x in a):
     count += 1
 print(count)`,
     language: "Python",
-    createdAt: new Date(Date.now() - 259200000).toISOString(),
+    createdAt: "2026-05-27T10:00:00.000Z",
   },
 ]
 
